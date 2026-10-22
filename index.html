@@ -46,22 +46,37 @@
       cursor: pointer;
     }
     #enter { width: 100%; }
-    #messages {
-      height: 55vh;
-      min-height: 260px;
-      overflow-y: auto;
-      border: 1px solid #eee;
-      padding: 10px;
-      margin: 12px 0;
-      border-radius: 8px;
-      overflow-wrap: anywhere;
-    }
-    .message {
-      background: #f0ecfa;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 10px;
-    }
+
+#messages {
+  height: 55vh;
+  min-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin: 12px 0;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+
+  /* Ảnh nền khu vực trò chuyện */
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.35),
+      rgba(255, 255, 255, 0.35)
+    ),
+    url("images/chat-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: local;
+}
+
+.message {
+  background: rgba(255, 255, 255, 0.82);
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
     .sender { font-weight: bold; color: #6750a4; }
     #composer { display: flex; gap: 8px; }
     #message { flex: 1; min-width: 0; }
