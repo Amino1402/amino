@@ -71,13 +71,22 @@
 }
 
 .message {
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.92);
   padding: 10px;
   margin: 8px 0;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow-wrap: anywhere;
+  border-left: 5px solid #9b8adb;
 }
-    .sender { font-weight: bold; color: #6750a4; }
+    .sender {
+  font-weight: bold;
+  color: #6750a4;
+  margin-bottom: 5px;
+}
+    .message-body {
+  color: #222;
+  line-height: 1.5;
+}
     #composer { display: flex; gap: 8px; }
     #message { flex: 1; min-width: 0; }
     #status { color: #666; font-size: 14px; }
@@ -169,11 +178,34 @@
             const data = item.val();
             const box = document.createElement("div");
             box.className = "message";
+            
+const colors = [
+  "#FCE4EC",
+  "#E3F2FD",
+  "#E8F5E9",
+  "#FFF3E0",
+  "#F3E5F5",
+  "#E0F7FA",
+  "#FFF9C4",
+  "#EDE7F6"
+];
+
+const senderId = data.uid || data.name || "guest";
+
+let hash = 0;
+for (let i = 0; i < senderId.length; i++) {
+  hash = (hash * 31 + senderId.charCodeAt(i)) | 0;
+}
+
+const color = colors[Math.abs(hash) % colors.length];
+box.style.backgroundColor = color;
+box.style.borderLeftColor = color;
             const sender = document.createElement("div");
             sender.className = "sender";
             sender.textContent = data.name || "Khách";
 
 const body = document.createElement("div");
+body.className = "message-body";
 body.textContent = data.text || "";
 
 const time = document.createElement("small");
