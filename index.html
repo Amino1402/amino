@@ -157,9 +157,25 @@
             const sender = document.createElement("div");
             sender.className = "sender";
             sender.textContent = data.name || "Khách";
-            const body = document.createElement("div");
-            body.textContent = data.text || "";
-            box.append(sender, body);
+
+const body = document.createElement("div");
+body.textContent = data.text || "";
+
+const time = document.createElement("small");
+time.style.display = "block";
+time.style.color = "#777";
+time.style.fontSize = "12px";
+
+if (typeof data.createdAt === "number") {
+  time.textContent = new Date(data.createdAt).toLocaleTimeString(
+    "vi-VN",
+    { hour: "2-digit", minute: "2-digit", hour12: false }
+  );
+} else {
+  time.textContent = "Đang cập nhật giờ...";
+}
+
+box.append(sender, body, time);
             messages.append(box);
           });
           messages.scrollTop = messages.scrollHeight;
