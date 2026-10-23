@@ -33,17 +33,13 @@
       animation: rabbitJump 1s ease-in-out infinite;
     }
 
-    .rabbit:nth-child(3) {
+    .rabbit:last-of-type {
       animation-delay: 0.5s;
     }
 
     @keyframes rabbitJump {
-      0%, 100% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-10px);
-      }
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
 
     main {
@@ -66,9 +62,7 @@
       font-size: 16px;
     }
 
-    input {
-      border: 1px solid #ccc;
-    }
+    input { border: 1px solid #ccc; }
 
     #name, #chatPassword {
       width: 100%;
@@ -87,9 +81,7 @@
       cursor: not-allowed;
     }
 
-    #enter {
-      width: 100%;
-    }
+    #enter { width: 100%; }
 
     #messages {
       height: 55vh;
@@ -149,14 +141,40 @@
       font-size: 14px;
     }
 
-    #passwordError {
-      color: red;
+    #passwordError { color: red; }
+
+    /* Trái tim bay lên khi gửi tin nhắn */
+    .floating-heart {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      user-select: none;
+      line-height: 1;
+      animation: heartFly 1.35s ease-out forwards;
+      will-change: transform, opacity;
+    }
+
+    @keyframes heartFly {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 0) scale(0.5) rotate(0deg);
+      }
+      15% {
+        opacity: 1;
+        transform: translate(-50%, -12px) scale(1.1) rotate(-8deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(
+          calc(-50% + var(--drift)),
+          -150px
+        ) scale(0.8) rotate(18deg);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .rabbit {
-        animation: none;
-      }
+      .rabbit { animation: none; }
+      .floating-heart { animation-duration: 0.7s; }
     }
   </style>
 </head>
@@ -234,12 +252,41 @@
     const passwordInput = document.getElementById("chatPassword");
     const passwordError = document.getElementById("passwordError");
     const nameInput = document.getElementById("name");
+    const composer = document.getElementById("composer");
+    const messageInput = document.getElementById("message");
 
     let db;
     let user;
     let displayName;
     let app;
     let auth;
+
+    // Tạo trái tim bay từ vị trí nút Gửi.
+    function floatHearts() {
+      const hearts = ["💗", "💕", "💖", "💘", "❤️", "💓"];
+      const button = composer.querySelector('button[type="submit"]');
+      const rect = button.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height / 2;
+
+      const count = 5 + Math.floor(Math.random() * 4);
+
+      for (let i = 0; i < count; i++) {
+        const heart = document.createElement("span");
+        heart.className = "floating-heart";
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+
+        const spread = (Math.random() - 0.5) * 90;
+        heart.style.left = `${originX + spread}px`;
+        heart.style.top = `${originY}px`;
+        heart.style.fontSize = `${16 + Math.random() * 15}px`;
+        heart.style.setProperty("--drift", `${(Math.random() - 0.5) * 100}px`);
+        heart.style.animationDelay = `${Math.random() * 0.18}s`;
+
+        document.body.appendChild(heart);
+        heart.addEventListener("animationend", () => heart.remove(), { once: true });
+      }
+    }
 
     enter.addEventListener("click", async () => {
       passwordError.textContent = "";
@@ -261,7 +308,6 @@
       status.textContent = "Đang kết nối...";
 
       try {
-        // Khởi tạo Firebase một lần trong phiên trang này.
         if (!app) {
           app = initializeApp(firebaseConfig);
           auth = getAuth(app);
@@ -286,14 +332,8 @@
           messages.replaceChildren();
 
           const colors = [
-            "#FCE4EC",
-            "#E3F2FD",
-            "#E8F5E9",
-            "#FFF3E0",
-            "#F3E5F5",
-            "#E0F7FA",
-            "#FFF9C4",
-            "#EDE7F6"
+            "#FCE4EC", "#E3F2FD", "#E8F5E9", "#FFF3E0",
+            "#F3E5F5", "#E0F7FA", "#FFF9C4", "#EDE7F6"
           ];
 
           snapshot.forEach(item => {
@@ -355,7 +395,6 @@
       }
     });
 
-    // Cho phép nhấn Enter ở ô mật khẩu để tiếp tục đăng nhập.
     passwordInput.addEventListener("keydown", event => {
       if (event.key === "Enter") enter.click();
     });
@@ -364,32 +403,36 @@
       if (event.key === "Enter") enter.click();
     });
 
-    document.getElementById("composer").addEventListener(
-      "submit", async event => {
-        event.preventDefault();
+    composer.addEventListener("submit", async event => {
+      event.preventDefault();
 
-        const input = document.getElementById("message");
-        const text = input.value.trim();
-        if (!text || !user || !db) return;
+      const text = messageInput.value.trim();
+      if (!text || !user || !db) return;
 
-        try {
-          await set(push(ref(db, "publicChat/messages")), {
-            uid: user.uid,
-            name: displayName,
-            text,
-            createdAt: serverTimestamp()
-          });
+      const submitButton = composer.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
 
-          input.value = "";
-          chatStatus.textContent = "";
-          input.focus();
-        } catch (error) {
-          console.error(error);
-          chatStatus.textContent =
-            "Gửi chưa được. Cần kiểm tra quyền Realtime Database.";
-        }
+      try {
+        await set(push(ref(db, "publicChat/messages")), {
+          uid: user.uid,
+          name: displayName,
+          text,
+          createdAt: serverTimestamp()
+        });
+
+        // Chỉ thả tim khi Firebase xác nhận gửi thành công.
+        floatHearts();
+        messageInput.value = "";
+        chatStatus.textContent = "";
+        messageInput.focus();
+      } catch (error) {
+        console.error(error);
+        chatStatus.textContent =
+          "Gửi chưa được. Cần kiểm tra quyền Realtime Database.";
+      } finally {
+        submitButton.disabled = false;
       }
-    );
+    });
   </script>
 </body>
 </html>
