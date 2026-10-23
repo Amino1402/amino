@@ -95,6 +95,28 @@
     #message { flex: 1; min-width: 0; }
     #status { color: #666; font-size: 14px; }
   </style>
+  .amino-title {
+  text-align: center;
+  color: #ec4899;
+}
+
+.rabbit {
+  display: inline-block;
+  animation: rabbitJump 1s ease-in-out infinite;
+}
+
+.rabbit:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+@keyframes rabbitJump {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
 </head>
 <body>
   <header>💬 Amino Chat🐇 </header>
