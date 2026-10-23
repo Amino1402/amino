@@ -1,14 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <h1 class="amino-title">
-  <span class="rabbit">🐰</span>
-  Amino Chat
-  <span class="rabbit">🐇</span>
-</h1>
+  <title>Amino Chat</title>
+
   <style>
     body {
       margin: 0;
@@ -16,6 +12,7 @@
       background: #f1f3f8;
       color: #222;
     }
+
     header {
       background: #6750a4;
       color: white;
@@ -24,116 +21,171 @@
       font-size: 24px;
       font-weight: bold;
     }
+
+    .amino-title {
+      margin: 0;
+      text-align: center;
+      color: white;
+    }
+
+    .rabbit {
+      display: inline-block;
+      animation: rabbitJump 1s ease-in-out infinite;
+    }
+
+    .rabbit:nth-child(3) {
+      animation-delay: 0.5s;
+    }
+
+    @keyframes rabbitJump {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
     main {
       max-width: 650px;
       margin: 20px auto;
       padding: 16px;
     }
+
     #login, #chat {
       background: white;
       padding: 18px;
       border-radius: 14px;
       box-shadow: 0 2px 10px #0001;
     }
+
     input, button {
       box-sizing: border-box;
       padding: 12px;
       border-radius: 8px;
       font-size: 16px;
     }
-    input { border: 1px solid #ccc; }
-    #name { width: 100%; margin: 12px 0; }
+
+    input {
+      border: 1px solid #ccc;
+    }
+
+    #name, #chatPassword {
+      width: 100%;
+      margin: 12px 0;
+    }
+
     button {
       border: 0;
       background: #6750a4;
       color: white;
       cursor: pointer;
     }
-    #enter { width: 100%; }
 
-#messages {
-  height: 55vh;
-  min-height: 260px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  padding: 10px;
-  margin: 12px 0;
-  border-radius: 8px;
-  overflow-wrap: anywhere;
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-  /* Ảnh nền khu vực trò chuyện */
-  background-image:
-    linear-gradient(
-      rgba(255, 255, 255, 0.35),
-      rgba(255, 255, 255, 0.35)
-    ),
-    url("./chat-bg.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: local;
-}
+    #enter {
+      width: 100%;
+    }
 
-.message {
-  background: rgba(255, 255, 255, 0.92);
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 12px;
-  overflow-wrap: anywhere;
-  border: 2px solid #E91E63;
-}
+    #messages {
+      height: 55vh;
+      min-height: 260px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 12px 0;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+      background-image:
+        linear-gradient(
+          rgba(255, 255, 255, 0.35),
+          rgba(255, 255, 255, 0.35)
+        ),
+        url("./chat-bg.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: local;
+    }
+
+    .message {
+      background: rgba(255, 255, 255, 0.92);
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 12px;
+      overflow-wrap: anywhere;
+      border: 2px solid #E91E63;
+      border-left-width: 6px;
+    }
+
     .sender {
-  font-weight: bold;
-  color: #6750a4;
-  margin-bottom: 5px;
-}
+      font-weight: bold;
+      color: #6750a4;
+      margin-bottom: 5px;
+    }
+
     .message-body {
-  color: #222;
-  line-height: 1.5;
-}
-    #composer { display: flex; gap: 8px; }
-    #message { flex: 1; min-width: 0; }
-    #status { color: #666; font-size: 14px; }
+      color: #222;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    #composer {
+      display: flex;
+      gap: 8px;
+    }
+
+    #message {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #status {
+      color: #666;
+      font-size: 14px;
+    }
+
+    #passwordError {
+      color: red;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rabbit {
+        animation: none;
+      }
+    }
   </style>
-  .amino-title {
-  text-align: center;
-  color: #ec4899;
-}
-
-.rabbit {
-  display: inline-block;
-  animation: rabbitJump 1s ease-in-out infinite;
-}
-
-.rabbit:nth-child(3) {
-  animation-delay: 0.5s;
-}
-
-@keyframes rabbitJump {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
 </head>
+
 <body>
-  <header>💬 Amino Chat🐇 </header>
+  <header>
+    <h1 class="amino-title">
+      💬 <span class="rabbit">🐰</span>
+      Amino Chat
+      <span class="rabbit">🐇</span>
+    </h1>
+  </header>
+
   <main>
     <section id="login">
       <p>Nhập mật khẩu để vào Amino Chat</p>
-<input
-  id="chatPassword"
-  type="password"
-  placeholder="Nhập mật khẩu"
->
-<p id="passwordError" style="color:red"></p>
-      <h3>Chào mừng đến Amino chat!</h3>
+      <input
+        id="chatPassword"
+        type="password"
+        placeholder="Nhập mật khẩu"
+        autocomplete="current-password"
+      >
+      <p id="passwordError" aria-live="polite"></p>
+
+      <h3>Chào mừng đến Amino Chat!</h3>
       <p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
       <input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
-      <button id="enter">Vào chat thui 👆 </button>
-      <p id="status">Đang kết nối...</p>
+      <button id="enter" type="button">Vào chat thui 👆</button>
+      <p id="status">Sẵn sàng kết nối.</p>
     </section>
 
     <section id="chat" hidden>
@@ -141,16 +193,20 @@
       <p id="welcome"></p>
       <div id="messages"></div>
       <form id="composer">
-        <input id="message" maxlength="1000"
-          placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
+        <input
+          id="message"
+          maxlength="1000"
+          placeholder="Nhập tin nhắn ở đây nè cậu..."
+          autocomplete="off"
+          required
+        >
         <button type="submit">Gửi</button>
       </form>
-      <p id="chatStatus"></p>
+      <p id="chatStatus" aria-live="polite"></p>
     </section>
   </main>
 
   <script type="module">
-    // BƯỚC SAU: thay cấu hình mẫu bằng cấu hình Firebase thật.
     import { initializeApp } from
       "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, signInAnonymously } from
@@ -161,12 +217,12 @@
     } from
       "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-   const firebaseConfig = {
-  apiKey: "AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
-  authDomain: "amino-c6032.firebaseapp.com",
-  databaseURL: "https://amino-c6032-default-rtdb.asia-southeast1.firebasedatabase.app/",
-  projectId: "amino-c6032",
-  appId: "1:659773931860:web:c101fc013c28a1b4e508c1"
+    const firebaseConfig = {
+      apiKey: "AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
+      authDomain: "amino-c6032.firebaseapp.com",
+      databaseURL: "https://amino-c6032-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "amino-c6032",
+      appId: "1:659773931860:web:c101fc013c28a1b4e508c1"
     };
 
     const login = document.getElementById("login");
@@ -175,32 +231,43 @@
     const chatStatus = document.getElementById("chatStatus");
     const messages = document.getElementById("messages");
     const enter = document.getElementById("enter");
+    const passwordInput = document.getElementById("chatPassword");
+    const passwordError = document.getElementById("passwordError");
+    const nameInput = document.getElementById("name");
 
-    let db, user, displayName;
+    let db;
+    let user;
+    let displayName;
+    let app;
+    let auth;
 
     enter.addEventListener("click", async () => {
-      
-const password = document.getElementById("chatPassword").value;
+      passwordError.textContent = "";
 
-if (password !== "1409") {
-  document.getElementById("passwordError").textContent =
-    "Mật khẩu không đúng!";
-  return;
-}
+      if (passwordInput.value !== "1409") {
+        passwordError.textContent = "Mật khẩu không đúng!";
+        passwordInput.focus();
+        return;
+      }
 
-document.getElementById("passwordError").textContent = "";
-      displayName = document.getElementById("name").value.trim();
+      displayName = nameInput.value.trim();
       if (!displayName) {
         status.textContent = "Bạn hãy nhập tên trước nhé.";
+        nameInput.focus();
         return;
       }
 
       enter.disabled = true;
       status.textContent = "Đang kết nối...";
+
       try {
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        db = getDatabase(app);
+        // Khởi tạo Firebase một lần trong phiên trang này.
+        if (!app) {
+          app = initializeApp(firebaseConfig);
+          auth = getAuth(app);
+          db = getDatabase(app);
+        }
+
         const result = await signInAnonymously(auth);
         user = result.user;
 
@@ -217,72 +284,90 @@ document.getElementById("passwordError").textContent = "";
 
         onValue(recent, snapshot => {
           messages.replaceChildren();
+
+          const colors = [
+            "#FCE4EC",
+            "#E3F2FD",
+            "#E8F5E9",
+            "#FFF3E0",
+            "#F3E5F5",
+            "#E0F7FA",
+            "#FFF9C4",
+            "#EDE7F6"
+          ];
+
           snapshot.forEach(item => {
-            const data = item.val();
+            const data = item.val() || {};
             const box = document.createElement("div");
             box.className = "message";
-            
-const colors = [
-  "#FCE4EC",
-  "#E3F2FD",
-  "#E8F5E9",
-  "#FFF3E0",
-  "#F3E5F5",
-  "#E0F7FA",
-  "#FFF9C4",
-  "#EDE7F6"
-];
 
-const senderId = data.uid || data.name || "guest";
+            const senderId = String(data.uid || data.name || "guest");
+            let hash = 0;
 
-let hash = 0;
-for (let i = 0; i < senderId.length; i++) {
-  hash = (hash * 31 + senderId.charCodeAt(i)) | 0;
-}
+            for (let i = 0; i < senderId.length; i++) {
+              hash = (hash * 31 + senderId.charCodeAt(i)) | 0;
+            }
 
-const color = colors[Math.abs(hash) % colors.length];
-box.style.backgroundColor = color;
-box.style.borderLeftColor = color;
+            const color = colors[Math.abs(hash) % colors.length];
+            box.style.backgroundColor = color;
+            box.style.borderColor = color;
+            box.style.borderLeftColor = "#E91E63";
+
             const sender = document.createElement("div");
             sender.className = "sender";
             sender.textContent = data.name || "Khách";
 
-const body = document.createElement("div");
-body.className = "message-body";
-body.textContent = data.text || "";
+            const body = document.createElement("div");
+            body.className = "message-body";
+            body.textContent = data.text || "";
 
-const time = document.createElement("small");
-time.style.display = "block";
-time.style.color = "#777";
-time.style.fontSize = "12px";
+            const time = document.createElement("small");
+            time.style.display = "block";
+            time.style.color = "#777";
+            time.style.fontSize = "12px";
 
-if (typeof data.createdAt === "number") {
-  time.textContent = new Date(data.createdAt).toLocaleTimeString(
-    "vi-VN",
-    { hour: "2-digit", minute: "2-digit", hour12: false }
-  );
-} else {
-  time.textContent = "Đang cập nhật giờ...";
-}
+            if (typeof data.createdAt === "number") {
+              time.textContent = new Date(data.createdAt).toLocaleTimeString(
+                "vi-VN",
+                { hour: "2-digit", minute: "2-digit", hour12: false }
+              );
+            } else {
+              time.textContent = "Đang cập nhật giờ...";
+            }
 
-box.append(sender, body, time);
+            box.append(sender, body, time);
             messages.append(box);
           });
+
           messages.scrollTop = messages.scrollHeight;
+        }, error => {
+          console.error(error);
+          chatStatus.textContent =
+            "Không đọc được tin nhắn. Hãy kiểm tra quyền Realtime Database.";
         });
 
         chatStatus.textContent = "Đã kết nối.";
       } catch (error) {
-        status.textContent =
-          "Chưa kết nối được. Kiểm tra cấu hình Firebase và Authentication.";
-        enter.disabled = false;
         console.error(error);
+        status.textContent =
+          "Chưa kết nối được. Kiểm tra cấu hình Firebase và bật Anonymous Authentication.";
+        enter.disabled = false;
       }
+    });
+
+    // Cho phép nhấn Enter ở ô mật khẩu để tiếp tục đăng nhập.
+    passwordInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") enter.click();
+    });
+
+    nameInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") enter.click();
     });
 
     document.getElementById("composer").addEventListener(
       "submit", async event => {
         event.preventDefault();
+
         const input = document.getElementById("message");
         const text = input.value.trim();
         if (!text || !user || !db) return;
@@ -291,14 +376,17 @@ box.append(sender, body, time);
           await set(push(ref(db, "publicChat/messages")), {
             uid: user.uid,
             name: displayName,
-            text: text,
+            text,
             createdAt: serverTimestamp()
           });
+
           input.value = "";
           chatStatus.textContent = "";
+          input.focus();
         } catch (error) {
+          console.error(error);
           chatStatus.textContent =
-            "Gửi chưa được. Cần kiểm tra quyền Database.";
+            "Gửi chưa được. Cần kiểm tra quyền Realtime Database.";
         }
       }
     );
