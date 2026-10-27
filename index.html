@@ -7,10 +7,6 @@
 <title>Amino Chat</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
-
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -48,33 +44,20 @@ header {
 }
 
 main {
-  max-width: 1200px;
+  max-width: 650px;
   margin: 20px auto;
   padding: 16px;
 }
 
-/* BỐ CỤC CHAT BÊN TRÁI - SOUNDCLOUD BÊN PHẢI */
-.content-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 18px;
-  align-items: start;
-}
-
-#login, #chat, #soundcloud-panel {
+#login, #chat {
   background: white;
   padding: 18px;
   border-radius: 14px;
   box-shadow: 0 2px 10px #0001;
-  min-width: 0;
-}
-
-#login {
-  max-width: 650px;
-  margin: 0 auto;
 }
 
 input, button {
+  box-sizing: border-box;
   padding: 12px;
   border-radius: 8px;
   font-size: 16px;
@@ -82,7 +65,6 @@ input, button {
 
 input {
   border: 1px solid #ccc;
-  min-width: 0;
 }
 
 #name, #chatPassword {
@@ -146,10 +128,11 @@ button:disabled {
   white-space: pre-wrap;
 }
 
-/* THÔNG BÁO HỆ THỐNG VÀ GIỜ */
+/* Thông báo hệ thống */
 .system-message {
   width: fit-content;
   max-width: 95%;
+  box-sizing: border-box;
   margin: 12px auto;
   padding: 7px 12px;
   border-radius: 999px;
@@ -161,6 +144,7 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+/* Giờ nằm ngay bên cạnh thông báo hệ thống */
 .system-time {
   display: inline-block;
   margin-left: 6px;
@@ -176,48 +160,16 @@ button:disabled {
 
 #message {
   flex: 1;
-  width: 100%;
+  min-width: 0;
 }
 
-#composer button {
-  flex-shrink: 0;
-}
-
-#status, #chatStatus {
+#status {
   color: #666;
   font-size: 14px;
 }
 
 #passwordError {
   color: red;
-}
-
-/* KHUNG SOUNDCLOUD */
-#soundcloud-panel h3 {
-  margin-top: 0;
-  color: #6750a4;
-}
-
-.soundcloud-description {
-  color: #666;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.soundcloud-frame {
-  width: 100%;
-  height: 450px;
-  border: 0;
-  border-radius: 10px;
-  display: block;
-}
-
-.soundcloud-link {
-  display: inline-block;
-  margin-top: 12px;
-  color: #6750a4;
-  font-size: 14px;
-  overflow-wrap: anywhere;
 }
 
 .floating-heart {
@@ -247,38 +199,9 @@ button:disabled {
   }
 }
 
-/* ĐIỆN THOẠI: SOUNDCLOUD XUỐNG DƯỚI */
-@media (max-width: 800px) {
-  main {
-    margin: 10px auto;
-    padding: 10px;
-  }
-
-  .content-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #soundcloud-panel {
-    order: 2;
-  }
-
-  .soundcloud-frame {
-    height: 300px;
-  }
-
-  #messages {
-    height: 50vh;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rabbit {
-    animation: none;
-  }
-
-  .floating-heart {
-    animation-duration: .7s;
-  }
+@media(prefers-reduced-motion: reduce) {
+  .rabbit { animation: none; }
+  .floating-heart { animation-duration: .7s; }
 }
 </style>
 </head>
@@ -295,7 +218,6 @@ button:disabled {
 
 <main>
 
-  <!-- ĐĂNG NHẬP -->
   <section id="login">
     <p>Nhập mật khẩu để vào Amino Chat</p>
 
@@ -321,56 +243,26 @@ button:disabled {
     <p id="status">Sẵn sàng kết nối.</p>
   </section>
 
-  <!-- CHAT VÀ SOUNDCLOUD -->
-  <div class="content-layout" id="contentLayout" hidden>
+  <section id="chat" hidden>
+    <h3>Phòng chat chung</h3>
+    <p id="welcome"></p>
 
-    <!-- KHUNG CHAT -->
-    <section id="chat">
-      <h3>Phòng chat chung</h3>
-      <p id="welcome"></p>
+    <div id="messages"></div>
 
-      <div id="messages"></div>
+    <form id="composer">
+      <input
+        id="message"
+        maxlength="1000"
+        placeholder="Nhập tin nhắn ở đây nè cậu..."
+        autocomplete="off"
+        required
+      >
+      <button type="submit">Gửi</button>
+    </form>
 
-      <form id="composer">
-        <input
-          id="message"
-          maxlength="1000"
-          placeholder="Nhập tin nhắn ở đây nè cậu..."
-          autocomplete="off"
-          required
-        >
-        <button type="submit">Gửi</button>
-      </form>
+    <p id="chatStatus" aria-live="polite"></p>
+  </section>
 
-      <p id="chatStatus" aria-live="polite"></p>
-    </section>
-
-    <!-- KHUNG SOUNDCLOUD BÊN PHẢI -->
-    <aside id="soundcloud-panel">
-      <h3>🎵 Nghe nhạc cùng Amino</h3>
-
-      <p class="soundcloud-description">
-        Bấm Play để nghe nhạc ngay trong phòng chat.
-      </p>
-
-      <iframe
-        class="soundcloud-frame"
-        title="Trình phát nhạc SoundCloud"
-        allow="autoplay"
-        loading="lazy"
-        src="https://w.soundcloud.com/player/?url=https%3A//on.soundcloud.com/GBSlbVJ0o1qU0afLAP&color=%236750a4&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true">
-      </iframe>
-
-      <a
-        class="soundcloud-link"
-        href="https://on.soundcloud.com/GBSlbVJ0o1qU0afLAP"
-        target="_blank"
-        rel="noopener noreferrer">
-        Mở trên SoundCloud
-      </a>
-    </aside>
-
-  </div>
 </main>
 
 <script type="module">
@@ -396,7 +288,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 
-/* FIREBASE CONFIG */
+/* CẤU HÌNH FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
   authDomain: "amino-c6032.firebaseapp.com",
@@ -406,10 +298,9 @@ const firebaseConfig = {
 };
 
 
-/* GIAO DIỆN */
+/* CÁC PHẦN TỬ GIAO DIỆN */
 const login = document.getElementById("login");
 const chat = document.getElementById("chat");
-const contentLayout = document.getElementById("contentLayout");
 const status = document.getElementById("status");
 const chatStatus = document.getElementById("chatStatus");
 const messages = document.getElementById("messages");
@@ -420,14 +311,10 @@ const nameInput = document.getElementById("name");
 const composer = document.getElementById("composer");
 const messageInput = document.getElementById("message");
 
-let db;
-let user;
-let displayName;
-let app;
-let auth;
+let db, user, displayName, app, auth;
 
 
-/* GIỜ VIỆT NAM */
+/* ĐỊNH DẠNG GIỜ VIỆT NAM */
 function formatTime(timestamp) {
   if (typeof timestamp !== "number") {
     return "";
@@ -442,7 +329,7 @@ function formatTime(timestamp) {
 }
 
 
-/* HIỆU ỨNG TRÁI TIM */
+/* HIỆU ỨNG TRÁI TIM KHI GỬI TIN */
 function floatHearts() {
   const hearts = ["💗", "💕", "💖", "💘", "❤️", "💓"];
   const button = composer.querySelector('button[type="submit"]');
@@ -471,6 +358,7 @@ function floatHearts() {
     );
 
     heart.style.animationDelay = `${Math.random() * .18}s`;
+
     document.body.appendChild(heart);
 
     heart.addEventListener(
@@ -482,9 +370,10 @@ function floatHearts() {
 }
 
 
-/* ĐĂNG NHẬP */
+/* ĐĂNG NHẬP VÀO CHAT */
 enter.addEventListener("click", async () => {
   passwordError.textContent = "";
+  chatStatus.textContent = "";
 
   if (passwordInput.value !== "1409") {
     passwordError.textContent = "Mật khẩu không đúng!";
@@ -514,12 +403,12 @@ enter.addEventListener("click", async () => {
     user = result.user;
 
     login.hidden = true;
-    contentLayout.hidden = false;
+    chat.hidden = false;
 
     document.getElementById("welcome").textContent =
       "Bạn đang trò chuyện với tên " + displayName;
 
-    /* TẢI TIN NHẮN */
+    /* TẢI 100 TIN NHẮN GẦN NHẤT */
     const recent = query(
       ref(db, "publicChat/messages"),
       orderByChild("createdAt"),
@@ -544,7 +433,7 @@ enter.addEventListener("click", async () => {
         const data = item.val() || {};
         const box = document.createElement("div");
 
-        /* THÔNG BÁO VÀ GIỜ BÊN CẠNH */
+        /* THÔNG BÁO HỆ THỐNG KÈM GIỜ */
         if (data.name === "Thông báo hệ thống") {
           box.className = "system-message";
 
@@ -560,7 +449,7 @@ enter.addEventListener("click", async () => {
           return;
         }
 
-        /* TIN NHẮN THƯỜNG */
+        /* TIN NHẮN THÔNG THƯỜNG */
         box.className = "message";
 
         const senderId = String(data.uid || data.name || "guest");
@@ -603,13 +492,14 @@ enter.addEventListener("click", async () => {
 
     }, error => {
       console.error("Lỗi đọc tin nhắn:", error);
+
       chatStatus.textContent =
         "Không đọc được tin nhắn. Hãy kiểm tra quyền Realtime Database.";
     });
 
     chatStatus.textContent = "Đã kết nối.";
 
-    /* THÔNG BÁO NGƯỜI DÙNG VÀO CHAT */
+    /* GỬI THÔNG BÁO NGƯỜI DÙNG VÀO CHAT */
     set(push(ref(db, "publicChat/messages")), {
       uid: user.uid,
       name: "Thông báo hệ thống",
@@ -617,12 +507,13 @@ enter.addEventListener("click", async () => {
       createdAt: serverTimestamp()
     }).catch(error => {
       console.error("Không gửi được thông báo:", error);
+
       chatStatus.textContent =
         "Đã vào chat nhưng không gửi được thông báo. Hãy kiểm tra quyền ghi Firebase.";
     });
 
   } catch (error) {
-    console.error("Lỗi Firebase:", error);
+    console.error("Lỗi đăng nhập Firebase:", error);
 
     status.textContent =
       "Không kết nối được Firebase: " +
@@ -633,13 +524,17 @@ enter.addEventListener("click", async () => {
 });
 
 
-/* ENTER ĐỂ ĐĂNG NHẬP */
+/* NHẤN ENTER ĐỂ VÀO CHAT */
 passwordInput.addEventListener("keydown", event => {
-  if (event.key === "Enter") enter.click();
+  if (event.key === "Enter") {
+    enter.click();
+  }
 });
 
 nameInput.addEventListener("keydown", event => {
-  if (event.key === "Enter") enter.click();
+  if (event.key === "Enter") {
+    enter.click();
+  }
 });
 
 
@@ -649,7 +544,9 @@ composer.addEventListener("submit", async event => {
 
   const text = messageInput.value.trim();
 
-  if (!text || !user || !db) return;
+  if (!text || !user || !db) {
+    return;
+  }
 
   const submitButton =
     composer.querySelector('button[type="submit"]');
