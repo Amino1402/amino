@@ -23,7 +23,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #passwordError{color:red}
 #status,#chatStatus{font-size:13px;color:#666}
 #chatLayout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
-#chatMain{min-width:0}
+#chatMain,#sidePanel{min-width:0}
 #messages{height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;padding:10px;margin:12px 0;border-radius:8px;background:#faf8ff}
 .message{padding:10px;margin:8px 0;border:2px solid #e91e63;border-left-width:6px;border-radius:12px;overflow-wrap:anywhere}
 .sender{font-weight:bold;color:#6750a4;margin-bottom:5px}
@@ -32,7 +32,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .system-time{margin-left:6px;color:#999;font-size:11px}
 #composer{display:flex;gap:8px}
 #message{flex:1;width:100%}
-#sidePanel{min-width:0}
 #onlinePanel,#musicPanel{border:1px solid #e1dced;border-radius:12px;background:white;padding:14px}
 .online-heading,.music-heading{font-weight:bold;color:#6750a4;margin-bottom:10px}
 #onlineList{display:flex;flex-direction:column;gap:8px}
@@ -44,7 +43,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #musicForm{display:flex;gap:6px}
 #musicQuery{width:100%;font-size:13px}
 #musicForm button{flex-shrink:0}
-#musicError{font-size:12px;color:#6750a4;line-height:1.5;overflow-wrap:anywhere}
+#musicError{font-size:12px;color:#b42318;line-height:1.5;overflow-wrap:anywhere}
 #musicResults{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 #musicResults.hidden{display:none}
 .song{display:flex;gap:8px;align-items:center;text-align:left;background:#f5f2fc;color:#222;padding:7px;width:100%;border:1px solid #e5def5}
@@ -54,15 +53,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #playerWrap{margin-top:10px;width:100%;aspect-ratio:16/9;background:#111;border-radius:8px;overflow:hidden}
 #player{width:100%;height:100%}
 .hint{font-size:12px;color:#777;line-height:1.5}
-#syncStatus{font-size:12px;line-height:1.5;color:#6750a4;margin-top:8px}
+#syncStatus{font-size:12px;line-height:1.5;color:#6750a4;margin-top:8px;overflow-wrap:anywhere}
 .floating-heart{position:fixed;z-index:9999;pointer-events:none;animation:heartFly 1.3s ease-out forwards}
 @keyframes heartFly{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--drift)),-140px) scale(.8)}}
 @media(max-width:700px){
-main{margin:10px auto;padding:10px}
-#chatLayout{grid-template-columns:1fr}
-#onlineList{flex-direction:row;flex-wrap:wrap}
-#musicForm{flex-direction:column}
-#musicForm button{width:100%}
+ main{margin:10px auto;padding:10px}
+ #chatLayout{grid-template-columns:1fr}
+ #onlineList{flex-direction:row;flex-wrap:wrap}
+ #musicForm{flex-direction:column}
+ #musicForm button{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.rabbit,.floating-heart{animation:none}}
 </style>
@@ -105,7 +104,7 @@ main{margin:10px auto;padding:10px}
 
 <section id="musicPanel">
 <div class="music-heading">🎵 Nhạc chung cả phòng</div>
-<div class="hint">Mọi người đều có thể chọn và đổi bài hát.</div>
+<div class="hint">Mọi người đều có thể tìm và đổi bài hát.</div>
 <form id="musicForm">
 <input id="musicQuery" placeholder="Nhập tên bài hát / ca sĩ..." required>
 <button type="submit">Tìm</button>
@@ -133,9 +132,10 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
 getDatabase,ref,push,set,onValue,query,orderByChild,
-limitToLast,onDisconnect,runTransaction
+limitToLast,onDisconnect
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
+/* Firebase */
 const firebaseConfig={
 apiKey:"AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
 authDomain:"amino-c6032.firebaseapp.com",
@@ -144,25 +144,33 @@ projectId:"amino-c6032",
 appId:"1:659773931860:web:c101fc013c28a1b4e508c1"
 };
 
-/* Thay bằng API key YouTube Data API v3 của mày */
-const YOUTUBE_API_KEY="THAY_BANG_YOUTUBE_API_KEY_CUA_MAY";
+/* CHỈ THAY API KEY Ở DÒNG NÀY */
+const YOUTUBE_API_KEY="DAN_API_KEY_YOUTUBE_CUA_MAY_VAO_DAY";
 
 const $=id=>document.getElementById(id);
+const messages=$("messages");
+
 let app,auth,db,user,displayName;
 let player=null,playerReady=false;
 let currentVideoId="",latestMusicState=null;
 let applyingRemoteState=false;
 let lastAppliedRevision=null;
-let lastHostWrite=0;
-let syncTimer=null,presenceStarted=false,musicListenerStarted=false;
+let lastWriteAt=0;
+let presenceStarted=false,musicListenerStarted=false;
+let applyingTimer=null;
 
-const musicStateRef=()=>ref(db,"roomMusic/state");
+/* Helpers */
+function musicStateRef(){return ref(db,"roomMusic/state")}
 
 function formatTime(timestamp){
 if(typeof timestamp!=="number")return "";
 return new Date(timestamp).toLocaleTimeString("vi-VN",{
 timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit",hour12:false
 });
+}
+
+function setMusicError(message){
+$("musicError").textContent=message;
 }
 
 function floatHearts(){
@@ -174,7 +182,7 @@ const heart=document.createElement("span");
 heart.className="floating-heart";
 heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
 heart.style.left=(rect.left+rect.width/2+(Math.random()-.5)*80)+"px";
-heart.style.top=(rect.top+rect.height/2)+"px";
+heart.style.top=rect.top+rect.height/2+"px";
 heart.style.fontSize=(16+Math.random()*14)+"px";
 heart.style.setProperty("--drift",((Math.random()-.5)*90)+"px");
 document.body.append(heart);
@@ -182,16 +190,14 @@ heart.addEventListener("animationend",()=>heart.remove(),{once:true});
 }
 }
 
-/* Online presence */
+/* Presence */
 function startPresence(){
 if(presenceStarted)return;
 presenceStarted=true;
-const connectedRef=ref(db,".info/connected");
-const connectionsRef=ref(db,`presence/${user.uid}/connections`);
 
-onValue(connectedRef,async snapshot=>{
+onValue(ref(db,".info/connected"),async snapshot=>{
 if(snapshot.val()!==true)return;
-const connectionRef=push(connectionsRef);
+const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
 try{
 await onDisconnect(connectionRef).remove();
 await set(ref(db,`presence/${user.uid}/name`),displayName);
@@ -205,12 +211,10 @@ onValue(ref(db,"presence"),snapshot=>{
 const list=$("onlineList");
 list.replaceChildren();
 let count=0;
-
 snapshot.forEach(item=>{
 const data=item.val()||{};
 if(!Object.keys(data.connections||{}).length)return;
 count++;
-
 const member=document.createElement("div");
 member.className="online-user";
 const dot=document.createElement("span");
@@ -222,7 +226,6 @@ name.textContent=data.name||"Khách";
 member.append(dot,name);
 list.append(member);
 });
-
 $("onlineCount").textContent=String(count);
 if(!count){
 const empty=document.createElement("div");
@@ -241,7 +244,8 @@ window.onYouTubeIframeAPIReady=()=>createPlayer();
 function createPlayer(){
 if(player||!window.YT?.Player)return;
 player=new YT.Player("player",{
-width:"100%",height:"100%",
+width:"100%",
+height:"100%",
 playerVars:{autoplay:0,controls:1,playsinline:1,rel:0},
 events:{
 onReady:()=>{
@@ -249,7 +253,7 @@ playerReady=true;
 if(latestMusicState)applyMusicState(latestMusicState,true);
 },
 onStateChange:event=>{
-if(applyingRemoteState||!currentVideoId)return;
+if(applyingRemoteState||!currentVideoId||!user)return;
 if(event.data===YT.PlayerState.PLAYING){
 publishPlayerState(true);
 }else if(event.data===YT.PlayerState.PAUSED){
@@ -259,29 +263,39 @@ publishPlayerState(false);
 }
 },
 onError:event=>{
-$("syncStatus").textContent="YouTube không phát được video này (lỗi "+event.data+"). Hãy thử bài khác.";
+const errors={
+2:"Video ID không hợp lệ.",
+5:"Lỗi trình phát HTML5.",
+100:"Video không tồn tại hoặc đã bị xóa.",
+101:"Chủ video không cho phép phát nhúng.",
+150:"Chủ video không cho phép phát nhúng."
+};
+$("syncStatus").textContent="YouTube: "+(errors[event.data]||("lỗi "+event.data))+" Hãy thử bài khác.";
 }
 }
 });
 }
 
-/* Mỗi người có thể đổi bài, tạm dừng hoặc phát tiếp.
-   Firebase là nguồn trạng thái chung của cả phòng. */
+/* Chỉ người chọn bài hiện tại mới gửi cập nhật thời gian phát.
+   Mọi người vẫn có thể chọn bài khác, người chọn mới sẽ tiếp quản. */
 async function publishPlayerState(playing){
-if(!playerReady||!currentVideoId||applyingRemoteState)return;
+if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
+if(latestMusicState?.changedBy!==user.uid)return;
+
 const now=Date.now();
-if(now-lastHostWrite<700)return;
-lastHostWrite=now;
+if(now-lastWriteAt<900)return;
+lastWriteAt=now;
 
 const state={
 videoId:currentVideoId,
 title:latestMusicState?.title||"Nhạc YouTube",
-position:player.getCurrentTime()||0,
+position:Number(player.getCurrentTime?.())||0,
 playing:!!playing,
 updatedAt:now,
-revision:now,
+revision:latestMusicState?.revision||now,
 changedBy:user.uid
 };
+
 latestMusicState=state;
 try{
 await set(musicStateRef(),state);
@@ -290,26 +304,27 @@ $("syncStatus").textContent="Không cập nhật được nhạc: "+error.messag
 }
 }
 
-function getTargetPosition(state){
+function targetPosition(state){
 const position=Number(state.position)||0;
-return state.playing
-?position+Math.max(0,Date.now()-(Number(state.updatedAt)||Date.now()))/1000
-:position;
+if(!state.playing)return position;
+return position+Math.max(0,Date.now()-(Number(state.updatedAt)||Date.now()))/1000;
 }
 
 function applyMusicState(state,force=false){
 if(!state?.videoId||!playerReady||!player)return;
 
 const changed=state.videoId!==currentVideoId;
-const target=getTargetPosition(state);
+const target=targetPosition(state);
 
 if(changed){
 currentVideoId=state.videoId;
 $("playerWrap").hidden=false;
-$("musicError").textContent="🎵 Bài đang phát: "+(state.title||"Nhạc YouTube");
+setMusicError("🎵 Bài đang phát: "+(state.title||"Nhạc YouTube"));
 }
 
 applyingRemoteState=true;
+if(applyingTimer)clearTimeout(applyingTimer);
+
 try{
 if(changed){
 if(state.playing){
@@ -318,23 +333,24 @@ player.loadVideoById({videoId:state.videoId,startSeconds:target});
 player.cueVideoById({videoId:state.videoId,startSeconds:target});
 }
 }else{
-const actual=player.getCurrentTime?.()||0;
+const actual=Number(player.getCurrentTime?.())||0;
 if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
-const pstate=player.getPlayerState?.();
+const playerState=player.getPlayerState?.();
 
-if(state.playing&&pstate!==YT.PlayerState.PLAYING){
+if(state.playing&&playerState!==YT.PlayerState.PLAYING){
 player.playVideo();
-}else if(!state.playing&&pstate===YT.PlayerState.PLAYING){
+}else if(!state.playing&&playerState===YT.PlayerState.PLAYING){
 player.pauseVideo();
 }
 }
 $("syncStatus").textContent=state.playing
-?"🎵 Đang đồng bộ bài hát chung."
+?"🎵 Đang đồng bộ nhạc chung."
 :"⏸ Nhạc đang tạm dừng.";
 }catch(error){
-$("syncStatus").textContent="Không đồng bộ được. Thử bấm phát video.";
+$("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
 }
-setTimeout(()=>{applyingRemoteState=false;},500);
+
+applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
 }
 
 function startMusicSync(){
@@ -343,7 +359,8 @@ musicListenerStarted=true;
 
 onValue(musicStateRef(),snapshot=>{
 const state=snapshot.val();
-if(!state)return;
+if(!state?.videoId)return;
+const isNewRevision=state.revision!==lastAppliedRevision;
 latestMusicState=state;
 
 if(!playerReady){
@@ -351,19 +368,27 @@ $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
 return;
 }
 
-if(lastAppliedRevision!==state.revision){
-applyMusicState(state,true);
+/* Không seek liên tục trên máy của người đang phát và đồng bộ */
+if(state.changedBy===user.uid&&!isNewRevision){
+return;
+}
+
+if(isNewRevision){
 lastAppliedRevision=state.revision;
+applyMusicState(state,true);
+}else if(state.changedBy!==user.uid){
+/* Đồng bộ thời gian từ người đang giữ quyền phát */
+applyMusicState(state,false);
 }
 },error=>{
 $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
 });
 
-/* Cập nhật mốc thời gian mỗi 4 giây để người vào sau bắt kịp */
-syncTimer=setInterval(()=>{
-if(!playerReady||!currentVideoId)return;
-const state=latestMusicState;
-if(!state?.playing)return;
+/* Đồng bộ vị trí cho các thiết bị khác; không ghi đè bởi khách khác */
+setInterval(()=>{
+if(!playerReady||!currentVideoId||!latestMusicState)return;
+if(latestMusicState.changedBy!==user.uid)return;
+if(!latestMusicState.playing)return;
 publishPlayerState(true);
 },4000);
 }
@@ -391,6 +416,7 @@ app=initializeApp(firebaseConfig);
 auth=getAuth(app);
 db=getDatabase(app);
 }
+
 const result=await signInAnonymously(auth);
 user=result.user;
 
@@ -440,8 +466,10 @@ $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
 });
 
 await set(push(ref(db,"publicChat/messages")),{
-uid:user.uid,name:"Thông báo hệ thống",
-text:displayName+" đã vào chat",createdAt:Date.now()
+uid:user.uid,
+name:"Thông báo hệ thống",
+text:displayName+" đã vào chat",
+createdAt:Date.now()
 });
 $("chatStatus").textContent="Đã kết nối.";
 }catch(error){
@@ -451,15 +479,16 @@ $("enter").disabled=false;
 }
 });
 
-$("chatPassword").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click();});
-$("name").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click();});
+$("chatPassword").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click()});
+$("name").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click()});
 
-/* Send chat */
+/* Chat */
 $("composer").addEventListener("submit",async event=>{
 event.preventDefault();
 const text=$("message").value.trim();
 if(!text||!user)return;
-const button=$("composer").querySelector('button');
+
+const button=$("composer").querySelector('button[type="submit"]');
 button.disabled=true;
 try{
 await set(push(ref(db,"publicChat/messages")),{
@@ -475,18 +504,18 @@ button.disabled=false;
 }
 });
 
-/* Search and choose music: all members can do this */
+/* YouTube search */
 $("musicForm").addEventListener("submit",async event=>{
 event.preventDefault();
 const term=$("musicQuery").value.trim();
 if(!term)return;
 
-$("musicError").textContent="";
+setMusicError("");
 $("musicResults").replaceChildren();
 $("musicResults").classList.remove("hidden");
 
-if(!YOUTUBE_API_KEY||YOUTUBE_API_KEY==="AIzaSyB7iduznYdwJQbY4x6uWDlXjSS-Gz6dqdQ"){
-$("musicError").textContent="Hãy thay YOUTUBE_API_KEY bằng API key YouTube Data API v3.";
+if(!YOUTUBE_API_KEY||YOUTUBE_API_KEY==="DAN_API_KEY_YOUTUBE_CUA_MAY_VAO_DAY"){
+setMusicError("Mày chưa nhập API key YouTube Data API v3 ở đầu code.");
 return;
 }
 
@@ -497,15 +526,25 @@ button.textContent="Đang tìm...";
 try{
 const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
 endpoint.search=new URLSearchParams({
-part:"snippet",type:"video",videoCategoryId:"10",
-maxResults:"8",q:term,key:YOUTUBE_API_KEY
+part:"snippet",
+type:"video",
+videoCategoryId:"10",
+maxResults:"8",
+q:term,
+key:YOUTUBE_API_KEY
 }).toString();
 
 const response=await fetch(endpoint);
 const data=await response.json();
-if(!response.ok)throw new Error(data.error?.message||"Tìm kiếm YouTube thất bại.");
+
+if(!response.ok){
+const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
+const detail=data.error?.message||"Không rõ nguyên nhân";
+throw new Error("Mã "+reason+": "+detail);
+}
+
 if(!data.items?.length){
-$("musicError").textContent="Không tìm thấy bài hát.";
+setMusicError("Không tìm thấy bài hát phù hợp.");
 return;
 }
 
@@ -513,6 +552,7 @@ for(const item of data.items){
 const id=item.id?.videoId;
 if(!id)continue;
 const snippet=item.snippet||{};
+
 const btn=document.createElement("button");
 btn.type="button";
 btn.className="song";
@@ -534,43 +574,44 @@ info.append(title,channel);
 btn.append(img,info);
 
 btn.addEventListener("click",async()=>{
+const revision=Date.now();
 const state={
 videoId:id,
 title:snippet.title||"Nhạc YouTube",
 position:0,
 playing:true,
-updatedAt:Date.now(),
-revision:Date.now(),
+updatedAt:revision,
+revision,
 changedBy:user.uid
 };
 
 $("musicResults").classList.add("hidden");
 $("playerWrap").hidden=false;
-$("musicError").textContent="🎵 Đang phát: "+state.title;
+setMusicError("🎵 Đang chọn: "+state.title);
 $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
+
 latestMusicState=state;
 currentVideoId=id;
+lastAppliedRevision=revision;
 
 try{
-/* Mọi người ghi cùng một trạng thái phòng */
 await set(musicStateRef(),state);
 
-/* Người vừa chọn nhạc bắt đầu phát ngay */
 if(playerReady){
 applyingRemoteState=true;
 player.loadVideoById({videoId:id,startSeconds:0});
-setTimeout(()=>{applyingRemoteState=false;},700);
+setTimeout(()=>{applyingRemoteState=false},900);
 }
 $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
 }catch(error){
-$("syncStatus").textContent="Không đổi được nhạc. Kiểm tra Firebase Rules: "+error.message;
+$("syncStatus").textContent="Không đổi được nhạc: "+error.message;
 }
 });
 
 $("musicResults").append(btn);
 }
 }catch(error){
-$("musicError").textContent="Lỗi YouTube: "+error.message;
+setMusicError("Lỗi YouTube: "+error.message);
 }finally{
 button.disabled=false;
 button.textContent="Tìm";
