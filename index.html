@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -39,14 +40,37 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .online-dot { color: #16a34a; font-size: 12px; flex: 0 0 auto; }
 .online-name { font-size: 14px; overflow-wrap: anywhere; }
 #onlineEmpty { color: #777; font-size: 13px; line-height: 1.4; }
+
+#youtubePanel { margin-top: 14px; border: 1px solid #e1dced; border-radius: 12px; background: #fff; padding: 14px; }
+.youtube-heading { font-weight: bold; color: #6750a4; margin-bottom: 10px; }
+#youtubeForm { display: flex; flex-direction: column; gap: 8px; }
+#youtubeUrl { width: 100%; min-width: 0; font-size: 13px; padding: 10px; }
+#youtubeForm button { width: 100%; padding: 10px; }
+#youtubeError { color: #c62828; font-size: 12px; margin: 7px 0 0; overflow-wrap: anywhere; }
+#youtubeFrameWrap { margin-top: 10px; width: 100%; aspect-ratio: 16 / 9; background: #111; border-radius: 8px; overflow: hidden; }
+#youtubeFrame { width: 100%; height: 100%; border: 0; display: block; }
+.youtube-hint { font-size: 12px; line-height: 1.4; color: #777; margin: 8px 0 0; }
+
 .floating-heart { position: fixed; z-index: 9999; pointer-events: none; user-select: none; line-height: 1; animation: heartFly 1.35s ease-out forwards; will-change: transform, opacity; }
 @keyframes heartFly { 0% { opacity: 0; transform: translate(-50%,0) scale(.5) rotate(0deg); } 15% { opacity: 1; transform: translate(-50%,-12px) scale(1.1) rotate(-8deg); } 100% { opacity: 0; transform: translate(calc(-50% + var(--drift)),-150px) scale(.8) rotate(18deg); } }
-@media (max-width: 700px) { main { margin: 10px auto; padding: 10px; } #chatLayout { grid-template-columns: 1fr; } #onlinePanel { position: static; order: 2; } #onlineList { flex-direction: row; flex-wrap: wrap; } .online-user { max-width: 100%; } }
-@media(prefers-reduced-motion: reduce) { .rabbit { animation: none; } .floating-heart { animation-duration: .7s; } }
+@media (max-width: 700px) {
+  main { margin: 10px auto; padding: 10px; }
+  #chatLayout { grid-template-columns: 1fr; }
+  #onlinePanel { position: static; order: 2; }
+  #onlineList { flex-direction: row; flex-wrap: wrap; }
+  .online-user { max-width: 100%; }
+}
+@media(prefers-reduced-motion: reduce) {
+  .rabbit { animation: none; }
+  .floating-heart { animation-duration: .7s; }
+}
 </style>
 </head>
 <body>
-<header><h1 class="amino-title"><span class="rabbit">🐰</span> Amino Chat <span class="rabbit">🐇</span></h1></header>
+<header>
+  <h1 class="amino-title"><span class="rabbit">🐰</span> Amino Chat <span class="rabbit">🐇</span></h1>
+</header>
+
 <main>
   <section id="login">
     <p>Nhập mật khẩu để vào Amino Chat</p>
@@ -62,6 +86,7 @@ button:disabled { opacity: .6; cursor: not-allowed; }
   <section id="chat" hidden>
     <h3>Currently testing the system</h3>
     <p id="welcome"></p>
+
     <div id="chatLayout">
       <div id="chatMain">
         <div id="messages"></div>
@@ -71,10 +96,28 @@ button:disabled { opacity: .6; cursor: not-allowed; }
         </form>
         <p id="chatStatus" aria-live="polite"></p>
       </div>
-      <aside id="onlinePanel">
-        <div class="online-heading">👥 Đang trực tuyến (<span id="onlineCount">0</span>)</div>
-        <div id="onlineList"><div id="onlineEmpty">Đang tải danh sách...</div></div>
-      </aside>
+
+      <div id="sidePanel">
+        <aside id="onlinePanel">
+          <div class="online-heading">👥 Đang trực tuyến (<span id="onlineCount">0</span>)</div>
+          <div id="onlineList"><div id="onlineEmpty">Đang tải danh sách...</div></div>
+        </aside>
+
+        <section id="youtubePanel" aria-label="YouTube">
+          <div class="youtube-heading">▶ YouTube</div>
+          <form id="youtubeForm">
+            <input id="youtubeUrl" type="url" placeholder="Dán link YouTube vào đây..." aria-label="Link video YouTube" required>
+            <button type="submit">Phát video</button>
+          </form>
+          <p id="youtubeError" aria-live="polite"></p>
+          <div id="youtubeFrameWrap" hidden>
+            <iframe id="youtubeFrame" title="Trình phát YouTube" src="about:blank"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <p class="youtube-hint">Dán link video hoặc link chia sẻ YouTube rồi nhấn “Phát video”.</p>
+        </section>
+      </div>
     </div>
   </section>
 </main>
@@ -82,7 +125,7 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getDatabase, ref, push, set, onValue, query, orderByChild, limitToLast, serverTimestamp, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, query, orderByChild, limitToLast, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
@@ -112,7 +155,10 @@ let presenceListenerStarted = false;
 function formatTime(timestamp) {
   if (typeof timestamp !== "number") return "";
   return new Date(timestamp).toLocaleTimeString("vi-VN", {
-    timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", hour12: false
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
   });
 }
 
@@ -123,6 +169,7 @@ function floatHearts() {
   const originX = rect.left + rect.width / 2;
   const originY = rect.top + rect.height / 2;
   const count = 5 + Math.floor(Math.random() * 4);
+
   for (let i = 0; i < count; i++) {
     const heart = document.createElement("span");
     heart.className = "floating-heart";
@@ -143,7 +190,6 @@ function startPresence() {
   presenceListenerStarted = true;
 
   const connectedRef = ref(db, ".info/connected");
-  const userPresenceRef = ref(db, `presence/${user.uid}`);
   const connectionsRef = ref(db, `presence/${user.uid}/connections`);
 
   onValue(connectedRef, async snapshot => {
@@ -151,11 +197,10 @@ function startPresence() {
 
     const connectionRef = push(connectionsRef);
     try {
-      // Đăng ký xóa connection phía server trước khi đánh dấu online.
       await onDisconnect(connectionRef).remove();
       await set(ref(db, `presence/${user.uid}/name`), displayName);
       await set(connectionRef, true);
-      chatStatus.textContent = "Đã kết nối ☠️";
+      chatStatus.textContent = "Đã kết nối và cập nhật trạng thái online.";
     } catch (error) {
       console.error("Lỗi cập nhật Presence:", error);
       chatStatus.textContent = "Không cập nhật được trạng thái online: " + (error.code || error.message);
@@ -177,18 +222,22 @@ function startPresence() {
 
       const member = document.createElement("div");
       member.className = "online-user";
+
       const dot = document.createElement("span");
       dot.className = "online-dot";
       dot.textContent = "●";
       dot.setAttribute("aria-label", "Đang online");
+
       const name = document.createElement("span");
       name.className = "online-name";
       name.textContent = data.name || "Khách";
+
       member.append(dot, name);
       onlineList.append(member);
     });
 
     onlineCount.textContent = String(count);
+
     if (count === 0) {
       const empty = document.createElement("div");
       empty.id = "onlineEmpty";
@@ -208,17 +257,21 @@ function startPresence() {
 enter.addEventListener("click", async () => {
   passwordError.textContent = "";
   chatStatus.textContent = "";
+
   if (passwordInput.value !== "1409") {
     passwordError.textContent = "Mật khẩu không đúng!";
     passwordInput.focus();
     return;
   }
+
   displayName = nameInput.value.trim();
+
   if (!displayName) {
     status.textContent = "Bạn hãy nhập tên trước nhé.";
     nameInput.focus();
     return;
   }
+
   if (displayName.length > 24) {
     status.textContent = "Tên hiển thị tối đa 24 ký tự.";
     return;
@@ -226,67 +279,97 @@ enter.addEventListener("click", async () => {
 
   enter.disabled = true;
   status.textContent = "Đang kết nối...";
+
   try {
     if (!app) {
       app = initializeApp(firebaseConfig);
       auth = getAuth(app);
       db = getDatabase(app);
     }
+
     const result = await signInAnonymously(auth);
     user = result.user;
     login.hidden = true;
     chat.hidden = false;
-    document.getElementById("welcome").textContent = "Bạn đang trò chuyện với tên " + displayName;
+    document.getElementById("welcome").textContent =
+      "Bạn đang trò chuyện với tên " + displayName;
 
     startPresence();
 
-    const recent = query(ref(db, "publicChat/messages"), orderByChild("createdAt"), limitToLast(100));
+    const recent = query(
+      ref(db, "publicChat/messages"),
+      orderByChild("createdAt"),
+      limitToLast(100)
+    );
+
     onValue(recent, snapshot => {
       messages.replaceChildren();
-      const colors = ["#FCE4EC", "#E3F2FD", "#E8F5E9", "#FFF3E0", "#F3E5F5", "#E0F7FA", "#FFF9C4", "#EDE7F6"];
+      const colors = [
+        "#FCE4EC", "#E3F2FD", "#E8F5E9", "#FFF3E0",
+        "#F3E5F5", "#E0F7FA", "#FFF9C4", "#EDE7F6"
+      ];
+
       snapshot.forEach(item => {
         const data = item.val() || {};
         const box = document.createElement("div");
+
         if (data.name === "Thông báo hệ thống") {
           box.className = "system-message";
+
           const noticeText = document.createElement("span");
           noticeText.textContent = data.text || "";
+
           const noticeTime = document.createElement("span");
           noticeTime.className = "system-time";
           noticeTime.textContent = formatTime(data.createdAt);
+
           box.append(noticeText, noticeTime);
           messages.append(box);
           return;
         }
+
         box.className = "message";
         const senderId = String(data.uid || data.name || "guest");
         let hash = 0;
-        for (let i = 0; i < senderId.length; i++) hash = (hash * 31 + senderId.charCodeAt(i)) | 0;
+
+        for (let i = 0; i < senderId.length; i++) {
+          hash = (hash * 31 + senderId.charCodeAt(i)) | 0;
+        }
+
         const color = colors[Math.abs(hash) % colors.length];
         box.style.backgroundColor = color;
         box.style.borderColor = color;
         box.style.borderLeftColor = "#E91E63";
+
         const sender = document.createElement("div");
         sender.className = "sender";
         sender.textContent = data.name || "Khách";
+
         const body = document.createElement("div");
         body.className = "message-body";
         body.textContent = data.text || "";
+
         const time = document.createElement("small");
         time.style.display = "block";
         time.style.color = "#777";
         time.style.fontSize = "12px";
-        time.textContent = typeof data.createdAt === "number" ? formatTime(data.createdAt) : "Đang cập nhật giờ...";
+        time.textContent = typeof data.createdAt === "number"
+          ? formatTime(data.createdAt)
+          : "Đang cập nhật giờ...";
+
         box.append(sender, body, time);
         messages.append(box);
       });
+
       messages.scrollTop = messages.scrollHeight;
     }, error => {
       console.error("Lỗi đọc tin nhắn:", error);
-      chatStatus.textContent = "Không đọc được tin nhắn. Hãy kiểm tra quyền Realtime Database.";
+      chatStatus.textContent =
+        "Không đọc được tin nhắn. Hãy kiểm tra quyền Realtime Database.";
     });
 
     chatStatus.textContent = "Đã kết nối.";
+
     set(push(ref(db, "publicChat/messages")), {
       uid: user.uid,
       name: "Thông báo hệ thống",
@@ -294,24 +377,82 @@ enter.addEventListener("click", async () => {
       createdAt: serverTimestamp()
     }).catch(error => {
       console.error("Không gửi được thông báo:", error);
-      chatStatus.textContent = "Đã vào chat nhưng không gửi được thông báo. Hãy kiểm tra quyền ghi Firebase.";
+      chatStatus.textContent =
+        "Đã vào chat nhưng không gửi được thông báo. Hãy kiểm tra quyền ghi Firebase.";
     });
   } catch (error) {
     console.error("Lỗi đăng nhập Firebase:", error);
-    status.textContent = "Không kết nối được Firebase: " + (error.code || error.message || "Lỗi không xác định");
+    status.textContent =
+      "Không kết nối được Firebase: " + (error.code || error.message || "Lỗi không xác định");
     enter.disabled = false;
   }
 });
 
-passwordInput.addEventListener("keydown", event => { if (event.key === "Enter") enter.click(); });
-nameInput.addEventListener("keydown", event => { if (event.key === "Enter") enter.click(); });
+passwordInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") enter.click();
+});
+nameInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") enter.click();
+});
+
+/* YOUTUBE PLAYER: NHẬN LINK WATCH, SHORTS, LIVE, YOUTU.BE */
+const youtubeForm = document.getElementById("youtubeForm");
+const youtubeUrlInput = document.getElementById("youtubeUrl");
+const youtubeError = document.getElementById("youtubeError");
+const youtubeFrame = document.getElementById("youtubeFrame");
+const youtubeFrameWrap = document.getElementById("youtubeFrameWrap");
+
+youtubeForm.addEventListener("submit", event => {
+  event.preventDefault();
+  youtubeError.textContent = "";
+
+  const rawUrl = youtubeUrlInput.value.trim();
+
+  if (!rawUrl) {
+    youtubeError.textContent = "Hãy dán link YouTube trước nhé.";
+    return;
+  }
+
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    let videoId = "";
+
+    if (host === "youtu.be") {
+      videoId = url.pathname.split("/").filter(Boolean)[0] || "";
+    } else if (
+      ["youtube.com", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com"].includes(host)
+    ) {
+      if (url.pathname === "/watch") {
+        videoId = url.searchParams.get("v") || "";
+      } else {
+        const parts = url.pathname.split("/").filter(Boolean);
+        if (["embed", "shorts", "live", "v"].includes(parts[0])) {
+          videoId = parts[1] || "";
+        }
+      }
+    }
+
+    if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+      youtubeError.textContent = "Link chưa đúng hoặc không nhận ra mã video YouTube.";
+      return;
+    }
+
+    youtubeFrame.src = "https://www.youtube-nocookie.com/embed/" + videoId;
+    youtubeFrameWrap.hidden = false;
+  } catch (error) {
+    youtubeError.textContent = "Link không hợp lệ. Hãy dán link YouTube đầy đủ nhé.";
+  }
+});
 
 composer.addEventListener("submit", async event => {
   event.preventDefault();
   const text = messageInput.value.trim();
   if (!text || !user || !db) return;
+
   const submitButton = composer.querySelector('button[type="submit"]');
   submitButton.disabled = true;
+
   try {
     await set(push(ref(db, "publicChat/messages")), {
       uid: user.uid,
@@ -319,6 +460,7 @@ composer.addEventListener("submit", async event => {
       text,
       createdAt: serverTimestamp()
     });
+
     floatHearts();
     messageInput.value = "";
     chatStatus.textContent = "";
