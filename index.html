@@ -110,9 +110,57 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <p id="status">Sẵn sàng kết nối.</p>
 </section>
 
+
 <section id="chat" hidden>
-<h3 class="running-text">Currently testing the system</h3>
-<p id="welcome"></p>
+  <h3 class="running-text">Currently testing the system</h3>
+  <p id="welcome"></p>
+
+  <div id="chatLayout">
+    <div id="chatMain">
+      <div id="messages"></div>
+
+      <form id="composer">
+        <input id="message" maxlength="1000"
+          placeholder="Nhập tin nhắn ở đây nè cậu..."
+          autocomplete="off" required>
+        <button type="submit">Gửi</button>
+      </form>
+
+      <p id="chatStatus" aria-live="polite"></p>
+    </div>
+
+    <div id="sidePanel">
+      <aside id="onlinePanel">
+        <div class="online-heading">
+          👥 Đang trực tuyến (<span id="onlineCount">0</span>)
+        </div>
+        <div id="onlineList">
+          <div id="onlineEmpty">Đang tải danh sách...</div>
+        </div>
+      </aside>
+
+      <section id="musicPanel">
+        <div class="music-heading">🎵 Nhạc chung cả phòng</div>
+        <div class="hint">Mọi người đều có thể tìm và đổi bài hát.</div>
+
+        <form id="musicForm">
+          <input id="musicQuery"
+            placeholder="Nhập tên bài hát / ca sĩ..." required>
+          <button type="submit">Tìm</button>
+        </form>
+
+        <p id="musicError" aria-live="polite"></p>
+        <div id="musicResults"></div>
+        <div id="playerWrap" hidden>
+          <div id="player"></div>
+        </div>
+        <div id="syncStatus" aria-live="polite">
+          Đang chờ bài hát đầu tiên.
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
  </section>
 
 <div id="chatLayout">
