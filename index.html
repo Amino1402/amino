@@ -26,7 +26,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #chatMain,#sidePanel{min-width:0}
 #messages{height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;padding:10px;margin:12px 0;border-radius:8px;background:#faf8ff}
 .message{padding:10px;margin:8px 0;border:2px solid #e91e63;border-left-width:6px;border-radius:12px;overflow-wrap:anywhere}
-.sender{font-weight:bold;color:#6750a4;margin-bottom:5px}
+.sender{font-size:12px;font-weight:bold;color:#6750a4;margin-bottom:3px}
 .message-body{white-space:pre-wrap;line-height:1.5}
 .system-message{width:fit-content;max-width:95%;margin:12px auto;padding:7px 12px;border-radius:999px;background:#f3e8ff;color:#6750a4;font-size:13px;overflow-wrap:anywhere}
 .system-time{margin-left:6px;color:#999;font-size:11px}
@@ -422,7 +422,7 @@ user=result.user;
 
 $("login").hidden=true;
 $("chat").hidden=false;
-$("welcome").textContent="Bạn đang trò chuyện với tên "+displayName;
+$("welcome").textContent="Đang trò chuyện với tên "+displayName;
 
 if(window.YT?.Player)createPlayer();
 startPresence();
