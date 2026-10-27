@@ -13,24 +13,6 @@ header{background:#6750a4;color:white;padding:18px;text-align:center}
 .amino-title{margin:0;font-size:24px}
 .rabbit{display:inline-block;animation:jump 1s infinite}
 @keyframes jump{50%{transform:translateY(-8px)}}
- 
-/* CHỮ CHẠY NGANG */
-.running-text{
-  display:block;
-  width:100%;
-  overflow:hidden;
-  white-space:nowrap;
-  animation:chuchay 12s linear infinite;
-}
-
-@keyframes chuchay{
-  from{
-    transform:translateX(100%);
-  }
-  to{
-    transform:translateX(-100%);
-  }
-}
 main{max-width:1000px;margin:20px auto;padding:16px}
 #login,#chat{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
 input,button{padding:12px;border-radius:8px;font-size:15px}
@@ -110,57 +92,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <p id="status">Sẵn sàng kết nối.</p>
 </section>
 
-
 <section id="chat" hidden>
-  <h3 class="running-text">Currently testing the system</h3>
-  <p id="welcome"></p>
-
-  <div id="chatLayout">
-    <div id="chatMain">
-      <div id="messages"></div>
-
-      <form id="composer">
-        <input id="message" maxlength="1000"
-          placeholder="Nhập tin nhắn ở đây nè cậu..."
-          autocomplete="off" required>
-        <button type="submit">Gửi</button>
-      </form>
-
-      <p id="chatStatus" aria-live="polite"></p>
-    </div>
-
-    <div id="sidePanel">
-      <aside id="onlinePanel">
-        <div class="online-heading">
-          👥 Đang trực tuyến (<span id="onlineCount">0</span>)
-        </div>
-        <div id="onlineList">
-          <div id="onlineEmpty">Đang tải danh sách...</div>
-        </div>
-      </aside>
-
-      <section id="musicPanel">
-        <div class="music-heading">🎵 Nhạc chung cả phòng</div>
-        <div class="hint">Mọi người đều có thể tìm và đổi bài hát.</div>
-
-        <form id="musicForm">
-          <input id="musicQuery"
-            placeholder="Nhập tên bài hát / ca sĩ..." required>
-          <button type="submit">Tìm</button>
-        </form>
-
-        <p id="musicError" aria-live="polite"></p>
-        <div id="musicResults"></div>
-        <div id="playerWrap" hidden>
-          <div id="player"></div>
-        </div>
-        <div id="syncStatus" aria-live="polite">
-          Đang chờ bài hát đầu tiên.
-        </div>
-      </section>
-    </div>
-  </div>
-</section>
+<h3 class="running-text">Currently testing the system</h3>
+<p id="welcome"></p>
  </section>
 
 <div id="chatLayout">
@@ -666,4 +600,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-1409
+
