@@ -155,7 +155,7 @@ function startPresence() {
       await onDisconnect(connectionRef).remove();
       await set(ref(db, `presence/${user.uid}/name`), displayName);
       await set(connectionRef, true);
-      chatStatus.textContent = "Đã kết nối và cập nhật trạng thái online.";
+      chatStatus.textContent = "Đã kết nối ☠️";
     } catch (error) {
       console.error("Lỗi cập nhật Presence:", error);
       chatStatus.textContent = "Không cập nhật được trạng thái online: " + (error.code || error.message);
