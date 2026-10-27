@@ -120,6 +120,21 @@
       margin-bottom: 5px;
     }
 
+    .system-message {
+      width: fit-content;
+      max-width: 90%;
+      box-sizing: border-box;
+      margin: 12px auto;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #f3e8ff;
+      color: #6750a4;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
     .message-body {
       color: #222;
       line-height: 1.5;
@@ -317,6 +332,15 @@
         const result = await signInAnonymously(auth);
         user = result.user;
 
+        // Gửi thông báo hệ thống để mọi người trong phòng đều thấy người dùng vừa vào.
+        await set(push(ref(db, "publicChat/messages")), {
+          type: "system",
+          uid: user.uid,
+          name: "Thông báo hệ thống",
+          text: `Người dùng ${displayName} đã vào chat`,
+          createdAt: serverTimestamp()
+        });
+
         login.hidden = true;
         chat.hidden = false;
         document.getElementById("welcome").textContent =
@@ -339,6 +363,15 @@
           snapshot.forEach(item => {
             const data = item.val() || {};
             const box = document.createElement("div");
+
+            // Tin nhắn hệ thống được hiển thị riêng, ở giữa khung chat.
+            if (data.type === "system") {
+              box.className = "system-message";
+              box.textContent = data.text || "";
+              messages.append(box);
+              return;
+            }
+
             box.className = "message";
 
             const senderId = String(data.uid || data.name || "guest");
