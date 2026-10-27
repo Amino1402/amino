@@ -51,9 +51,6 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .song img{width:84px;aspect-ratio:16/9;object-fit:cover;border-radius:5px;flex-shrink:0}
 .song-title{font-size:13px;font-weight:bold;line-height:1.3}
 .song-channel{font-size:11px;color:#666;margin-top:4px}
-.song.selected{border:2px solid #6750a4}
-#showMusicResults{display:none;width:100%;margin-top:10px;background:#eee8ff;color:#6750a4}
-#showMusicResults.visible{display:block}
 #playerWrap{margin-top:10px;width:100%;aspect-ratio:16/9;background:#111;border-radius:8px;overflow:hidden}
 #musicPlayer{width:100%;height:100%;border:0;display:block}
 .hint{font-size:12px;line-height:1.4;color:#777;margin:8px 0 0}
@@ -109,20 +106,13 @@ main{margin:10px auto;padding:10px}
 
 <section id="musicPanel" aria-label="Tìm nhạc YouTube">
 <div class="music-heading">🎵 Tìm bài hát YouTube</div>
-
 <form id="musicForm">
 <input id="musicQuery" placeholder="Nhập tên bài hát / ca sĩ..." aria-label="Tên bài hát" required>
 <button type="submit">Tìm</button>
 </form>
-
 <p class="hint">Nhập tên bài hát, chọn kết quả bên dưới để phát.</p>
 <p id="musicError" aria-live="polite"></p>
-
 <div id="musicResults"></div>
-
-<button id="showMusicResults" type="button">
-🔎 Tìm bài hát khác
-</button>
 
 <div id="playerWrap" hidden>
 <iframe id="musicPlayer" title="Trình phát YouTube"
@@ -408,7 +398,6 @@ const musicError=$("musicError");
 const musicResults=$("musicResults");
 const musicPlayer=$("musicPlayer");
 const playerWrap=$("playerWrap");
-const showMusicResults=$("showMusicResults");
 
 musicForm.addEventListener("submit",async e=>{
 e.preventDefault();
@@ -416,7 +405,6 @@ e.preventDefault();
 musicError.textContent="";
 musicResults.replaceChildren();
 musicResults.classList.remove("hidden");
-showMusicResults.classList.remove("visible");
 
 const term=musicQuery.value.trim();
 if(!term)return;
@@ -482,7 +470,7 @@ info.append(title,channel);
 btn.append(img,info);
 
 btn.addEventListener("click",()=>{
-// Phát video đã chọn
+// Phát video được chọn
 musicPlayer.src=
 "https://www.youtube-nocookie.com/embed/"+
 encodeURIComponent(id)+"?autoplay=1";
@@ -490,21 +478,16 @@ encodeURIComponent(id)+"?autoplay=1";
 // Hiện video
 playerWrap.hidden=false;
 
-// Ẩn danh sách lựa chọn
+// Ẩn toàn bộ danh sách lựa chọn
 musicResults.classList.add("hidden");
 
-// Hiện nút tìm bài khác
-showMusicResults.classList.add("visible");
-
-// Hiển thị tên bài đang phát
+// Hiện tên bài đang phát
 musicError.textContent="🎵 Đang phát: "+(snippet.title||"Bài hát đã chọn");
 });
 
 musicResults.append(btn);
 });
 
-// Nếu đã có video thì giữ video đang phát
-// và cho phép người dùng chọn kết quả mới.
 }catch(err){
 musicError.textContent=
 "Lỗi tìm kiếm: "+err.message+
@@ -513,12 +496,6 @@ musicError.textContent=
 button.disabled=false;
 button.textContent="Tìm";
 }
-});
-
-// Mở lại danh sách lựa chọn khi cần đổi bài
-showMusicResults.addEventListener("click",()=>{
-musicResults.classList.remove("hidden");
-showMusicResults.classList.remove("visible");
 });
 </script>
 </body>
