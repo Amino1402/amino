@@ -503,7 +503,7 @@ enter.addEventListener("click", async () => {
     set(push(ref(db, "publicChat/messages")), {
       uid: user.uid,
       name: "Thông báo hệ thống",
-      text: `Người dùng ${displayName} đã vào chat`,
+      text: `${displayName} đã vào chat`,
       createdAt: serverTimestamp()
     }).catch(error => {
       console.error("Không gửi được thông báo:", error);
