@@ -142,7 +142,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
  getDatabase,ref,push,set,onValue,query,orderByChild,
- limitToLast,onDisconnect
+ limitToLast,onDisconnect,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 /* FIREBASE */
@@ -204,11 +204,24 @@ function startPresence(){
 
  onValue(ref(db,".info/connected"),async snapshot=>{
   if(snapshot.val()!==true)return;
-  const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
-  try{
-   await onDisconnect(connectionRef).remove();
-   await set(ref(db,`presence/${user.uid}/name`),displayName);
-   await set(connectionRef,true);
+const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
+
+try{
+ // Chuẩn bị thông báo khi kết nối bị ngắt
+ const leaveMessageRef=push(ref(db,"publicChat/messages"));
+
+ await onDisconnect(leaveMessageRef).set({
+  uid:user.uid,
+  name:"Thông báo hệ thống",
+  text:displayName+" đã rời phòng",
+  createdAt:serverTimestamp()
+ });
+
+ // Tự xóa trạng thái kết nối khi mất kết nối
+ await onDisconnect(connectionRef).remove();
+
+ await set(ref(db,`presence/${user.uid}/name`),displayName);
+ await set(connectionRef,true);
   }catch(error){
    $("chatStatus").textContent="Lỗi online: "+error.message;
   }
