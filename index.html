@@ -1,9 +1,11 @@
+1
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Amino Chat</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f1f3f8;color:#222}
@@ -45,14 +47,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .online-dot{color:#16a34a}
 .online-name{font-size:14px;overflow-wrap:anywhere}
 #onlineEmpty{font-size:13px;color:#777}
-#tiktokPanel{margin-top:14px;border:1px solid #e1dced;border-radius:12px;background:white;padding:14px}
-#tiktokForm{display:flex;gap:6px;margin-top:10px}
-#tiktokUrl{width:100%;font-size:13px}
-#tiktokForm button{flex-shrink:0}
-#tiktokFrameWrap{margin-top:10px;width:100%;max-width:420px;margin-left:auto;margin-right:auto;aspect-ratio:9/16;max-height:650px;background:#111;border-radius:12px;overflow:hidden}
-#tiktokFrame{width:100%;height:100%;border:0}
-#tiktokStatus{font-size:12px;color:#6750a4;line-height:1.5;overflow-wrap:anywhere}
-#tiktokOpen{display:inline-block;margin-top:8px;font-size:13px}
 #musicPanel{margin-top:14px}
 #musicForm{display:flex;gap:6px}
 #musicQuery{width:100%;font-size:13px}
@@ -80,10 +74,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){.rabbit,.floating-heart{animation:none}}
 </style>
 </head>
+
 <body>
 <header>
 <h1 class="amino-title"><span class="rabbit">🐰</span> Amino Chat <span class="rabbit">🐇</span></h1>
 </header>
+
 <main>
 <section id="login">
 <p>Nhập mật khẩu để vào Amino Chat</p>
@@ -97,8 +93,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </section>
 
 <section id="chat" hidden>
-<h3>Welcome!</h3>
+<h3> Welcome! </h3>
 <p id="welcome"></p>
+
 <div id="chatLayout">
 <div id="chatMain">
 <div id="messages"></div>
@@ -127,24 +124,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div id="playerWrap" hidden><div id="player"></div></div>
 <div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
 </section>
-
-<section id="tiktokPanel">
-<div class="music-heading">🎬 TikTok cùng Amino</div>
-<div class="hint">Dán link video TikTok để xem tại đây. TikTok không hỗ trợ nhúng toàn bộ trang For You như ứng dụng.</div>
-<form id="tiktokForm">
-<input id="tiktokUrl" type="url" placeholder="Dán link video TikTok..." required>
-<button type="submit">Xem</button>
-</form>
-<p id="tiktokStatus" aria-live="polite">Chưa chọn video TikTok.</p>
-<div id="tiktokFrameWrap" hidden>
-<iframe id="tiktokFrame" title="TikTok video" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-</div>
-<a id="tiktokOpen" href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer">Mở TikTok trong tab mới</a>
-</section>
 </div>
 </div>
 </section>
 </main>
+
 <script>
 (function(){
  const tag=document.createElement("script");
@@ -161,6 +145,7 @@ import {
  limitToLast,onDisconnect,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
+/* FIREBASE */
 const firebaseConfig={
  apiKey:"AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
  authDomain:"amino-c6032.firebaseapp.com",
@@ -169,7 +154,9 @@ const firebaseConfig={
  appId:"1:659773931860:web:c101fc013c28a1b4e508c1"
 };
 
+/* YOUTUBE API KEY */
 const YOUTUBE_API_KEY="AIzaSyB7iduznYdwJQbY4x6uWDlXjSS-Gz6dqdQ";
+
 const $=id=>document.getElementById(id);
 const messages=$("messages");
 
@@ -217,18 +204,24 @@ function startPresence(){
 
  onValue(ref(db,".info/connected"),async snapshot=>{
   if(snapshot.val()!==true)return;
-  const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
-  try{
-   const leaveMessageRef=push(ref(db,"publicChat/messages"));
-   await onDisconnect(leaveMessageRef).set({
-    uid:user.uid,
-    name:"Thông báo hệ thống",
-    text:displayName+" đã rời phòng",
-    createdAt:serverTimestamp()
-   });
-   await onDisconnect(connectionRef).remove();
-   await set(ref(db,`presence/${user.uid}/name`),displayName);
-   await set(connectionRef,true);
+const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
+
+try{
+ // Chuẩn bị thông báo khi kết nối bị ngắt
+ const leaveMessageRef=push(ref(db,"publicChat/messages"));
+
+ await onDisconnect(leaveMessageRef).set({
+  uid:user.uid,
+  name:"Thông báo hệ thống",
+  text:displayName+" đã rời phòng",
+  createdAt:serverTimestamp()
+ });
+
+ // Tự xóa trạng thái kết nối khi mất kết nối
+ await onDisconnect(connectionRef).remove();
+
+ await set(ref(db,`presence/${user.uid}/name`),displayName);
+ await set(connectionRef,true);
   }catch(error){
    $("chatStatus").textContent="Lỗi online: "+error.message;
   }
@@ -390,7 +383,8 @@ function startMusicSync(){
   publishPlayerState(true);
  },4000);
 }
- /* ĐĂNG NHẬP */
+
+/* ĐĂNG NHẬP */
 $("enter").addEventListener("click",async()=>{
  $("passwordError").textContent="";
  if($("chatPassword").value!=="1409"){
@@ -494,7 +488,7 @@ $("composer").addEventListener("submit",async event=>{
  }finally{button.disabled=false}
 });
 
-/* TÌM KIẾM YOUTUBE */
+/* TÌM KIẾM YOUTUBE - ĐÃ SỬA */
 $("musicForm").addEventListener("submit",async event=>{
  event.preventDefault();
  const term=$("musicQuery").value.trim();
@@ -533,7 +527,7 @@ $("musicForm").addEventListener("submit",async event=>{
    if(reason==="keyInvalid")tip=" Kiểm tra API key.";
    else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
    else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
-   else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website của API key.";
+   else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website (HTTP referrer) của API key.";
    else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
    throw new Error(reason+": "+detail+tip);
   }
@@ -615,42 +609,7 @@ $("musicForm").addEventListener("submit",async event=>{
   button.textContent="Tìm";
  }
 });
-
-/* NHÚNG VIDEO TIKTOK */
-$("tiktokForm").addEventListener("submit",event=>{
- event.preventDefault();
- const rawUrl=$("tiktokUrl").value.trim();
- let parsed;
-
- try{
-  parsed=new URL(rawUrl);
- }catch{
-  $("tiktokStatus").textContent="Link không hợp lệ. Hãy dán link video TikTok đầy đủ.";
-  return;
- }
-
- const host=parsed.hostname.toLowerCase().replace(/^www\./,"");
- if(host!=="tiktok.com"&&!host.endsWith(".tiktok.com")){
-  $("tiktokStatus").textContent="Hãy nhập link từ tiktok.com.";
-  return;
- }
-
- const match=parsed.pathname.match(/\/video\/(\d+)/);
- if(!match){
-  $("tiktokStatus").textContent="Không lấy được mã video. Hãy dùng link dạng https://www.tiktok.com/@ten/video/123456789";
-  return;
- }
-
- const videoId=match[1];
- $("tiktokFrame").src="https://www.tiktok.com/player/v1/"+videoId+"?controls=1&description=1&music_info=1";
- $("tiktokFrameWrap").hidden=false;
- $("tiktokStatus").textContent="Đang tải video TikTok...";
- $("tiktokOpen").href="https://www.tiktok.com/@/video/"+videoId;
-
- $("tiktokFrame").onload=()=>{
-  $("tiktokStatus").textContent="Nếu video không phát, hãy mở TikTok trong tab mới.";
- };
-});
 </script>
 </body>
 </html>
+1409
