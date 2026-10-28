@@ -1,3 +1,4 @@
+1
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -12,7 +13,7 @@ header{background:#6750a4;color:white;padding:18px;text-align:center}
 .amino-title{margin:0;font-size:24px}
 .rabbit{display:inline-block;animation:jump 1s infinite}
 @keyframes jump{50%{transform:translateY(-8px)}}
-main{max-width:1100px;margin:20px auto;padding:16px}
+main{max-width:1000px;margin:20px auto;padding:16px}
 #login,#chat{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
 input,button{padding:12px;border-radius:8px;font-size:15px}
 input{border:1px solid #ccc;min-width:0}
@@ -22,7 +23,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #enter{width:100%}
 #passwordError{color:red}
 #status,#chatStatus{font-size:13px;color:#666}
-#chatLayout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px}
+#chatLayout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
 #chatMain,#sidePanel{min-width:0}
 #messages{
  height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;
@@ -32,26 +33,24 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 .message{padding:10px;margin:8px 0;border:2px solid #e91e63;border-left-width:6px;border-radius:12px;overflow-wrap:anywhere}
 .message-header{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:5px}
-.sender{font-size:12px;font-weight:bold;color:#6750a4}
+.sender{display:inline;font-size:12px;font-weight:bold;color:#6750a4;margin:0}
 .message-time{color:#999;font-size:10px;font-weight:normal}
 .message-body{white-space:pre-wrap;line-height:1.5}
 .system-message{width:fit-content;max-width:95%;margin:12px auto;padding:7px 12px;border-radius:999px;background:#f3e8ff;color:#6750a4;font-size:13px;overflow-wrap:anywhere}
 .system-time{margin-left:6px;color:#999;font-size:11px}
 #composer{display:flex;gap:8px}
 #message{flex:1;width:100%}
-#onlinePanel,#musicPanel,#tiktokPanel{
- border:1px solid #e1dced;border-radius:12px;background:white;padding:14px
-}
+#onlinePanel,#musicPanel{border:1px solid #e1dced;border-radius:12px;background:white;padding:14px}
 .online-heading,.music-heading{font-weight:bold;color:#6750a4;margin-bottom:10px}
 #onlineList{display:flex;flex-direction:column;gap:8px}
 .online-user{display:flex;align-items:center;gap:8px;padding:9px;background:#f5f2fc;border-radius:9px;overflow-wrap:anywhere}
 .online-dot{color:#16a34a}
 .online-name{font-size:14px;overflow-wrap:anywhere}
 #onlineEmpty{font-size:13px;color:#777}
-#musicPanel,#tiktokPanel{margin-top:14px}
-#musicForm,#tiktokControls{display:flex;gap:6px}
-#musicQuery,#tiktokAddress{width:100%;font-size:13px}
-#musicForm button,#tiktokControls button{flex-shrink:0}
+#musicPanel{margin-top:14px}
+#musicForm{display:flex;gap:6px}
+#musicQuery{width:100%;font-size:13px}
+#musicForm button{flex-shrink:0}
 #musicError{font-size:12px;color:#b42318;line-height:1.5;overflow-wrap:anywhere}
 #musicResults{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 #musicResults.hidden{display:none}
@@ -62,22 +61,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #playerWrap{margin-top:10px;width:100%;aspect-ratio:16/9;background:#111;border-radius:8px;overflow:hidden}
 #player{width:100%;height:100%}
 .hint{font-size:12px;color:#777;line-height:1.5}
-#syncStatus,#tiktokStatus{font-size:12px;line-height:1.5;color:#6750a4;margin-top:8px;overflow-wrap:anywhere}
-#tiktokFrameWrap{
- width:100%;height:70vh;min-height:420px;max-height:800px;
- margin-top:12px;background:#111;border-radius:12px;overflow:hidden
-}
-#tiktokFrame{width:100%;height:100%;border:0;background:#111}
-#tiktokOpen{display:block;margin-top:10px;text-align:center;text-decoration:none;background:#111;color:white;padding:12px;border-radius:8px}
+#syncStatus{font-size:12px;line-height:1.5;color:#6750a4;margin-top:8px;overflow-wrap:anywhere}
 .floating-heart{position:fixed;z-index:9999;pointer-events:none;animation:heartFly 1.3s ease-out forwards}
 @keyframes heartFly{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--drift)),-140px) scale(.8)}}
 @media(max-width:700px){
  main{margin:10px auto;padding:10px}
  #chatLayout{grid-template-columns:1fr}
  #onlineList{flex-direction:row;flex-wrap:wrap}
- #musicForm,#tiktokControls{flex-direction:column}
- #musicForm button,#tiktokControls button{width:100%}
- #tiktokFrameWrap{height:70vh;min-height:400px}
+ #musicForm{flex-direction:column}
+ #musicForm button{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.rabbit,.floating-heart{animation:none}}
 </style>
@@ -101,7 +93,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </section>
 
 <section id="chat" hidden>
-<h3>Welcome!</h3>
+<h3> Welcome! </h3>
 <p id="welcome"></p>
 
 <div id="chatLayout">
@@ -131,40 +123,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div id="musicResults"></div>
 <div id="playerWrap" hidden><div id="player"></div></div>
 <div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
-</section>
-
-<section id="tiktokPanel">
-<div class="music-heading">🎬 TikTok For You</div>
-<p class="hint">
-Thử mở bảng tin TikTok trực tiếp trong Amino. Nếu TikTok chặn khung,
-hãy dùng nút mở TikTok bên dưới.
-</p>
-
-<div id="tiktokControls">
-<button type="button" id="loadTikTok">Tải bảng tin</button>
-<button type="button" id="reloadTikTok">Tải lại</button>
-</div>
-
-<p id="tiktokStatus" aria-live="polite">
-Nhấn “Tải bảng tin” để thử mở TikTok.
-</p>
-
-<div id="tiktokFrameWrap">
-<iframe
- id="tiktokFrame"
- title="TikTok For You"
- src="about:blank"
- allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
- allowfullscreen>
-</iframe>
-</div>
-
-<a id="tiktokOpen"
- href="https://www.tiktok.com/foryou?lang=vi-VN"
- target="_blank"
- rel="noopener noreferrer">
-Mở TikTok For You bên ngoài
-</a>
 </section>
 </div>
 </div>
@@ -216,8 +174,7 @@ function musicStateRef(){return ref(db,"roomMusic/state")}
 function formatTime(timestamp){
  if(typeof timestamp!=="number")return "";
  return new Date(timestamp).toLocaleTimeString("vi-VN",{
-  timeZone:"Asia/Ho_Chi_Minh",
-  hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
+  timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
  });
 }
 
@@ -227,7 +184,6 @@ function floatHearts(){
  const button=$("composer").querySelector('button[type="submit"]');
  const rect=button.getBoundingClientRect();
  const hearts=["💗","💕","💖","💘","❤️","💓"];
-
  for(let i=0;i<5;i++){
   const heart=document.createElement("span");
   heart.className="floating-heart";
@@ -241,29 +197,31 @@ function floatHearts(){
  }
 }
 
-/* PRESENCE / ONLINE */
+/* ONLINE */
 function startPresence(){
  if(presenceStarted)return;
  presenceStarted=true;
 
  onValue(ref(db,".info/connected"),async snapshot=>{
   if(snapshot.val()!==true)return;
+const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
 
-  const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
+try{
+ // Chuẩn bị thông báo khi kết nối bị ngắt
+ const leaveMessageRef=push(ref(db,"publicChat/messages"));
 
-  try{
-   const leaveMessageRef=push(ref(db,"publicChat/messages"));
+ await onDisconnect(leaveMessageRef).set({
+  uid:user.uid,
+  name:"Thông báo hệ thống",
+  text:displayName+" đã rời phòng",
+  createdAt:serverTimestamp()
+ });
 
-   await onDisconnect(leaveMessageRef).set({
-    uid:user.uid,
-    name:"Thông báo hệ thống",
-    text:displayName+" đã rời phòng",
-    createdAt:serverTimestamp()
-   });
+ // Tự xóa trạng thái kết nối khi mất kết nối
+ await onDisconnect(connectionRef).remove();
 
-   await onDisconnect(connectionRef).remove();
-   await set(ref(db,`presence/${user.uid}/name`),displayName);
-   await set(connectionRef,true);
+ await set(ref(db,`presence/${user.uid}/name`),displayName);
+ await set(connectionRef,true);
   }catch(error){
    $("chatStatus").textContent="Lỗi online: "+error.message;
   }
@@ -277,25 +235,20 @@ function startPresence(){
   snapshot.forEach(item=>{
    const data=item.val()||{};
    if(!Object.keys(data.connections||{}).length)return;
-
    count++;
    const member=document.createElement("div");
    member.className="online-user";
-
    const dot=document.createElement("span");
    dot.className="online-dot";
    dot.textContent="●";
-
    const name=document.createElement("span");
    name.className="online-name";
    name.textContent=data.name||"Khách";
-
    member.append(dot,name);
    list.append(member);
   });
 
   $("onlineCount").textContent=String(count);
-
   if(!count){
    const empty=document.createElement("div");
    empty.id="onlineEmpty";
@@ -344,7 +297,6 @@ function createPlayer(){
 async function publishPlayerState(playing){
  if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
  if(latestMusicState?.changedBy!==user.uid)return;
-
  const now=Date.now();
  if(now-lastWriteAt<900)return;
  lastWriteAt=now;
@@ -358,14 +310,9 @@ async function publishPlayerState(playing){
   revision:latestMusicState?.revision||now,
   changedBy:user.uid
  };
-
  latestMusicState=state;
-
- try{
-  await set(musicStateRef(),state);
- }catch(error){
-  $("syncStatus").textContent="Không cập nhật được nhạc: "+error.message;
- }
+ try{await set(musicStateRef(),state)}
+ catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
 }
 
 function targetPosition(state){
@@ -376,7 +323,6 @@ function targetPosition(state){
 
 function applyMusicState(state,force=false){
  if(!state?.videoId||!playerReady||!player)return;
-
  const changed=state.videoId!==currentVideoId;
  const target=targetPosition(state);
 
@@ -396,17 +342,14 @@ function applyMusicState(state,force=false){
   }else{
    const actual=Number(player.getCurrentTime?.())||0;
    if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
-
    const playerState=player.getPlayerState?.();
    if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
    else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
   }
-
   $("syncStatus").textContent=state.playing?"🎵 Đang đồng bộ nhạc chung.":"⏸ Nhạc đang tạm dừng.";
  }catch(error){
   $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
  }
-
  applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
 }
 
@@ -417,17 +360,13 @@ function startMusicSync(){
  onValue(musicStateRef(),snapshot=>{
   const state=snapshot.val();
   if(!state?.videoId)return;
-
   const isNewRevision=state.revision!==lastAppliedRevision;
   latestMusicState=state;
-
   if(!playerReady){
    $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
    return;
   }
-
   if(state.changedBy===user.uid&&!isNewRevision)return;
-
   if(isNewRevision){
    lastAppliedRevision=state.revision;
    applyMusicState(state,true);
@@ -445,17 +384,14 @@ function startMusicSync(){
  },4000);
 }
 
-/* ĐĂNG NHẬP AMINO */
+/* ĐĂNG NHẬP */
 $("enter").addEventListener("click",async()=>{
  $("passwordError").textContent="";
-
  if($("chatPassword").value!=="1409"){
   $("passwordError").textContent="Mật khẩu không đúng!";
   return;
  }
-
  displayName=$("name").value.trim();
-
  if(!displayName){
   $("status").textContent="Cậu nhập tên trước nhé.";
   return;
@@ -470,81 +406,58 @@ $("enter").addEventListener("click",async()=>{
    auth=getAuth(app);
    db=getDatabase(app);
   }
-
   const result=await signInAnonymously(auth);
   user=result.user;
-
   $("login").hidden=true;
   $("chat").hidden=false;
   $("welcome").textContent="Đang trò chuyện với tên "+displayName;
 
   if(window.YT?.Player)createPlayer();
-
   startPresence();
   startMusicSync();
 
-  const recent=query(
-   ref(db,"publicChat/messages"),
-   orderByChild("createdAt"),
-   limitToLast(100)
-  );
-
+  const recent=query(ref(db,"publicChat/messages"),orderByChild("createdAt"),limitToLast(100));
   onValue(recent,snapshot=>{
    messages.replaceChildren();
-
    snapshot.forEach(item=>{
     const data=item.val()||{};
     const box=document.createElement("div");
-
     if(data.name==="Thông báo hệ thống"){
      box.className="system-message";
-
      const text=document.createElement("span");
      text.textContent=data.text||"";
-
      const time=document.createElement("span");
      time.className="system-time";
      time.textContent=formatTime(data.createdAt);
-
      box.append(text,time);
      messages.append(box);
      return;
     }
-
     box.className="message";
-
     const sender=document.createElement("span");
     sender.className="sender";
     sender.textContent=data.name||"Khách";
-
     const time=document.createElement("small");
     time.className="message-time";
     time.textContent=formatTime(data.createdAt);
-
     const header=document.createElement("div");
     header.className="message-header";
     header.append(sender,time);
-
     const body=document.createElement("div");
     body.className="message-body";
     body.textContent=data.text||"";
-
     box.append(header,body);
     messages.append(box);
    });
-
    messages.scrollTop=messages.scrollHeight;
   },error=>{
    $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
   });
 
   await set(push(ref(db,"publicChat/messages")),{
-   uid:user.uid,
-   name:"Thông báo hệ thống",
-   text:displayName+" đã vào chat",
-   createdAt:Date.now()
+   uid:user.uid,name:"Thông báo hệ thống",
+   text:displayName+" đã vào chat",createdAt:Date.now()
   });
-
   $("chatStatus").textContent="Đã kết nối.";
  }catch(error){
   console.error(error);
@@ -553,46 +466,31 @@ $("enter").addEventListener("click",async()=>{
  }
 });
 
-$("chatPassword").addEventListener("keydown",e=>{
- if(e.key==="Enter")$("enter").click();
-});
-
-$("name").addEventListener("keydown",e=>{
- if(e.key==="Enter")$("enter").click();
-});
+$("chatPassword").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click()});
+$("name").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click()});
 
 /* GỬI TIN NHẮN */
 $("composer").addEventListener("submit",async event=>{
  event.preventDefault();
-
  const text=$("message").value.trim();
  if(!text||!user)return;
-
  const button=$("composer").querySelector('button[type="submit"]');
  button.disabled=true;
-
  try{
   await set(push(ref(db,"publicChat/messages")),{
-   uid:user.uid,
-   name:displayName,
-   text,
-   createdAt:Date.now()
+   uid:user.uid,name:displayName,text,createdAt:Date.now()
   });
-
   floatHearts();
   $("message").value="";
   $("message").focus();
  }catch(error){
   $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
- }finally{
-  button.disabled=false;
- }
+ }finally{button.disabled=false}
 });
 
-/* TÌM KIẾM YOUTUBE */
+/* TÌM KIẾM YOUTUBE - ĐÃ SỬA */
 $("musicForm").addEventListener("submit",async event=>{
  event.preventDefault();
-
  const term=$("musicQuery").value.trim();
  if(!term)return;
 
@@ -611,7 +509,6 @@ $("musicForm").addEventListener("submit",async event=>{
 
  try{
   const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
-
   endpoint.search=new URLSearchParams({
    part:"snippet",
    type:"video",
@@ -626,7 +523,13 @@ $("musicForm").addEventListener("submit",async event=>{
   if(!response.ok){
    const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
    const detail=data.error?.message||"Không rõ nguyên nhân";
-   throw new Error(reason+": "+detail);
+   let tip="";
+   if(reason==="keyInvalid")tip=" Kiểm tra API key.";
+   else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
+   else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
+   else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website (HTTP referrer) của API key.";
+   else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
+   throw new Error(reason+": "+detail+tip);
   }
 
   if(!data.items?.length){
@@ -635,14 +538,11 @@ $("musicForm").addEventListener("submit",async event=>{
   }
 
   let count=0;
-
   for(const item of data.items){
    const id=item.id?.videoId;
    if(!id)continue;
-
    count++;
    const snippet=item.snippet||{};
-
    const btn=document.createElement("button");
    btn.type="button";
    btn.className="song";
@@ -652,15 +552,12 @@ $("musicForm").addEventListener("submit",async event=>{
    img.alt="Ảnh video";
 
    const info=document.createElement("div");
-
    const title=document.createElement("div");
    title.className="song-title";
    title.textContent=snippet.title||"Video YouTube";
-
    const channel=document.createElement("div");
    channel.className="song-channel";
    channel.textContent=snippet.channelTitle||"YouTube";
-
    info.append(title,channel);
    btn.append(img,info);
 
@@ -669,9 +566,7 @@ $("musicForm").addEventListener("submit",async event=>{
      setMusicError("Hãy vào phòng chat trước khi chọn nhạc.");
      return;
     }
-
     const revision=Date.now();
-
     const state={
      videoId:id,
      title:snippet.title||"Nhạc YouTube",
@@ -686,26 +581,22 @@ $("musicForm").addEventListener("submit",async event=>{
     $("playerWrap").hidden=false;
     setMusicError("🎵 Đang chọn: "+state.title);
     $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
-
     latestMusicState=state;
     currentVideoId=id;
     lastAppliedRevision=revision;
 
     try{
      await set(musicStateRef(),state);
-
      if(playerReady){
       applyingRemoteState=true;
       player.loadVideoById({videoId:id,startSeconds:0});
       setTimeout(()=>{applyingRemoteState=false},900);
      }
-
      $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
     }catch(error){
      $("syncStatus").textContent="Không đổi được nhạc: "+error.message;
     }
    });
-
    $("musicResults").append(btn);
   }
 
@@ -718,29 +609,7 @@ $("musicForm").addEventListener("submit",async event=>{
   button.textContent="Tìm";
  }
 });
-
-/* TIKTOK FOR YOU - THỬ NHÚNG TRỰC TIẾP */
-function loadTikTok(){
- const frame=$("tiktokFrame");
-
- $("tiktokStatus").textContent=
-  "Đang thử tải TikTok For You. Nếu khung trống, TikTok có thể đang chặn nhúng.";
-
- frame.src="https://www.tiktok.com/foryou?lang=vi-VN";
-}
-
-$("loadTikTok").addEventListener("click",loadTikTok);
-$("reloadTikTok").addEventListener("click",()=>{
- $("tiktokFrame").src="about:blank";
- setTimeout(loadTikTok,150);
-});
-
-$("tiktokFrame").addEventListener("load",()=>{
- if($("tiktokFrame").src!=="about:blank"){
-  $("tiktokStatus").textContent=
-   "Đã gửi yêu cầu tải TikTok. Nếu không thấy bảng tin hoặc không đăng nhập được, hãy mở TikTok bên ngoài.";
- }
-});
 </script>
 </body>
 </html>
+1409
