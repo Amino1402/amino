@@ -394,4 +394,407 @@ function createPlayer(){
   }
  });
 }
+async function publishPlayerState(playing){
+ if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
 
+ // Chỉ tài khoản đã chọn bài mới được phát trạng thái của player lên Firebase.
+ if(latestMusicState?.changedBy!==user.uid)return;
+
+ const now=Date.now();
+
+ const state={
+  videoId:currentVideoId,
+  title:latestMusicState?.title||"Nhạc YouTube",
+  position:Number(player.getCurrentTime?.())||0,
+  playing:!!playing,
+  updatedAt:now,
+  revision:latestMusicState?.revision||now,
+  changedBy:user.uid
+ };
+
+ latestMusicState=state;
+
+ try{await set(musicStateRef(),state)}
+ catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
+}
+
+function targetPosition(state){
+ const position=Number(state.position)||0;
+ if(!state.playing)return position;
+ return position+Math.max(0,Date.now()-(Number(state.updatedAt)||Date.now()))/1000;
+}
+
+function applyMusicState(state,force=false){
+ if(!state?.videoId||!playerReady||!player)return;
+
+ const changed=state.videoId!==currentVideoId;
+ const target=targetPosition(state);
+
+ if(changed){
+  currentVideoId=state.videoId;
+  $("playerWrap").hidden=false;
+  setMusicError("🎵 Bài đang phát: "+(state.title||"Nhạc YouTube"));
+ }
+
+ applyingRemoteState=true;
+ if(applyingTimer)clearTimeout(applyingTimer);
+
+ try{
+  if(changed){
+   if(state.playing)player.loadVideoById({videoId:state.videoId,startSeconds:target});
+   else player.cueVideoById({videoId:state.videoId,startSeconds:target});
+  }else{
+   const actual=Number(player.getCurrentTime?.())||0;
+
+   if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
+
+   const playerState=player.getPlayerState?.();
+
+   if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
+   else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
+  }
+
+  $("syncStatus").textContent=state.playing
+   ?"🎵 Đang đồng bộ nhạc chung."
+   :"⏸ Nhạc đang tạm dừng.";
+ }catch(error){
+  $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
+ }
+
+ applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
+}
+
+function startMusicSync(){
+ if(musicListenerStarted)return;
+ musicListenerStarted=true;
+
+ onValue(musicStateRef(),snapshot=>{
+  const state=snapshot.val();
+  if(!state?.videoId)return;
+
+  const isNewRevision=state.revision!==lastAppliedRevision;
+  latestMusicState=state;
+
+  if(!playerReady){
+   $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
+   return;
+  }
+
+  if(state.changedBy===user.uid&&!isNewRevision)return;
+
+  if(isNewRevision){
+   lastAppliedRevision=state.revision;
+   applyMusicState(state,true);
+  }else if(state.changedBy!==user.uid){
+   applyMusicState(state,false);
+  }
+ },error=>{
+  $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
+ });
+
+ // Chỉ cập nhật vị trí khi player THỰC SỰ đang phát.
+ // Không dùng trạng thái playing=true cũ để tự phát lại sau khi pause.
+ setInterval(()=>{
+  if(!playerReady||!currentVideoId||!latestMusicState||!user)return;
+  if(latestMusicState.changedBy!==user.uid)return;
+  if(!window.YT?.PlayerState)return;
+
+  if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
+
+  publishPlayerState(true);
+ },8000);
+}
+
+/* ĐĂNG NHẬP */
+$("enter").addEventListener("click",async()=>{
+ $("passwordError").textContent="";
+
+ if($("chatPassword").value!=="1409"){
+  $("passwordError").textContent="Mật khẩu không đúng!";
+  return;
+ }
+
+ displayName=$("name").value.trim();
+
+ if(!displayName){
+  $("status").textContent="Cậu nhập tên trước nhé.";
+  return;
+ }
+
+ $("enter").disabled=true;
+ $("status").textContent="Đang kết nối...";
+
+ try{
+  if(!app){
+   app=initializeApp(firebaseConfig);
+   auth=getAuth(app);
+   db=getDatabase(app);
+  }
+
+  const result=await signInAnonymously(auth);
+  user=result.user;
+
+  $("login").hidden=true;
+  $("chat").hidden=false;
+  $("welcome").textContent="Đang trò chuyện với tên "+displayName;
+
+  if(window.YT?.Player)createPlayer();
+
+  startPresence();
+  startTypingSync();
+  startMusicSync();
+
+  const recent=query(
+   ref(db,"publicChat/messages"),
+   orderByChild("createdAt"),
+   limitToLast(100)
+  );
+
+  onValue(recent,snapshot=>{
+   messages.replaceChildren();
+
+   snapshot.forEach(item=>{
+    const data=item.val()||{};
+    const box=document.createElement("div");
+
+    if(data.name==="Thông báo hệ thống"){
+     box.className="system-message";
+
+     const text=document.createElement("span");
+     text.textContent=data.text||"";
+
+     const time=document.createElement("span");
+     time.className="system-time";
+     time.textContent=formatTime(data.createdAt);
+
+     box.append(text,time);
+     messages.append(box);
+     return;
+    }
+
+    box.className="message";
+
+    const sender=document.createElement("span");
+    sender.className="sender";
+    sender.textContent=data.name||"Khách";
+
+    const time=document.createElement("small");
+    time.className="message-time";
+    time.textContent=formatTime(data.createdAt);
+
+    const header=document.createElement("div");
+    header.className="message-header";
+    header.append(sender,time);
+
+    const body=document.createElement("div");
+    body.className="message-body";
+    body.textContent=data.text||"";
+
+    box.append(header,body);
+    messages.append(box);
+   });
+
+   messages.scrollTop=messages.scrollHeight;
+  },error=>{
+   $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
+  });
+
+  await set(push(ref(db,"publicChat/messages")),{
+   uid:user.uid,
+   name:"Thông báo hệ thống",
+   text:displayName+" đã vào chat",
+   createdAt:Date.now()
+  });
+
+  $("chatStatus").textContent="Đã kết nối.";
+ }catch(error){
+  console.error(error);
+  $("status").textContent="Lỗi kết nối: "+(error.code||error.message);
+  $("enter").disabled=false;
+ }
+});
+
+$("chatPassword").addEventListener("keydown",e=>{
+ if(e.key==="Enter")$("enter").click();
+});
+
+$("name").addEventListener("keydown",e=>{
+ if(e.key==="Enter")$("enter").click();
+});
+
+/* GỬI TIN NHẮN */
+$("composer").addEventListener("submit",async event=>{
+ event.preventDefault();
+
+ const text=$("message").value.trim();
+ if(!text||!user)return;
+
+ const button=$("composer").querySelector('button[type="submit"]');
+ button.disabled=true;
+
+ try{
+  await set(push(ref(db,"publicChat/messages")),{
+   uid:user.uid,
+   name:displayName,
+   text,
+   createdAt:Date.now()
+  });
+
+  floatHearts();
+
+  clearTimeout(typingWriteTimer);
+  clearTimeout(typingClearTimer);
+  lastTypingText="";
+
+  await set(myTypingRef(),null).catch(()=>{});
+
+  $("message").value="";
+  $("message").focus();
+ }catch(error){
+  $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
+ }finally{
+  button.disabled=false;
+ }
+});
+
+/* TÌM KIẾM YOUTUBE */
+$("musicForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+
+ const term=$("musicQuery").value.trim();
+ if(!term)return;
+
+ setMusicError("");
+ $("musicResults").replaceChildren();
+ $("musicResults").classList.remove("hidden");
+
+ if(!YOUTUBE_API_KEY){
+  setMusicError("Chưa cấu hình YouTube API key.");
+  return;
+ }
+
+ const button=$("musicForm").querySelector("button");
+ button.disabled=true;
+ button.textContent="Đang tìm...";
+
+ try{
+  const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
+
+  endpoint.search=new URLSearchParams({
+   part:"snippet",
+   type:"video",
+   maxResults:"8",
+   q:term,
+   key:YOUTUBE_API_KEY
+  }).toString();
+
+  const response=await fetch(endpoint);
+  const data=await response.json();
+
+  if(!response.ok){
+   const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
+   const detail=data.error?.message||"Không rõ nguyên nhân";
+   let tip="";
+
+   if(reason==="keyInvalid")tip=" Kiểm tra API key.";
+   else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
+   else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
+   else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website (HTTP referrer) của API key.";
+   else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
+
+   throw new Error(reason+": "+detail+tip);
+  }
+
+  if(!data.items?.length){
+   setMusicError("Không tìm thấy video. Thử từ khóa khác nhé.");
+   return;
+  }
+
+  let count=0;
+
+  for(const item of data.items){
+   const id=item.id?.videoId;
+   if(!id)continue;
+
+   count++;
+
+   const snippet=item.snippet||{};
+
+   const btn=document.createElement("button");
+   btn.type="button";
+   btn.className="song";
+
+   const img=document.createElement("img");
+   img.src=snippet.thumbnails?.medium?.url||snippet.thumbnails?.default?.url||"";
+   img.alt="Ảnh video";
+
+   const info=document.createElement("div");
+
+   const title=document.createElement("div");
+   title.className="song-title";
+   title.textContent=snippet.title||"Video YouTube";
+
+   const channel=document.createElement("div");
+   channel.className="song-channel";
+   channel.textContent=snippet.channelTitle||"YouTube";
+
+   info.append(title,channel);
+   btn.append(img,info);
+
+   btn.addEventListener("click",async()=>{
+    if(!user){
+     setMusicError("Hãy vào phòng chat trước khi chọn nhạc.");
+     return;
+    }
+
+    const revision=Date.now();
+
+    const state={
+     videoId:id,
+     title:snippet.title||"Nhạc YouTube",
+     position:0,
+     playing:true,
+     updatedAt:revision,
+     revision,
+     changedBy:user.uid
+    };
+
+    $("musicResults").classList.add("hidden");
+    $("playerWrap").hidden=false;
+    setMusicError("🎵 Đang chọn: "+state.title);
+    $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
+
+    latestMusicState=state;
+    currentVideoId=id;
+    lastAppliedRevision=revision;
+
+    try{
+     await set(musicStateRef(),state);
+
+     if(playerReady){
+      applyingRemoteState=true;
+      player.loadVideoById({videoId:id,startSeconds:0});
+      setTimeout(()=>{applyingRemoteState=false},900);
+     }
+
+     $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
+    }catch(error){
+     $("syncStatus").textContent="Không đổi được nhạc: "+error.message;
+    }
+   });
+
+   $("musicResults").append(btn);
+  }
+
+  if(!count)setMusicError("Không có video hợp lệ trong kết quả.");
+ }catch(error){
+  console.error(error);
+  setMusicError("Lỗi YouTube: "+error.message);
+ }finally{
+  button.disabled=false;
+  button.textContent="Tìm";
+ }
+});
+</script>
+</body>
+</html>
