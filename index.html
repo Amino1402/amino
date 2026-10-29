@@ -1,4 +1,3 @@
-1
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -6,19 +5,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Amino Chat</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f1f3f8;color:#222}
-header{background:#6750a4;color:white;padding:18px;text-align:center}
 main{max-width:1000px;margin:20px auto;padding:16px}
-#login,#chat{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
+#login,#chat,#diaryPage{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
+#diaryPage{margin-top:10px}
+[hidden]{display:none!important}
 input,button,textarea{padding:12px;border-radius:8px;font-size:15px}
 input,textarea{border:1px solid #ccc;min-width:0}
 button{border:0;background:#6750a4;color:white;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 #name,#chatPassword{width:100%;margin:12px 0}
 #enter{width:100%}
-#passwordError{color:red}
+#passwordError{color:#b42318}
 #status,#chatStatus{font-size:13px;color:#666}
 #chatLayout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
 #chatMain,#sidePanel{min-width:0}
@@ -28,7 +29,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .sender{font-size:12px;font-weight:bold;color:#6750a4}
 .message-time{color:#999;font-size:10px}
 .message-body{white-space:pre-wrap;line-height:1.5}
-.system-message{width:fit-content;max-width:95%;margin:12px auto;padding:7px 12px;border-radius:999px;background:#f3e8ff;color:#6750a4;font-size:13px}
+.system-message{width:fit-content;max-width:95%;margin:12px auto;padding:7px 12px;border-radius:999px;background:#f3e8ff;color:#6750a4;font-size:13px;overflow-wrap:anywhere}
 .system-time{margin-left:6px;color:#999;font-size:11px}
 #composer{display:flex;gap:8px}
 #message{flex:1;width:100%}
@@ -60,121 +61,146 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .floating-heart{position:fixed;z-index:9999;pointer-events:none;animation:heartFly 1.3s ease-out forwards}
 @keyframes heartFly{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--drift)),-140px) scale(.8)}}
 
-/* Lịch nhật ký công khai */
+/* Nút lịch ở phòng chat */
 #diaryToolbar{display:flex;justify-content:flex-end;margin:4px 0 8px}
-#diaryToggle{width:36px;height:36px;padding:0;font-size:18px;border-radius:50%;display:grid;place-items:center;background:#f1eaff;color:#6750a4;border:1px solid #ded2fa}
-#diaryPanel{margin:8px 0 16px;padding:14px;border:1px solid #e1dced;border-radius:12px;background:#fff}
-#diaryPanel[hidden]{display:none}
-.diary-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;color:#6750a4}
-.diary-header button{min-width:36px;padding:6px 10px;font-size:20px}
+#diaryToggle{width:38px;height:38px;padding:0;font-size:19px;border-radius:50%;display:grid;place-items:center;background:#f1eaff;color:#6750a4;border:1px solid #ded2fa}
+
+/* Trang nhật ký riêng */
+.diary-page-title{color:#6750a4;margin:12px 0}
+#diaryBack{margin-bottom:8px}
+.diary-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0;color:#6750a4}
+.diary-header button{min-width:38px;padding:6px 10px;font-size:20px}
 .diary-weekdays,#diaryCalendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
 .diary-weekdays{margin-bottom:6px;color:#777;font-size:12px}
-.diary-day{min-width:0;min-height:36px;padding:5px 0;border-radius:8px;background:#f5f2fc;color:#333;font-size:13px;position:relative}
+.diary-day{min-width:0;min-height:38px;padding:5px 0;border-radius:8px;background:#f5f2fc;color:#333;font-size:13px;position:relative}
 .diary-day.selected{background:#6750a4;color:white}
 .diary-day.today{outline:2px solid #c4b5fd}
 .diary-day.has-entry:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:#e91e63;bottom:3px;left:calc(50% - 2px)}
 .diary-day.selected.has-entry:after{background:white}
 .diary-day.empty{visibility:hidden}
-#diaryDateTitle{font-size:14px;font-weight:bold;color:#6750a4;margin:15px 0 8px}
+#diaryDateTitle{color:#6750a4;font-size:15px;margin:20px 0 12px}
 #publicDiaryEntries{display:flex;flex-direction:column;gap:10px}
-.public-entry{padding:11px;border:1px solid #e7def7;border-radius:10px;background:#faf8ff;overflow-wrap:anywhere}
+.public-entry{padding:12px;border:1px solid #e7def7;border-radius:10px;background:#faf8ff;overflow-wrap:anywhere}
 .public-entry.own-entry{border-left:4px solid #6750a4}
 .entry-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
 .entry-author{font-size:13px;font-weight:bold;color:#6750a4}
 .entry-time{font-size:11px;color:#888}
 .entry-content{white-space:pre-wrap;line-height:1.5;font-size:14px}
-.entry-label{font-size:12px;color:#777;margin:14px 0 7px}
-#diaryText{width:100%;min-height:120px;resize:vertical;border:1px solid #ddd;border-radius:9px;padding:10px;font:inherit;line-height:1.5}
+.entry-label{font-size:13px;color:#6750a4;font-weight:bold;margin:22px 0 8px}
+#diaryText{width:100%;min-height:130px;resize:vertical;border:1px solid #ddd;border-radius:9px;padding:10px;font:inherit;line-height:1.5}
 #diarySaveStatus{color:#777;font-size:12px;display:block;margin-top:7px}
-#diaryDelete{background:#b42318;font-size:12px;padding:8px 10px}
+#diaryDelete{background:#b42318;font-size:12px;padding:9px 12px;margin-top:10px}
 @media(max-width:700px){
  main{margin:10px auto;padding:10px}
  #chatLayout{grid-template-columns:1fr}
  #onlineList{flex-direction:row;flex-wrap:wrap}
  #musicForm{flex-direction:column}
  #musicForm button{width:100%}
+ #diaryPage{padding:12px}
 }
 @media(prefers-reduced-motion:reduce){.floating-heart{animation:none}}
 </style>
 </head>
+
 <body>
 <main>
+
+<!-- TRANG ĐĂNG NHẬP -->
 <section id="login">
-<p>Nhập mật khẩu để vào Amino Chat</p>
-<input id="chatPassword" type="password" placeholder="Nhập mật khẩu">
-<p id="passwordError" aria-live="polite"></p>
-<h3>Chào mừng đến Amino Chat!</h3>
-<p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
-<input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
-<button id="enter" type="button">Vào chat thui 👆</button>
-<p id="status">Sẵn sàng kết nối.</p>
+  <p>Nhập mật khẩu để vào Amino Chat</p>
+  <input id="chatPassword" type="password" placeholder="Nhập mật khẩu">
+  <p id="passwordError" aria-live="polite"></p>
+  <h3>Chào mừng đến Amino Chat!</h3>
+  <p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
+  <input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
+  <button id="enter" type="button">Vào chat thui 👆</button>
+  <p id="status">Sẵn sàng kết nối.</p>
 </section>
 
+<!-- TRANG PHÒNG CHAT -->
 <section id="chat" hidden>
-<p id="welcome"></p>
+  <p id="welcome"></p>
 
-<div id="diaryToolbar">
-<button id="diaryToggle" type="button" aria-label="Mở nhật ký công khai" title="Nhật ký công khai" aria-expanded="false">📅</button>
-</div>
+  <div id="diaryToolbar">
+    <button id="diaryToggle" type="button" aria-label="Mở trang nhật ký" title="Nhật ký công khai">📅</button>
+  </div>
 
-<section id="diaryPanel" hidden>
+  <div id="chatLayout">
+    <div id="chatMain">
+      <div id="messages"></div>
+
+      <form id="composer">
+        <input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
+        <button type="submit">Gửi</button>
+      </form>
+
+      <div id="typingIndicator" aria-live="polite"></div>
+      <p id="chatStatus" aria-live="polite"></p>
+    </div>
+
+    <div id="sidePanel">
+      <aside id="onlinePanel">
+        <div class="online-heading">👥 Đang trực tuyến (<span id="onlineCount">0</span>)</div>
+        <div id="onlineList"><div id="onlineEmpty">Đang tải danh sách...</div></div>
+      </aside>
+
+      <section id="musicPanel">
+        <div class="music-heading">🎵 Nhạc chung cả phòng</div>
+        <div class="hint">Mọi người đều có thể tìm và đổi bài hát.</div>
+
+        <form id="musicForm">
+          <input id="musicQuery" placeholder="Nhập tên bài hát / ca sĩ..." required>
+          <button type="submit">Tìm</button>
+        </form>
+
+        <p id="musicError" aria-live="polite"></p>
+        <div id="musicResults"></div>
+        <div id="playerWrap" hidden><div id="player"></div></div>
+        <div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- TRANG NHẬT KÝ RIÊNG -->
+<section id="diaryPage" hidden>
+  <button id="diaryBack" type="button">← Quay lại phòng chat</button>
+
+  <h2 class="diary-page-title">📅 Nhật ký Amino</h2>
+  <p class="hint">Nhật ký công khai — mọi người đều có thể xem.</p>
+
   <div class="diary-header">
     <button id="diaryPrev" type="button" aria-label="Tháng trước">‹</button>
     <strong id="diaryMonthTitle"></strong>
     <button id="diaryNext" type="button" aria-label="Tháng sau">›</button>
   </div>
+
   <div class="diary-weekdays">
-    <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+    <span>T2</span><span>T3</span><span>T4</span>
+    <span>T5</span><span>T6</span><span>T7</span><span>CN</span>
   </div>
+
   <div id="diaryCalendar"></div>
+
   <h4 id="diaryDateTitle"></h4>
   <div id="publicDiaryEntries"></div>
+
   <p class="entry-label">✍️ Nhật ký của bạn trong ngày này</p>
+
   <textarea id="diaryText" maxlength="10000" placeholder="Chia sẻ hôm nay của cậu thế nào nhé 💜"></textarea>
-  <small id="diarySaveStatus" aria-live="polite">Nhật ký của bạn tự động lưu.</small>
-  <button id="diaryDelete" type="button" style="margin-top:8px">Xóa nhật ký của tôi trong ngày này</button>
-  <p class="hint">Mọi người trong phòng có thể xem bài viết. Chỉ bạn mới sửa hoặc xóa được nhật ký của chính mình.</p>
+  <small id="diarySaveStatus" aria-live="polite">Nhật ký tự động lưu.</small>
+
+  <button id="diaryDelete" type="button">Xóa nhật ký của tôi trong ngày này</button>
+  <p class="hint">Mọi người có thể xem bài viết. Chỉ bạn mới sửa hoặc xóa được nhật ký của chính mình.</p>
 </section>
 
-<div id="chatLayout">
-<div id="chatMain">
-<div id="messages"></div>
-<form id="composer">
-<input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
-<button type="submit">Gửi</button>
-</form>
-<div id="typingIndicator" aria-live="polite"></div>
-<p id="chatStatus" aria-live="polite"></p>
-</div>
-
-<div id="sidePanel">
-<aside id="onlinePanel">
-<div class="online-heading">👥 Đang trực tuyến (<span id="onlineCount">0</span>)</div>
-<div id="onlineList"><div id="onlineEmpty">Đang tải danh sách...</div></div>
-</aside>
-
-<section id="musicPanel">
-<div class="music-heading">🎵 Nhạc chung cả phòng</div>
-<div class="hint">Mọi người đều có thể tìm và đổi bài hát.</div>
-<form id="musicForm">
-<input id="musicQuery" placeholder="Nhập tên bài hát / ca sĩ..." required>
-<button type="submit">Tìm</button>
-</form>
-<p id="musicError" aria-live="polite"></p>
-<div id="musicResults"></div>
-<div id="playerWrap" hidden><div id="player"></div></div>
-<div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
-</section>
-</div>
-</div>
-</section>
 </main>
 
 <script>
 (function(){
- const tag=document.createElement("script");
- tag.src="https://www.youtube.com/iframe_api";
- document.head.appendChild(tag);
+  const tag=document.createElement("script");
+  tag.src="https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
 })();
 </script>
 
@@ -182,17 +208,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
- getDatabase,ref,push,set,get,onValue,query,orderByChild,
- limitToLast,onDisconnect,serverTimestamp
+  getDatabase,ref,push,set,onValue,query,orderByChild,
+  limitToLast,onDisconnect,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 /* FIREBASE */
 const firebaseConfig={
- apiKey:"AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
- authDomain:"amino-c6032.firebaseapp.com",
- databaseURL:"https://amino-c6032-default-rtdb.asia-southeast1.firebasedatabase.app/",
- projectId:"amino-c6032",
- appId:"1:659773931860:web:c101fc013c28a1b4e508c1"
+  apiKey:"AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
+  authDomain:"amino-c6032.firebaseapp.com",
+  databaseURL:"https://amino-c6032-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId:"amino-c6032",
+  appId:"1:659773931860:web:c101fc013c28a1b4e508c1"
 };
 
 /* YOUTUBE API KEY */
@@ -204,173 +230,187 @@ const messages=$("messages");
 let app,auth,db,user,displayName;
 let player=null,playerReady=false;
 let currentVideoId="",latestMusicState=null;
-let applyingRemoteState=false;
-let lastAppliedRevision=null;
+let applyingRemoteState=false,lastAppliedRevision=null;
 let presenceStarted=false,musicListenerStarted=false;
+let typingListenerStarted=false;
+let typingWriteTimer=null,typingClearTimer=null,lastTypingText="";
 let applyingTimer=null;
 
-/* LIVE TYPING */
-let typingListenerStarted=false;
-let typingWriteTimer=null,typingClearTimer=null;
-let lastTypingText="";
-
+/* TIỆN ÍCH */
 function musicStateRef(){return ref(db,"roomMusic/state")}
 
 function formatTime(timestamp){
- if(typeof timestamp!=="number")return "";
- return new Date(timestamp).toLocaleTimeString("vi-VN",{
-  timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
- });
+  if(typeof timestamp!=="number")return "";
+  return new Date(timestamp).toLocaleTimeString("vi-VN",{
+    timeZone:"Asia/Ho_Chi_Minh",
+    hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
+  });
 }
 
 function setMusicError(message){$("musicError").textContent=message}
 
 function floatHearts(){
- const button=$("composer").querySelector('button[type="submit"]');
- const rect=button.getBoundingClientRect();
- const hearts=["💗","💕","💖","💘","❤️","💓"];
- for(let i=0;i<5;i++){
-  const heart=document.createElement("span");
-  heart.className="floating-heart";
-  heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
-  heart.style.left=(rect.left+rect.width/2+(Math.random()-.5)*80)+"px";
-  heart.style.top=rect.top+rect.height/2+"px";
-  heart.style.fontSize=(16+Math.random()*14)+"px";
-  heart.style.setProperty("--drift",((Math.random()-.5)*90)+"px");
-  document.body.append(heart);
-  heart.addEventListener("animationend",()=>heart.remove(),{once:true});
- }
+  const button=$("composer").querySelector('button[type="submit"]');
+  const rect=button.getBoundingClientRect();
+  const hearts=["💗","💕","💖","💘","❤️","💓"];
+
+  for(let i=0;i<5;i++){
+    const heart=document.createElement("span");
+    heart.className="floating-heart";
+    heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+    heart.style.left=(rect.left+rect.width/2+(Math.random()-.5)*80)+"px";
+    heart.style.top=rect.top+rect.height/2+"px";
+    heart.style.fontSize=(16+Math.random()*14)+"px";
+    heart.style.setProperty("--drift",((Math.random()-.5)*90)+"px");
+    document.body.append(heart);
+    heart.addEventListener("animationend",()=>heart.remove(),{once:true});
+  }
 }
 
 /* ONLINE */
 function startPresence(){
- if(presenceStarted)return;
- presenceStarted=true;
+  if(presenceStarted)return;
+  presenceStarted=true;
 
- onValue(ref(db,".info/connected"),async snapshot=>{
-  if(snapshot.val()!==true)return;
-  const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
+  onValue(ref(db,".info/connected"),async snapshot=>{
+    if(snapshot.val()!==true)return;
 
-  try{
-   const leaveMessageRef=push(ref(db,"publicChat/messages"));
+    const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
 
-   await onDisconnect(leaveMessageRef).set({
-    uid:user.uid,
-    name:"Thông báo hệ thống",
-    text:displayName+" đã rời phòng",
-    createdAt:serverTimestamp()
-   });
+    try{
+      const leaveMessageRef=push(ref(db,"publicChat/messages"));
 
-   await onDisconnect(connectionRef).remove();
-   await set(ref(db,`presence/${user.uid}/name`),displayName);
-   await set(connectionRef,true);
-  }catch(error){
-   $("chatStatus").textContent="Lỗi online: "+error.message;
-  }
- });
+      await onDisconnect(leaveMessageRef).set({
+        uid:user.uid,
+        name:"Thông báo hệ thống",
+        text:displayName+" đã rời phòng",
+        createdAt:serverTimestamp()
+      });
 
- onValue(ref(db,"presence"),snapshot=>{
-  const list=$("onlineList");
-  list.replaceChildren();
-  let count=0;
-
-  snapshot.forEach(item=>{
-   const data=item.val()||{};
-   if(!Object.keys(data.connections||{}).length)return;
-   count++;
-
-   const member=document.createElement("div");
-   member.className="online-user";
-   const dot=document.createElement("span");
-   dot.className="online-dot";
-   dot.textContent="●";
-   const name=document.createElement("span");
-   name.className="online-name";
-   name.textContent=data.name||"Khách";
-   member.append(dot,name);
-   list.append(member);
+      await onDisconnect(connectionRef).remove();
+      await set(ref(db,`presence/${user.uid}/name`),displayName);
+      await set(connectionRef,true);
+    }catch(error){
+      $("chatStatus").textContent="Lỗi online: "+error.message;
+    }
   });
 
-  $("onlineCount").textContent=String(count);
-  if(!count){
-   const empty=document.createElement("div");
-   empty.id="onlineEmpty";
-   empty.textContent="Chưa có ai trực tuyến.";
-   list.append(empty);
-  }
- },error=>{
-  $("chatStatus").textContent="Không tải được online: "+error.message;
- });
+  onValue(ref(db,"presence"),snapshot=>{
+    const list=$("onlineList");
+    list.replaceChildren();
+    let count=0;
+
+    snapshot.forEach(item=>{
+      const data=item.val()||{};
+      if(!Object.keys(data.connections||{}).length)return;
+      count++;
+
+      const member=document.createElement("div");
+      member.className="online-user";
+
+      const dot=document.createElement("span");
+      dot.className="online-dot";
+      dot.textContent="●";
+
+      const name=document.createElement("span");
+      name.className="online-name";
+      name.textContent=data.name||"Khách";
+
+      member.append(dot,name);
+      list.append(member);
+    });
+
+    $("onlineCount").textContent=String(count);
+
+    if(!count){
+      const empty=document.createElement("div");
+      empty.id="onlineEmpty";
+      empty.textContent="Chưa có ai trực tuyến.";
+      list.append(empty);
+    }
+  },error=>{
+    $("chatStatus").textContent="Không tải được online: "+error.message;
+  });
 }
 
 /* LIVE TYPING */
 function myTypingRef(){return ref(db,`typing/${user.uid}`)}
 
 async function publishTypingDraft(){
- if(!user||!db)return;
- const text=$("message").value;
- const ownRef=myTypingRef();
- clearTimeout(typingClearTimer);
+  if(!user||!db)return;
 
- if(!text.trim()){
-  lastTypingText="";
-  try{await set(ownRef,null)}catch(error){console.warn(error)}
-  return;
- }
- if(text===lastTypingText)return;
- lastTypingText=text;
+  const text=$("message").value;
+  const ownRef=myTypingRef();
+  clearTimeout(typingClearTimer);
 
- try{
-  await set(ownRef,{uid:user.uid,name:displayName,text:text.slice(0,1000),updatedAt:Date.now()});
- }catch(error){console.warn("Không cập nhật được nội dung đang nhập:",error)}
-
- typingClearTimer=setTimeout(async()=>{
-  if(!user)return;
-  if($("message").value===text){
-   try{await set(ownRef,null)}catch(error){console.warn(error)}
-   lastTypingText="";
+  if(!text.trim()){
+    lastTypingText="";
+    try{await set(ownRef,null)}catch(error){console.warn(error)}
+    return;
   }
- },12000);
+
+  if(text===lastTypingText)return;
+  lastTypingText=text;
+
+  try{
+    await set(ownRef,{
+      uid:user.uid,name:displayName,
+      text:text.slice(0,1000),updatedAt:Date.now()
+    });
+  }catch(error){
+    console.warn("Không cập nhật được nội dung đang nhập:",error);
+  }
+
+  typingClearTimer=setTimeout(async()=>{
+    if(!user)return;
+    if($("message").value===text){
+      try{await set(ownRef,null)}catch(error){console.warn(error)}
+      lastTypingText="";
+    }
+  },12000);
 }
 
 function startTypingSync(){
- if(typingListenerStarted)return;
- typingListenerStarted=true;
+  if(typingListenerStarted)return;
+  typingListenerStarted=true;
 
- $("message").addEventListener("input",()=>{
-  clearTimeout(typingWriteTimer);
-  typingWriteTimer=setTimeout(publishTypingDraft,150);
- });
-
- onDisconnect(myTypingRef()).remove().catch(console.warn);
-
- onValue(ref(db,"typing"),snapshot=>{
-  const container=$("typingIndicator");
-  container.replaceChildren();
-  const now=Date.now();
-  let count=0;
-
-  snapshot.forEach(child=>{
-   const data=child.val();
-   if(!data||child.key===user.uid||typeof data.text!=="string"||!data.text.trim())return;
-   if(now-(Number(data.updatedAt)||0)>15000)return;
-   count++;
-
-   const row=document.createElement("div");
-   row.className="typing-user";
-   const label=document.createElement("strong");
-   label.textContent=(data.name||"Ai đó")+" đang nhập:";
-   const draft=document.createElement("div");
-   draft.className="typing-draft";
-   draft.textContent=data.text;
-   row.append(label,draft);
-   container.append(row);
+  $("message").addEventListener("input",()=>{
+    clearTimeout(typingWriteTimer);
+    typingWriteTimer=setTimeout(publishTypingDraft,150);
   });
 
-  if(!count)container.replaceChildren();
- },error=>{
-  $("chatStatus").textContent="Không đọc được nội dung đang nhập: "+error.message;
- });
+  onDisconnect(myTypingRef()).remove().catch(console.warn);
+
+  onValue(ref(db,"typing"),snapshot=>{
+    const container=$("typingIndicator");
+    container.replaceChildren();
+    const now=Date.now();
+    let count=0;
+
+    snapshot.forEach(child=>{
+      const data=child.val();
+      if(!data||child.key===user.uid||typeof data.text!=="string"||!data.text.trim())return;
+      if(now-(Number(data.updatedAt)||0)>15000)return;
+
+      count++;
+      const row=document.createElement("div");
+      row.className="typing-user";
+
+      const label=document.createElement("strong");
+      label.textContent=(data.name||"Ai đó")+" đang nhập:";
+
+      const draft=document.createElement("div");
+      draft.className="typing-draft";
+      draft.textContent=data.text;
+
+      row.append(label,draft);
+      container.append(row);
+    });
+
+    if(!count)container.replaceChildren();
+  },error=>{
+    $("chatStatus").textContent="Không đọc được nội dung đang nhập: "+error.message;
+  });
 }
 
 /* NHẬT KÝ CÔNG KHAI */
@@ -381,652 +421,691 @@ let publicDiaryData={};
 let diarySaveTimer=null;
 let diaryStarted=false;
 let diarySaving=false;
+let diaryRequestVersion=0;
 
 function diaryLocalKey(date){
- const y=date.getFullYear();
- const m=String(date.getMonth()+1).padStart(2,"0");
- const d=String(date.getDate()).padStart(2,"0");
- return `${y}-${m}-${d}`;
-}
-
-function diaryMonthKey(){
- return `${diaryMonth.getFullYear()}-${String(diaryMonth.getMonth()+1).padStart(2,"0")}`;
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,"0");
+  const d=String(date.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
 }
 
 function diaryDateLabel(key){
- const [y,m,d]=key.split("-").map(Number);
- return new Date(y,m-1,d).toLocaleDateString("vi-VN",{
-  weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"
- });
+  const [y,m,d]=key.split("-").map(Number);
+  return new Date(y,m-1,d).toLocaleDateString("vi-VN",{
+    weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"
+  });
 }
 
-/* Lấy các bài nhật ký của một ngày từ mọi tài khoản */
 function getEntriesForDate(dateKey){
- const monthKey=dateKey.slice(0,7);
- const entries=[];
+  const monthKey=dateKey.slice(0,7);
+  const entries=[];
 
- for(const [uid,months] of Object.entries(publicDiaryData||{})){
-  const entry=months?.[monthKey]?.[dateKey];
-  if(!entry)continue;
+  for(const [uid,months] of Object.entries(publicDiaryData||{})){
+    const entry=months?.[monthKey]?.[dateKey];
+    if(!entry||typeof entry!=="object"||typeof entry.text!=="string")continue;
 
-  /* Bỏ qua dữ liệu cũ không đúng định dạng */
-  if(typeof entry!=="object"||typeof entry.text!=="string")continue;
+    entries.push({
+      uid,
+      name:typeof entry.name==="string"?entry.name:"Thành viên",
+      text:entry.text,
+      updatedAt:Number(entry.updatedAt)||0
+    });
+  }
 
-  entries.push({
-   uid,
-   name:typeof entry.name==="string"?entry.name:"Thành viên",
-   text:entry.text,
-   updatedAt:Number(entry.updatedAt)||0
-  });
- }
-
- entries.sort((a,b)=>a.name.localeCompare(b.name,"vi"));
- return entries;
+  entries.sort((a,b)=>a.name.localeCompare(b.name,"vi"));
+  return entries;
 }
 
 function renderPublicEntries(){
- const container=$("publicDiaryEntries");
- container.replaceChildren();
+  const container=$("publicDiaryEntries");
+  container.replaceChildren();
 
- const entries=getEntriesForDate(diarySelectedDate);
+  const entries=getEntriesForDate(diarySelectedDate);
 
- if(!entries.length){
-  const empty=document.createElement("p");
-  empty.className="hint";
-  empty.textContent="Chưa có nhật ký nào trong ngày này. Cậu viết bài đầu tiên nhé!";
-  container.append(empty);
-  return;
- }
-
- for(const entry of entries){
-  const own=entry.uid===user?.uid;
-  const card=document.createElement("article");
-  card.className="public-entry"+(own?" own-entry":"");
-
-  const heading=document.createElement("div");
-  heading.className="entry-heading";
-
-  const author=document.createElement("span");
-  author.className="entry-author";
-  author.textContent=(entry.name||"Thành viên")+(own?" (Bạn)":"");
-
-  const time=document.createElement("span");
-  time.className="entry-time";
-  if(entry.updatedAt){
-   time.textContent="Cập nhật "+new Date(entry.updatedAt).toLocaleTimeString("vi-VN",{
-    hour:"2-digit",minute:"2-digit"
-   });
+  if(!entries.length){
+    const empty=document.createElement("p");
+    empty.className="hint";
+    empty.textContent="Chưa có nhật ký nào trong ngày này. Cậu viết bài đầu tiên nhé!";
+    container.append(empty);
+    return;
   }
 
-  heading.append(author,time);
+  for(const entry of entries){
+    const own=entry.uid===user?.uid;
+    const card=document.createElement("article");
+    card.className="public-entry"+(own?" own-entry":"");
 
-  const content=document.createElement("div");
-  content.className="entry-content";
-  content.textContent=entry.text;
+    const heading=document.createElement("div");
+    heading.className="entry-heading";
 
-  card.append(heading,content);
-  container.append(card);
- }
+    const author=document.createElement("span");
+    author.className="entry-author";
+    author.textContent=entry.name+(own?" (Bạn)":"");
+
+    const time=document.createElement("span");
+    time.className="entry-time";
+
+    if(entry.updatedAt){
+      time.textContent="Cập nhật "+new Date(entry.updatedAt).toLocaleTimeString("vi-VN",{
+        hour:"2-digit",minute:"2-digit"
+      });
+    }
+
+    heading.append(author,time);
+
+    const content=document.createElement("div");
+    content.className="entry-content";
+    content.textContent=entry.text;
+
+    card.append(heading,content);
+    container.append(card);
+  }
 }
 
 function renderDiaryCalendar(){
- const calendar=$("diaryCalendar");
- calendar.replaceChildren();
+  const calendar=$("diaryCalendar");
+  calendar.replaceChildren();
 
- $("diaryMonthTitle").textContent=diaryMonth.toLocaleDateString("vi-VN",{
-  month:"long",year:"numeric"
- });
+  $("diaryMonthTitle").textContent=diaryMonth.toLocaleDateString("vi-VN",{
+    month:"long",year:"numeric"
+  });
 
- const year=diaryMonth.getFullYear();
- const month=diaryMonth.getMonth();
- const offset=(new Date(year,month,1).getDay()+6)%7;
- const daysInMonth=new Date(year,month+1,0).getDate();
- const today=diaryLocalKey(new Date());
+  const year=diaryMonth.getFullYear();
+  const month=diaryMonth.getMonth();
+  const offset=(new Date(year,month,1).getDay()+6)%7;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=diaryLocalKey(new Date());
 
- for(let i=0;i<offset;i++){
-  const blank=document.createElement("span");
-  blank.className="diary-day empty";
-  calendar.append(blank);
- }
+  for(let i=0;i<offset;i++){
+    const blank=document.createElement("span");
+    blank.className="diary-day empty";
+    calendar.append(blank);
+  }
 
- for(let day=1;day<=daysInMonth;day++){
-  const key=diaryLocalKey(new Date(year,month,day));
-  const button=document.createElement("button");
-  button.type="button";
-  button.className="diary-day";
-  button.textContent=String(day);
+  for(let day=1;day<=daysInMonth;day++){
+    const key=diaryLocalKey(new Date(year,month,day));
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="diary-day";
+    button.textContent=String(day);
 
-  if(key===diarySelectedDate)button.classList.add("selected");
-  if(key===today)button.classList.add("today");
-  if(getEntriesForDate(key).length)button.classList.add("has-entry");
+    if(key===diarySelectedDate)button.classList.add("selected");
+    if(key===today)button.classList.add("today");
+    if(getEntriesForDate(key).length)button.classList.add("has-entry");
 
-  button.setAttribute("aria-label",diaryDateLabel(key));
-  button.addEventListener("click",()=>selectDiaryDate(key));
-  calendar.append(button);
- }
+    button.setAttribute("aria-label",diaryDateLabel(key));
+    button.addEventListener("click",()=>selectDiaryDate(key));
+    calendar.append(button);
+  }
+}
+
+function getOwnEntry(dateKey){
+  return publicDiaryData?.[user?.uid]?.[dateKey.slice(0,7)]?.[dateKey]||null;
 }
 
 function refreshDiaryView(){
- renderDiaryCalendar();
- $("diaryDateTitle").textContent="Nhật ký ngày "+diaryDateLabel(diarySelectedDate);
+  renderDiaryCalendar();
+  $("diaryDateTitle").textContent="Nhật ký ngày "+diaryDateLabel(diarySelectedDate);
 
- /* Không ghi đè bản nháp khi người dùng đang nhập */
- if(document.activeElement!==$("diaryText")){
-  const ownEntry=publicDiaryData?.[user.uid]?.[diarySelectedDate.slice(0,7)]?.[diarySelectedDate];
-  $("diaryText").value=ownEntry?.text||"";
- }
+  if(document.activeElement!==$("diaryText")){
+    $("diaryText").value=getOwnEntry(diarySelectedDate)?.text||"";
+  }
 
- renderPublicEntries();
+  renderPublicEntries();
 }
 
 async function saveDiaryEntry(dateKey,value){
- if(!user||!db||diarySaving)return;
+  if(!user||!db)return;
+  const requestVersion=++diaryRequestVersion;
+  const text=value.trim();
+  const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
 
- const text=value.trim();
- const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
+  diarySaving=true;
+  $("diarySaveStatus").textContent="Đang lưu...";
 
- diarySaving=true;
- $("diarySaveStatus").textContent="Đang lưu...";
-
- try{
-  if(text){
-   await set(entryRef,{
-    uid:user.uid,
-    name:displayName,
-    text:value,
-    updatedAt:Date.now()
-   });
-   $("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
-  }else{
-   await set(entryRef,null);
-   $("diarySaveStatus").textContent="Đã xóa nhật ký của bạn ✓";
+  try{
+    if(text){
+      await set(entryRef,{
+        uid:user.uid,
+        name:displayName,
+        text:value,
+        updatedAt:Date.now()
+      });
+      if(requestVersion===diaryRequestVersion){
+        $("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
+      }
+    }else{
+      await set(entryRef,null);
+      if(requestVersion===diaryRequestVersion){
+        $("diarySaveStatus").textContent="Đã xóa nhật ký của bạn ✓";
+      }
+    }
+  }catch(error){
+    if(requestVersion===diaryRequestVersion){
+      $("diarySaveStatus").textContent="Lưu thất bại: "+error.message;
+    }
+  }finally{
+    diarySaving=false;
   }
- }catch(error){
-  $("diarySaveStatus").textContent="Lưu thất bại: "+error.message;
- }finally{
-  diarySaving=false;
- }
 }
 
 function scheduleDiarySave(){
- clearTimeout(diarySaveTimer);
- const key=diarySelectedDate;
- const value=$("diaryText").value;
- $("diarySaveStatus").textContent="Đang chờ lưu...";
- diarySaveTimer=setTimeout(()=>saveDiaryEntry(key,value),700);
+  clearTimeout(diarySaveTimer);
+  const key=diarySelectedDate;
+  const value=$("diaryText").value;
+
+  $("diarySaveStatus").textContent="Đang chờ lưu...";
+  diarySaveTimer=setTimeout(()=>saveDiaryEntry(key,value),700);
 }
 
 async function selectDiaryDate(key){
- clearTimeout(diarySaveTimer);
+  clearTimeout(diarySaveTimer);
 
- const oldKey=diarySelectedDate;
- const oldValue=$("diaryText").value;
- const oldEntry=publicDiaryData?.[user.uid]?.[oldKey.slice(0,7)]?.[oldKey];
- const oldSavedText=oldEntry?.text||"";
+  const oldKey=diarySelectedDate;
+  const oldValue=$("diaryText").value;
+  const oldSavedText=getOwnEntry(oldKey)?.text||"";
 
- /* Lưu bản nháp trước khi đổi ngày */
- if(oldValue!==oldSavedText){
-  await saveDiaryEntry(oldKey,oldValue);
- }
+  if(oldValue!==oldSavedText){
+    await saveDiaryEntry(oldKey,oldValue);
+  }
 
- diarySelectedDate=key;
- refreshDiaryView();
- $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
+  diarySelectedDate=key;
+  refreshDiaryView();
+  $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
 }
 
 async function changeDiaryMonth(amount){
- clearTimeout(diarySaveTimer);
+  clearTimeout(diarySaveTimer);
 
- const oldKey=diarySelectedDate;
- const oldValue=$("diaryText").value;
- const oldEntry=publicDiaryData?.[user.uid]?.[oldKey.slice(0,7)]?.[oldKey];
- const oldSavedText=oldEntry?.text||"";
+  const oldKey=diarySelectedDate;
+  const oldValue=$("diaryText").value;
+  const oldSavedText=getOwnEntry(oldKey)?.text||"";
 
- if(oldValue!==oldSavedText){
-  await saveDiaryEntry(oldKey,oldValue);
- }
+  if(oldValue!==oldSavedText){
+    await saveDiaryEntry(oldKey,oldValue);
+  }
 
- diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth()+amount,1);
- diarySelectedDate=diaryLocalKey(
-  new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1)
- );
- refreshDiaryView();
- $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
+  diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth()+amount,1);
+  diarySelectedDate=diaryLocalKey(
+    new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1)
+  );
+
+  refreshDiaryView();
+  $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
 }
 
 function startDiary(){
- if(diaryStarted)return;
- diaryStarted=true;
+  if(diaryStarted)return;
+  diaryStarted=true;
 
- $("diaryToggle").addEventListener("click",()=>{
-  const open=$("diaryPanel").hidden;
-  $("diaryPanel").hidden=!open;
-  $("diaryToggle").setAttribute("aria-expanded",String(open));
+  /* Chuyển hẳn sang trang nhật ký */
+  $("diaryToggle").addEventListener("click",()=>{
+    $("chat").hidden=true;
+    $("diaryPage").hidden=false;
+    refreshDiaryView();
+    window.scrollTo({top:0,behavior:"auto"});
+  });
 
-  if(open)refreshDiaryView();
- });
+  /* Quay về phòng chat */
+  $("diaryBack").addEventListener("click",()=>{
+    clearTimeout(diarySaveTimer);
 
- $("diaryPrev").addEventListener("click",()=>changeDiaryMonth(-1));
- $("diaryNext").addEventListener("click",()=>changeDiaryMonth(1));
- $("diaryText").addEventListener("input",scheduleDiarySave);
+    const currentValue=$("diaryText").value;
+    const savedValue=getOwnEntry(diarySelectedDate)?.text||"";
 
- $("diaryDelete").addEventListener("click",async()=>{
-  clearTimeout(diarySaveTimer);
-  $("diaryText").value="";
-  await saveDiaryEntry(diarySelectedDate,"");
-  refreshDiaryView();
- });
+    if(currentValue!==savedValue){
+      saveDiaryEntry(diarySelectedDate,currentValue);
+    }
 
- /* Đọc nhật ký của TẤT CẢ người dùng và cập nhật trực tiếp */
- onValue(ref(db,"diary"),snapshot=>{
-  publicDiaryData=snapshot.val()||{};
-  refreshDiaryView();
-  $("diarySaveStatus").textContent="Nhật ký công khai đã cập nhật.";
- },error=>{
-  $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
- });
+    $("diaryPage").hidden=true;
+    $("chat").hidden=false;
+    window.scrollTo({top:0,behavior:"auto"});
+  });
+
+  $("diaryPrev").addEventListener("click",()=>changeDiaryMonth(-1));
+  $("diaryNext").addEventListener("click",()=>changeDiaryMonth(1));
+  $("diaryText").addEventListener("input",scheduleDiarySave);
+
+  $("diaryDelete").addEventListener("click",async()=>{
+    clearTimeout(diarySaveTimer);
+
+    if(!getOwnEntry(diarySelectedDate)){
+      $("diarySaveStatus").textContent="Ngày này chưa có nhật ký của bạn.";
+      return;
+    }
+
+    if(!window.confirm("Mày có chắc muốn xóa nhật ký của mình trong ngày này không?"))return;
+
+    $("diaryText").value="";
+    await saveDiaryEntry(diarySelectedDate,"");
+    refreshDiaryView();
+  });
+
+  /* Tất cả người đã đăng nhập đều đọc nhật ký công khai */
+  onValue(ref(db,"diary"),snapshot=>{
+    publicDiaryData=snapshot.val()||{};
+    refreshDiaryView();
+  },error=>{
+    $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
+  });
 }
 
 /* YOUTUBE PLAYER */
 window.onYouTubeIframeAPIReady=()=>createPlayer();
 
 function createPlayer(){
- if(player||!window.YT?.Player)return;
+  if(player||!window.YT?.Player)return;
 
- player=new YT.Player("player",{
-  width:"100%",height:"100%",
-  playerVars:{autoplay:0,controls:1,playsinline:1,rel:0},
-  events:{
-   onReady:()=>{
-    playerReady=true;
-    if(latestMusicState)applyMusicState(latestMusicState,true);
-   },
-   onStateChange:event=>{
-    if(applyingRemoteState||!currentVideoId||!user)return;
-    if(event.data===YT.PlayerState.PLAYING)publishPlayerState(true);
-    else if(event.data===YT.PlayerState.PAUSED)publishPlayerState(false);
-    else if(event.data===YT.PlayerState.ENDED)publishPlayerState(false);
-   },
-   onError:event=>{
-    const errors={
-     2:"Video ID không hợp lệ.",
-     5:"Lỗi trình phát HTML5.",
-     100:"Video không tồn tại hoặc đã bị xóa.",
-     101:"Chủ video không cho phép phát nhúng.",
-     150:"Chủ video không cho phép phát nhúng."
-    };
-    $("syncStatus").textContent="YouTube: "+(errors[event.data]||("lỗi "+event.data))+" Hãy thử bài khác.";
-   }
-  }
- });
+  player=new YT.Player("player",{
+    width:"100%",height:"100%",
+    playerVars:{autoplay:0,controls:1,playsinline:1,rel:0},
+    events:{
+      onReady:()=>{
+        playerReady=true;
+        if(latestMusicState)applyMusicState(latestMusicState,true);
+      },
+      onStateChange:event=>{
+        if(applyingRemoteState||!currentVideoId||!user)return;
+        if(event.data===YT.PlayerState.PLAYING)publishPlayerState(true);
+        else if(event.data===YT.PlayerState.PAUSED)publishPlayerState(false);
+        else if(event.data===YT.PlayerState.ENDED)publishPlayerState(false);
+      },
+      onError:event=>{
+        const errors={
+          2:"Video ID không hợp lệ.",
+          5:"Lỗi trình phát HTML5.",
+          100:"Video không tồn tại hoặc đã bị xóa.",
+          101:"Chủ video không cho phép phát nhúng.",
+          150:"Chủ video không cho phép phát nhúng."
+        };
+        $("syncStatus").textContent="YouTube: "+(errors[event.data]||("lỗi "+event.data))+" Hãy thử bài khác.";
+      }
+    }
+  });
 }
 
 async function publishPlayerState(playing){
- if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
- if(latestMusicState?.changedBy!==user.uid)return;
+  if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
+  if(latestMusicState?.changedBy!==user.uid)return;
 
- const now=Date.now();
- const state={
-  videoId:currentVideoId,
-  title:latestMusicState?.title||"Nhạc YouTube",
-  position:Number(player.getCurrentTime?.())||0,
-  playing:!!playing,
-  updatedAt:now,
-  revision:latestMusicState?.revision||now,
-  changedBy:user.uid
- };
+  const now=Date.now();
+  const state={
+    videoId:currentVideoId,
+    title:latestMusicState?.title||"Nhạc YouTube",
+    position:Number(player.getCurrentTime?.())||0,
+    playing:!!playing,
+    updatedAt:now,
+    revision:latestMusicState?.revision||now,
+    changedBy:user.uid
+  };
 
- latestMusicState=state;
- try{await set(musicStateRef(),state)}
- catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
+  latestMusicState=state;
+  try{await set(musicStateRef(),state)}
+  catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
 }
 
 function targetPosition(state){
- const position=Number(state.position)||0;
- if(!state.playing)return position;
- return position+Math.max(0,Date.now()-(Number(state.updatedAt)||Date.now()))/1000;
+  const position=Number(state.position)||0;
+  if(!state.playing)return position;
+  return position+Math.max(0,Date.now()-(Number(state.updatedAt)||Date.now()))/1000;
 }
 
 function applyMusicState(state,force=false){
- if(!state?.videoId||!playerReady||!player)return;
+  if(!state?.videoId||!playerReady||!player)return;
 
- const changed=state.videoId!==currentVideoId;
- const target=targetPosition(state);
+  const changed=state.videoId!==currentVideoId;
+  const target=targetPosition(state);
 
- if(changed){
-  currentVideoId=state.videoId;
-  $("playerWrap").hidden=false;
-  setMusicError("🎵 Bài đang phát: "+(state.title||"Nhạc YouTube"));
- }
-
- applyingRemoteState=true;
- if(applyingTimer)clearTimeout(applyingTimer);
-
- try{
   if(changed){
-   if(state.playing)player.loadVideoById({videoId:state.videoId,startSeconds:target});
-   else player.cueVideoById({videoId:state.videoId,startSeconds:target});
-  }else{
-   const actual=Number(player.getCurrentTime?.())||0;
-   if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
-   const playerState=player.getPlayerState?.();
-   if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
-   else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
+    currentVideoId=state.videoId;
+    $("playerWrap").hidden=false;
+    setMusicError("🎵 Bài đang phát: "+(state.title||"Nhạc YouTube"));
   }
 
-  $("syncStatus").textContent=state.playing?"🎵 Đang đồng bộ nhạc chung.":"⏸ Nhạc đang tạm dừng.";
- }catch(error){
-  $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
- }
+  applyingRemoteState=true;
+  if(applyingTimer)clearTimeout(applyingTimer);
 
- applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
+  try{
+    if(changed){
+      if(state.playing)player.loadVideoById({videoId:state.videoId,startSeconds:target});
+      else player.cueVideoById({videoId:state.videoId,startSeconds:target});
+    }else{
+      const actual=Number(player.getCurrentTime?.())||0;
+      if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
+
+      const playerState=player.getPlayerState?.();
+      if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
+      else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
+    }
+
+    $("syncStatus").textContent=state.playing?"🎵 Đang đồng bộ nhạc chung.":"⏸ Nhạc đang tạm dừng.";
+  }catch(error){
+    $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
+  }
+
+  applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
 }
 
 function startMusicSync(){
- if(musicListenerStarted)return;
- musicListenerStarted=true;
+  if(musicListenerStarted)return;
+  musicListenerStarted=true;
 
- onValue(musicStateRef(),snapshot=>{
-  const state=snapshot.val();
-  if(!state?.videoId)return;
+  onValue(musicStateRef(),snapshot=>{
+    const state=snapshot.val();
+    if(!state?.videoId)return;
 
-  const isNewRevision=state.revision!==lastAppliedRevision;
-  latestMusicState=state;
+    const isNewRevision=state.revision!==lastAppliedRevision;
+    latestMusicState=state;
 
-  if(!playerReady){
-   $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
-   return;
-  }
+    if(!playerReady){
+      $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
+      return;
+    }
 
-  if(state.changedBy===user.uid&&!isNewRevision)return;
+    if(state.changedBy===user.uid&&!isNewRevision)return;
 
-  if(isNewRevision){
-   lastAppliedRevision=state.revision;
-   applyMusicState(state,true);
-  }else if(state.changedBy!==user.uid){
-   applyMusicState(state,false);
-  }
- },error=>{
-  $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
- });
+    if(isNewRevision){
+      lastAppliedRevision=state.revision;
+      applyMusicState(state,true);
+    }else if(state.changedBy!==user.uid){
+      applyMusicState(state,false);
+    }
+  },error=>{
+    $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
+  });
 
- setInterval(()=>{
-  if(!playerReady||!currentVideoId||!latestMusicState||!user)return;
-  if(latestMusicState.changedBy!==user.uid)return;
-  if(!window.YT?.PlayerState)return;
-  if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
-  publishPlayerState(true);
- },8000);
+  setInterval(()=>{
+    if(!playerReady||!currentVideoId||!latestMusicState||!user)return;
+    if(latestMusicState.changedBy!==user.uid)return;
+    if(!window.YT?.PlayerState)return;
+    if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
+    publishPlayerState(true);
+  },8000);
 }
 
 /* ĐĂNG NHẬP */
 $("enter").addEventListener("click",async()=>{
- $("passwordError").textContent="";
+  $("passwordError").textContent="";
 
- if($("chatPassword").value!=="1409"){
-  $("passwordError").textContent="Mật khẩu không đúng!";
-  return;
- }
-
- displayName=$("name").value.trim();
- if(!displayName){
-  $("status").textContent="Cậu nhập tên trước nhé.";
-  return;
- }
-
- $("enter").disabled=true;
- $("status").textContent="Đang kết nối...";
-
- try{
-  if(!app){
-   app=initializeApp(firebaseConfig);
-   auth=getAuth(app);
-   db=getDatabase(app);
+  if($("chatPassword").value!=="1409"){
+    $("passwordError").textContent="Mật khẩu không đúng!";
+    return;
   }
 
-  const result=await signInAnonymously(auth);
-  user=result.user;
+  displayName=$("name").value.trim();
+  if(!displayName){
+    $("status").textContent="Cậu nhập tên trước nhé.";
+    return;
+  }
 
-  $("login").hidden=true;
-  $("chat").hidden=false;
-  $("welcome").textContent="Xin chào, "+displayName+" 💜";
+  $("enter").disabled=true;
+  $("status").textContent="Đang kết nối...";
 
-  if(window.YT?.Player)createPlayer();
-
-  startPresence();
-  startTypingSync();
-  startMusicSync();
-  startDiary();
-
-  const recent=query(ref(db,"publicChat/messages"),orderByChild("createdAt"),limitToLast(100));
-
-  onValue(recent,snapshot=>{
-   messages.replaceChildren();
-
-   snapshot.forEach(item=>{
-    const data=item.val()||{};
-    const box=document.createElement("div");
-
-    if(data.name==="Thông báo hệ thống"){
-     box.className="system-message";
-     const text=document.createElement("span");
-     text.textContent=data.text||"";
-     const time=document.createElement("span");
-     time.className="system-time";
-     time.textContent=formatTime(data.createdAt);
-     box.append(text,time);
-     messages.append(box);
-     return;
+  try{
+    if(!app){
+      app=initializeApp(firebaseConfig);
+      auth=getAuth(app);
+      db=getDatabase(app);
     }
 
-    box.className="message";
-    const sender=document.createElement("span");
-    sender.className="sender";
-    sender.textContent=data.name||"Khách";
+    const result=await signInAnonymously(auth);
+    user=result.user;
 
-    const time=document.createElement("small");
-    time.className="message-time";
-    time.textContent=formatTime(data.createdAt);
+    $("login").hidden=true;
+    $("chat").hidden=false;
+    $("welcome").textContent="Xin chào, "+displayName+" 💜";
 
-    const header=document.createElement("div");
-    header.className="message-header";
-    header.append(sender,time);
+    if(window.YT?.Player)createPlayer();
 
-    const body=document.createElement("div");
-    body.className="message-body";
-    body.textContent=data.text||"";
+    startPresence();
+    startTypingSync();
+    startMusicSync();
+    startDiary();
 
-    box.append(header,body);
-    messages.append(box);
-   });
+    const recent=query(
+      ref(db,"publicChat/messages"),
+      orderByChild("createdAt"),
+      limitToLast(100)
+    );
 
-   messages.scrollTop=messages.scrollHeight;
-  },error=>{
-   $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
-  });
+    onValue(recent,snapshot=>{
+      messages.replaceChildren();
 
-  await set(push(ref(db,"publicChat/messages")),{
-   uid:user.uid,
-   name:"Thông báo hệ thống",
-   text:displayName+" đã vào chat",
-   createdAt:Date.now()
-  });
+      snapshot.forEach(item=>{
+        const data=item.val()||{};
+        const box=document.createElement("div");
 
-  $("chatStatus").textContent="Đã kết nối.";
- }catch(error){
-  console.error(error);
-  $("status").textContent="Lỗi kết nối: "+(error.code||error.message);
-  $("enter").disabled=false;
- }
+        if(data.name==="Thông báo hệ thống"){
+          box.className="system-message";
+
+          const text=document.createElement("span");
+          text.textContent=data.text||"";
+
+          const time=document.createElement("span");
+          time.className="system-time";
+          time.textContent=formatTime(data.createdAt);
+
+          box.append(text,time);
+          messages.append(box);
+          return;
+        }
+
+        box.className="message";
+
+        const sender=document.createElement("span");
+        sender.className="sender";
+        sender.textContent=data.name||"Khách";
+
+        const time=document.createElement("small");
+        time.className="message-time";
+        time.textContent=formatTime(data.createdAt);
+
+        const header=document.createElement("div");
+        header.className="message-header";
+        header.append(sender,time);
+
+        const body=document.createElement("div");
+        body.className="message-body";
+        body.textContent=data.text||"";
+
+        box.append(header,body);
+        messages.append(box);
+      });
+
+      messages.scrollTop=messages.scrollHeight;
+    },error=>{
+      $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
+    });
+
+    await set(push(ref(db,"publicChat/messages")),{
+      uid:user.uid,
+      name:"Thông báo hệ thống",
+      text:displayName+" đã vào chat",
+      createdAt:Date.now()
+    });
+
+    $("chatStatus").textContent="Đã kết nối.";
+  }catch(error){
+    console.error(error);
+    $("status").textContent="Lỗi kết nối: "+(error.code||error.message);
+    $("enter").disabled=false;
+  }
 });
 
 $("chatPassword").addEventListener("keydown",e=>{
- if(e.key==="Enter")$("enter").click();
+  if(e.key==="Enter")$("enter").click();
 });
 $("name").addEventListener("keydown",e=>{
- if(e.key==="Enter")$("enter").click();
+  if(e.key==="Enter")$("enter").click();
 });
 
 /* GỬI TIN NHẮN */
 $("composer").addEventListener("submit",async event=>{
- event.preventDefault();
+  event.preventDefault();
 
- const text=$("message").value.trim();
- if(!text||!user)return;
+  const text=$("message").value.trim();
+  if(!text||!user)return;
 
- const button=$("composer").querySelector('button[type="submit"]');
- button.disabled=true;
+  const button=$("composer").querySelector('button[type="submit"]');
+  button.disabled=true;
 
- try{
-  await set(push(ref(db,"publicChat/messages")),{
-   uid:user.uid,
-   name:displayName,
-   text,
-   createdAt:Date.now()
-  });
+  try{
+    await set(push(ref(db,"publicChat/messages")),{
+      uid:user.uid,
+      name:displayName,
+      text,
+      createdAt:Date.now()
+    });
 
-  floatHearts();
-  clearTimeout(typingWriteTimer);
-  clearTimeout(typingClearTimer);
-  lastTypingText="";
-  await set(myTypingRef(),null).catch(()=>{});
-  $("message").value="";
-  $("message").focus();
- }catch(error){
-  $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
- }finally{
-  button.disabled=false;
- }
+    floatHearts();
+
+    clearTimeout(typingWriteTimer);
+    clearTimeout(typingClearTimer);
+    lastTypingText="";
+    await set(myTypingRef(),null).catch(()=>{});
+
+    $("message").value="";
+    $("message").focus();
+  }catch(error){
+    $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
+  }finally{
+    button.disabled=false;
+  }
 });
 
 /* TÌM KIẾM YOUTUBE */
 $("musicForm").addEventListener("submit",async event=>{
- event.preventDefault();
+  event.preventDefault();
 
- const term=$("musicQuery").value.trim();
- if(!term)return;
+  const term=$("musicQuery").value.trim();
+  if(!term)return;
 
- setMusicError("");
- $("musicResults").replaceChildren();
- $("musicResults").classList.remove("hidden");
+  setMusicError("");
+  $("musicResults").replaceChildren();
+  $("musicResults").classList.remove("hidden");
 
- if(!YOUTUBE_API_KEY){
-  setMusicError("Chưa cấu hình YouTube API key.");
-  return;
- }
-
- const button=$("musicForm").querySelector("button");
- button.disabled=true;
- button.textContent="Đang tìm...";
-
- try{
-  const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
-  endpoint.search=new URLSearchParams({
-   part:"snippet",type:"video",maxResults:"8",q:term,key:YOUTUBE_API_KEY
-  }).toString();
-
-  const response=await fetch(endpoint);
-  const data=await response.json();
-
-  if(!response.ok){
-   const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
-   const detail=data.error?.message||"Không rõ nguyên nhân";
-   let tip="";
-
-   if(reason==="keyInvalid")tip=" Kiểm tra API key.";
-   else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
-   else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
-   else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website của API key.";
-   else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
-
-   throw new Error(reason+": "+detail+tip);
+  if(!YOUTUBE_API_KEY){
+    setMusicError("Chưa cấu hình YouTube API key.");
+    return;
   }
 
-  if(!data.items?.length){
-   setMusicError("Không tìm thấy video. Thử từ khóa khác nhé.");
-   return;
-  }
+  const button=$("musicForm").querySelector("button");
+  button.disabled=true;
+  button.textContent="Đang tìm...";
 
-  let count=0;
+  try{
+    const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
+    endpoint.search=new URLSearchParams({
+      part:"snippet",
+      type:"video",
+      maxResults:"8",
+      q:term,
+      key:YOUTUBE_API_KEY
+    }).toString();
 
-  for(const item of data.items){
-   const id=item.id?.videoId;
-   if(!id)continue;
-   count++;
+    const response=await fetch(endpoint);
+    const data=await response.json();
 
-   const snippet=item.snippet||{};
-   const btn=document.createElement("button");
-   btn.type="button";
-   btn.className="song";
+    if(!response.ok){
+      const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
+      const detail=data.error?.message||"Không rõ nguyên nhân";
+      let tip="";
 
-   const img=document.createElement("img");
-   img.src=snippet.thumbnails?.medium?.url||snippet.thumbnails?.default?.url||"";
-   img.alt="Ảnh video";
+      if(reason==="keyInvalid")tip=" Kiểm tra API key.";
+      else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
+      else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
+      else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website của API key.";
+      else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
 
-   const info=document.createElement("div");
-   const title=document.createElement("div");
-   title.className="song-title";
-   title.textContent=snippet.title||"Video YouTube";
-
-   const channel=document.createElement("div");
-   channel.className="song-channel";
-   channel.textContent=snippet.channelTitle||"YouTube";
-
-   info.append(title,channel);
-   btn.append(img,info);
-
-   btn.addEventListener("click",async()=>{
-    if(!user){
-     setMusicError("Hãy vào phòng chat trước khi chọn nhạc.");
-     return;
+      throw new Error(reason+": "+detail+tip);
     }
 
-    const revision=Date.now();
-    const state={
-     videoId:id,
-     title:snippet.title||"Nhạc YouTube",
-     position:0,
-     playing:true,
-     updatedAt:revision,
-     revision,
-     changedBy:user.uid
-    };
-
-    $("musicResults").classList.add("hidden");
-    $("playerWrap").hidden=false;
-    setMusicError("🎵 Đang chọn: "+state.title);
-    $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
-
-    latestMusicState=state;
-    currentVideoId=id;
-    lastAppliedRevision=revision;
-
-    try{
-     await set(musicStateRef(),state);
-
-     if(playerReady){
-      applyingRemoteState=true;
-      player.loadVideoById({videoId:id,startSeconds:0});
-      setTimeout(()=>{applyingRemoteState=false},900);
-     }
-
-     $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
-    }catch(error){
-     $("syncStatus").textContent="Không đổi được nhạc: "+error.message;
+    if(!data.items?.length){
+      setMusicError("Không tìm thấy video. Thử từ khóa khác nhé.");
+      return;
     }
-   });
 
-   $("musicResults").append(btn);
+    let count=0;
+
+    for(const item of data.items){
+      const id=item.id?.videoId;
+      if(!id)continue;
+      count++;
+
+      const snippet=item.snippet||{};
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.className="song";
+
+      const img=document.createElement("img");
+      img.src=snippet.thumbnails?.medium?.url||snippet.thumbnails?.default?.url||"";
+      img.alt="Ảnh video";
+
+      const info=document.createElement("div");
+      const title=document.createElement("div");
+      title.className="song-title";
+      title.textContent=snippet.title||"Video YouTube";
+
+      const channel=document.createElement("div");
+      channel.className="song-channel";
+      channel.textContent=snippet.channelTitle||"YouTube";
+
+      info.append(title,channel);
+      btn.append(img,info);
+
+      btn.addEventListener("click",async()=>{
+        if(!user){
+          setMusicError("Hãy vào phòng chat trước khi chọn nhạc.");
+          return;
+        }
+
+        const revision=Date.now();
+        const state={
+          videoId:id,
+          title:snippet.title||"Nhạc YouTube",
+          position:0,
+          playing:true,
+          updatedAt:revision,
+          revision,
+          changedBy:user.uid
+        };
+
+        $("musicResults").classList.add("hidden");
+        $("playerWrap").hidden=false;
+        setMusicError("🎵 Đang chọn: "+state.title);
+        $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
+
+        latestMusicState=state;
+        currentVideoId=id;
+        lastAppliedRevision=revision;
+
+        try{
+          await set(musicStateRef(),state);
+
+          if(playerReady){
+            applyingRemoteState=true;
+            player.loadVideoById({videoId:id,startSeconds:0});
+            setTimeout(()=>{applyingRemoteState=false},900);
+          }
+
+          $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
+        }catch(error){
+          $("syncStatus").textContent="Không đổi được nhạc: "+error.message;
+        }
+      });
+
+      $("musicResults").append(btn);
+    }
+
+    if(!count)setMusicError("Không có video hợp lệ trong kết quả.");
+  }catch(error){
+    console.error(error);
+    setMusicError("Lỗi YouTube: "+error.message);
+  }finally{
+    button.disabled=false;
+    button.textContent="Tìm";
   }
-
-  if(!count)setMusicError("Không có video hợp lệ trong kết quả.");
- }catch(error){
-  console.error(error);
-  setMusicError("Lỗi YouTube: "+error.message);
- }finally{
-  button.disabled=false;
-  button.textContent="Tìm";
- }
 });
 </script>
 </body>
