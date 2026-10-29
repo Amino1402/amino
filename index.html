@@ -64,6 +64,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #syncStatus{font-size:12px;line-height:1.5;color:#6750a4;margin-top:8px;overflow-wrap:anywhere}
 .floating-heart{position:fixed;z-index:9999;pointer-events:none;animation:heartFly 1.3s ease-out forwards}
 @keyframes heartFly{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--drift)),-140px) scale(.8)}}
+#soundToggle{margin:4px 8px 10px 0;border:1px solid #d8c9ff;border-radius:20px;padding:9px 14px;background:#f3edff;color:#6750a4;font-weight:bold;cursor:pointer}
+#soundToggle:hover{background:#e8ddff}
+#soundToggle:active{transform:scale(.98)}
+#soundStatus{display:inline-block}
 @media(max-width:700px){
  main{margin:10px auto;padding:10px}
  #chatLayout{grid-template-columns:1fr}
@@ -95,6 +99,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <section id="chat" hidden>
 <h3> Welcome! </h3>
 <p id="welcome"></p>
+<button id="soundToggle" type="button" aria-pressed="false">🔇 Bật âm thanh</button>
+<span id="soundStatus" class="hint" aria-live="polite">Âm thanh đang tắt.</span>
 
 <div id="chatLayout">
 <div id="chatMain">
@@ -159,6 +165,104 @@ const YOUTUBE_API_KEY="AIzaSyB7iduznYdwJQbY4x6uWDlXjSS-Gz6dqdQ";
 
 const $=id=>document.getElementById(id);
 const messages=$("messages");
+
+/* ÂM THANH THÔNG BÁO */
+let aminoAudioContext=null;
+let aminoSoundEnabled=false;
+let knownMessageKeys=new Set();
+let firstMessagesSnapshot=true;
+const soundButton=$("soundToggle");
+
+function getAminoAudioContext(){
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+ if(!AudioContextClass)return null;
+ if(!aminoAudioContext)aminoAudioContext=new AudioContextClass();
+ return aminoAudioContext;
+}
+
+function playAminoTone(frequency,startDelay,duration,volume){
+ const ctx=getAminoAudioContext();
+ if(!ctx||ctx.state!=="running")return;
+ const startAt=ctx.currentTime+startDelay;
+ const oscillator=ctx.createOscillator();
+ const gain=ctx.createGain();
+ oscillator.type="sine";
+ oscillator.frequency.setValueAtTime(frequency,startAt);
+ gain.gain.setValueAtTime(0.001,startAt);
+ gain.gain.exponentialRampToValueAtTime(Math.max(volume,0.002),startAt+0.025);
+ gain.gain.exponentialRampToValueAtTime(0.001,startAt+duration);
+ oscillator.connect(gain);
+ gain.connect(ctx.destination);
+ oscillator.start(startAt);
+ oscillator.stop(startAt+duration+0.02);
+}
+
+function playMessageSound(){
+ if(!aminoSoundEnabled)return;
+ playAminoTone(880,0,0.13,0.12);
+ playAminoTone(1175,0.09,0.20,0.095);
+}
+
+function playSystemSound(){
+ if(!aminoSoundEnabled)return;
+ playAminoTone(660,0,0.18,0.12);
+ playAminoTone(880,0.22,0.25,0.12);
+}
+
+soundButton.addEventListener("click",async()=>{
+ const ctx=getAminoAudioContext();
+ if(!ctx){
+  $("soundStatus").textContent="Trình duyệt không hỗ trợ âm thanh.";
+  return;
+ }
+ try{
+  if(!aminoSoundEnabled){
+   if(ctx.state!=="running")await ctx.resume();
+   aminoSoundEnabled=true;
+   soundButton.textContent="🔔 Tắt âm thanh";
+   soundButton.setAttribute("aria-pressed","true");
+   $("soundStatus").textContent="Đã bật âm thanh thông báo.";
+   playMessageSound();
+  }else{
+   aminoSoundEnabled=false;
+   soundButton.textContent="🔇 Bật âm thanh";
+   soundButton.setAttribute("aria-pressed","false");
+   $("soundStatus").textContent="Âm thanh đang tắt.";
+  }
+ }catch(error){
+  console.error("Không bật được âm thanh:",error);
+  $("soundStatus").textContent="Không bật được âm thanh. Hãy chạm lại nút.";
+ }
+});
+
+function checkNewMessageSounds(snapshot){
+ const currentKeys=new Set();
+ const newMessages=[];
+ snapshot.forEach(child=>{
+  currentKeys.add(child.key);
+  if(!knownMessageKeys.has(child.key))newMessages.push(child.val()||{});
+ });
+
+ // Không phát âm thanh cho lịch sử tin nhắn khi vừa vào phòng.
+ if(firstMessagesSnapshot){
+  knownMessageKeys=currentKeys;
+  firstMessagesSnapshot=false;
+  return;
+ }
+ knownMessageKeys=currentKeys;
+
+ for(const data of newMessages){
+  // Bỏ qua tin nhắn do chính tài khoản hiện tại tạo ra,
+  // kể cả thông báo vào/rời phòng của chính mình.
+  if(!user||!data.uid||data.uid===user.uid)continue;
+
+  if(data.name==="Thông báo hệ thống"||data.type==="system"){
+   playSystemSound();
+  }else{
+   playMessageSound();
+  }
+ }
+}
 
 let app,auth,db,user,displayName;
 let player=null,playerReady=false;
@@ -418,6 +522,7 @@ $("enter").addEventListener("click",async()=>{
 
   const recent=query(ref(db,"publicChat/messages"),orderByChild("createdAt"),limitToLast(100));
   onValue(recent,snapshot=>{
+   checkNewMessageSounds(snapshot);
    messages.replaceChildren();
    snapshot.forEach(item=>{
     const data=item.val()||{};
