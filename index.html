@@ -566,7 +566,7 @@ function startMusicSync(){
 
  setInterval(()=>{
   if(playerReady&&latestMusicState?.playing&&latestMusicState.changedBy===user.uid)publishMusic(true);
- },5000);
+ },6000);
 }
 
 /* LOGIN */
@@ -732,7 +732,7 @@ $("musicForm").addEventListener("submit",async event=>{
      if(playerReady){
       applyingRemote=true;
       player.loadVideoById({videoId:id,startSeconds:0});
-      setTimeout(()=>{applyingRemote=false},1000);
+      setTimeout(()=>{applyingRemote=false},2000);
      }
      $("syncStatus").textContent="Đã gửi bài hát mới cho cả phòng.";
     }catch(error){
