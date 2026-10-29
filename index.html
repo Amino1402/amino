@@ -1,4 +1,4 @@
-1
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -44,6 +44,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .online-heading,.music-heading{font-weight:bold;color:#6750a4;margin-bottom:10px}
 #onlineList{display:flex;flex-direction:column;gap:8px}
 .online-user{display:flex;align-items:center;gap:8px;padding:9px;background:#f5f2fc;border-radius:9px;overflow-wrap:anywhere}
+
+.avatar-picker{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+.avatar-option{width:48px;height:48px;padding:0;background:#f5f2fc;border:2px solid transparent;border-radius:50%;font-size:25px;display:grid;place-items:center}
+.avatar-option.selected{border-color:#6750a4;background:#e9ddff;box-shadow:0 0 0 2px #6750a433}
+.avatar-label{font-size:14px;font-weight:bold;margin:12px 0 6px}
+.avatar-preview{display:flex;align-items:center;gap:10px;margin-top:10px;color:#555;font-size:13px}
+.avatar-preview-icon,.online-avatar,.message-avatar{width:38px;height:38px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:#f0eafa;font-size:23px}
+.online-avatar{width:30px;height:30px;font-size:19px}
+.message-avatar{width:36px;height:36px;font-size:22px}
+.message{display:flex;align-items:flex-start;gap:9px}
+.message-content{min-width:0;flex:1}
 .online-dot{color:#16a34a}
 .online-name{font-size:14px;overflow-wrap:anywhere}
 #onlineEmpty{font-size:13px;color:#777}
@@ -64,6 +75,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #syncStatus{font-size:12px;line-height:1.5;color:#6750a4;margin-top:8px;overflow-wrap:anywhere}
 .floating-heart{position:fixed;z-index:9999;pointer-events:none;animation:heartFly 1.3s ease-out forwards}
 @keyframes heartFly{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--drift)),-140px) scale(.8)}}
+
 @media(max-width:700px){
  main{margin:10px auto;padding:10px}
  #chatLayout{grid-template-columns:1fr}
@@ -85,15 +97,36 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <p>Nhập mật khẩu để vào Amino Chat</p>
 <input id="chatPassword" type="password" placeholder="Nhập mật khẩu">
 <p id="passwordError" aria-live="polite"></p>
+
 <h3>Chào mừng đến Amino Chat!</h3>
 <p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
 <input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
+
+<p class="avatar-label">🐰 Chọn avatar của bạn</p>
+<div id="avatarPicker" class="avatar-picker" role="group" aria-label="Chọn avatar">
+ <button class="avatar-option selected" type="button" data-avatar="🐰" aria-label="Thỏ">🐰</button>
+ <button class="avatar-option" type="button" data-avatar="🐱" aria-label="Mèo">🐱</button>
+ <button class="avatar-option" type="button" data-avatar="🐼" aria-label="Gấu trúc">🐼</button>
+ <button class="avatar-option" type="button" data-avatar="🦊" aria-label="Cáo">🦊</button>
+ <button class="avatar-option" type="button" data-avatar="🐸" aria-label="Ếch">🐸</button>
+ <button class="avatar-option" type="button" data-avatar="🐻" aria-label="Gấu">🐻</button>
+ <button class="avatar-option" type="button" data-avatar="🐣" aria-label="Gà con">🐣</button>
+ <button class="avatar-option" type="button" data-avatar="🌸" aria-label="Hoa">🌸</button>
+ <button class="avatar-option" type="button" data-avatar="⭐" aria-label="Ngôi sao">⭐</button>
+ <button class="avatar-option" type="button" data-avatar="💜" aria-label="Trái tim tím">💜</button>
+</div>
+
+<div class="avatar-preview">
+ <span id="avatarPreview" class="avatar-preview-icon">🐰</span>
+ <span>Avatar đang chọn</span>
+</div>
+
 <button id="enter" type="button">Vào chat thui 👆</button>
 <p id="status">Sẵn sàng kết nối.</p>
 </section>
 
 <section id="chat" hidden>
-<h3> Welcome! </h3>
+<h3>Welcome!</h3>
 <p id="welcome"></p>
 
 <div id="chatLayout">
@@ -161,6 +194,27 @@ const $=id=>document.getElementById(id);
 const messages=$("messages");
 
 let app,auth,db,user,displayName;
+let selectedAvatar=localStorage.getItem("aminoChatAvatar")||"🐰";
+const avatarPicker=$("avatarPicker");
+
+function setSelectedAvatar(avatar){
+ selectedAvatar=avatar;
+ localStorage.setItem("aminoChatAvatar",avatar);
+ $("avatarPreview").textContent=avatar;
+
+ avatarPicker.querySelectorAll(".avatar-option").forEach(button=>{
+  const selected=button.dataset.avatar===avatar;
+  button.classList.toggle("selected",selected);
+  button.setAttribute("aria-pressed",String(selected));
+ });
+}
+
+avatarPicker.querySelectorAll(".avatar-option").forEach(button=>{
+ button.addEventListener("click",()=>setSelectedAvatar(button.dataset.avatar));
+});
+
+setSelectedAvatar(selectedAvatar);
+
 let player=null,playerReady=false;
 let currentVideoId="",latestMusicState=null;
 let applyingRemoteState=false;
@@ -169,21 +223,27 @@ let lastWriteAt=0;
 let presenceStarted=false,musicListenerStarted=false;
 let applyingTimer=null;
 
-function musicStateRef(){return ref(db,"roomMusic/state")}
+function musicStateRef(){
+ return ref(db,"roomMusic/state");
+}
 
 function formatTime(timestamp){
  if(typeof timestamp!=="number")return "";
  return new Date(timestamp).toLocaleTimeString("vi-VN",{
-  timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
+  timeZone:"Asia/Ho_Chi_Minh",
+  hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
  });
 }
 
-function setMusicError(message){$("musicError").textContent=message}
+function setMusicError(message){
+ $("musicError").textContent=message;
+}
 
 function floatHearts(){
  const button=$("composer").querySelector('button[type="submit"]');
  const rect=button.getBoundingClientRect();
  const hearts=["💗","💕","💖","💘","❤️","💓"];
+
  for(let i=0;i<5;i++){
   const heart=document.createElement("span");
   heart.className="floating-heart";
@@ -204,24 +264,24 @@ function startPresence(){
 
  onValue(ref(db,".info/connected"),async snapshot=>{
   if(snapshot.val()!==true)return;
-const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
 
-try{
- // Chuẩn bị thông báo khi kết nối bị ngắt
- const leaveMessageRef=push(ref(db,"publicChat/messages"));
+  const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
 
- await onDisconnect(leaveMessageRef).set({
-  uid:user.uid,
-  name:"Thông báo hệ thống",
-  text:displayName+" đã rời phòng",
-  createdAt:serverTimestamp()
- });
+  try{
+   const leaveMessageRef=push(ref(db,"publicChat/messages"));
 
- // Tự xóa trạng thái kết nối khi mất kết nối
- await onDisconnect(connectionRef).remove();
+   await onDisconnect(leaveMessageRef).set({
+    uid:user.uid,
+    name:"Thông báo hệ thống",
+    text:displayName+" đã rời phòng",
+    createdAt:serverTimestamp()
+   });
 
- await set(ref(db,`presence/${user.uid}/name`),displayName);
- await set(connectionRef,true);
+   await onDisconnect(connectionRef).remove();
+
+   await set(ref(db,`presence/${user.uid}/name`),displayName);
+   await set(ref(db,`presence/${user.uid}/avatar`),selectedAvatar);
+   await set(connectionRef,true);
   }catch(error){
    $("chatStatus").textContent="Lỗi online: "+error.message;
   }
@@ -236,19 +296,28 @@ try{
    const data=item.val()||{};
    if(!Object.keys(data.connections||{}).length)return;
    count++;
+
    const member=document.createElement("div");
    member.className="online-user";
+
+   const avatar=document.createElement("span");
+   avatar.className="online-avatar";
+   avatar.textContent=data.avatar||"🐰";
+
    const dot=document.createElement("span");
    dot.className="online-dot";
    dot.textContent="●";
+
    const name=document.createElement("span");
    name.className="online-name";
    name.textContent=data.name||"Khách";
-   member.append(dot,name);
+
+   member.append(avatar,dot,name);
    list.append(member);
   });
 
   $("onlineCount").textContent=String(count);
+
   if(!count){
    const empty=document.createElement("div");
    empty.id="onlineEmpty";
@@ -267,7 +336,8 @@ function createPlayer(){
  if(player||!window.YT?.Player)return;
 
  player=new YT.Player("player",{
-  width:"100%",height:"100%",
+  width:"100%",
+  height:"100%",
   playerVars:{autoplay:0,controls:1,playsinline:1,rel:0},
   events:{
    onReady:()=>{
@@ -297,6 +367,7 @@ function createPlayer(){
 async function publishPlayerState(playing){
  if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
  if(latestMusicState?.changedBy!==user.uid)return;
+
  const now=Date.now();
  if(now-lastWriteAt<900)return;
  lastWriteAt=now;
@@ -310,9 +381,14 @@ async function publishPlayerState(playing){
   revision:latestMusicState?.revision||now,
   changedBy:user.uid
  };
+
  latestMusicState=state;
- try{await set(musicStateRef(),state)}
- catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
+
+ try{
+  await set(musicStateRef(),state);
+ }catch(error){
+  $("syncStatus").textContent="Không cập nhật được nhạc: "+error.message;
+ }
 }
 
 function targetPosition(state){
@@ -323,6 +399,7 @@ function targetPosition(state){
 
 function applyMusicState(state,force=false){
  if(!state?.videoId||!playerReady||!player)return;
+
  const changed=state.videoId!==currentVideoId;
  const target=targetPosition(state);
 
@@ -342,14 +419,17 @@ function applyMusicState(state,force=false){
   }else{
    const actual=Number(player.getCurrentTime?.())||0;
    if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
+
    const playerState=player.getPlayerState?.();
    if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
    else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
   }
+
   $("syncStatus").textContent=state.playing?"🎵 Đang đồng bộ nhạc chung.":"⏸ Nhạc đang tạm dừng.";
  }catch(error){
   $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
  }
+
  applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
 }
 
@@ -360,13 +440,17 @@ function startMusicSync(){
  onValue(musicStateRef(),snapshot=>{
   const state=snapshot.val();
   if(!state?.videoId)return;
+
   const isNewRevision=state.revision!==lastAppliedRevision;
   latestMusicState=state;
+
   if(!playerReady){
    $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
    return;
   }
+
   if(state.changedBy===user.uid&&!isNewRevision)return;
+
   if(isNewRevision){
    lastAppliedRevision=state.revision;
    applyMusicState(state,true);
@@ -387,11 +471,14 @@ function startMusicSync(){
 /* ĐĂNG NHẬP */
 $("enter").addEventListener("click",async()=>{
  $("passwordError").textContent="";
+
  if($("chatPassword").value!=="1409"){
   $("passwordError").textContent="Mật khẩu không đúng!";
   return;
  }
+
  displayName=$("name").value.trim();
+
  if(!displayName){
   $("status").textContent="Cậu nhập tên trước nhé.";
   return;
@@ -406,58 +493,85 @@ $("enter").addEventListener("click",async()=>{
    auth=getAuth(app);
    db=getDatabase(app);
   }
+
   const result=await signInAnonymously(auth);
   user=result.user;
+
   $("login").hidden=true;
   $("chat").hidden=false;
   $("welcome").textContent="Đang trò chuyện với tên "+displayName;
 
   if(window.YT?.Player)createPlayer();
+
   startPresence();
   startMusicSync();
 
   const recent=query(ref(db,"publicChat/messages"),orderByChild("createdAt"),limitToLast(100));
+
   onValue(recent,snapshot=>{
    messages.replaceChildren();
+
    snapshot.forEach(item=>{
     const data=item.val()||{};
     const box=document.createElement("div");
+
     if(data.name==="Thông báo hệ thống"){
      box.className="system-message";
+
      const text=document.createElement("span");
      text.textContent=data.text||"";
+
      const time=document.createElement("span");
      time.className="system-time";
      time.textContent=formatTime(data.createdAt);
+
      box.append(text,time);
      messages.append(box);
      return;
     }
+
     box.className="message";
+
+    const avatar=document.createElement("span");
+    avatar.className="message-avatar";
+    avatar.textContent=data.avatar||"🐰";
+
+    const content=document.createElement("div");
+    content.className="message-content";
+
     const sender=document.createElement("span");
     sender.className="sender";
     sender.textContent=data.name||"Khách";
+
     const time=document.createElement("small");
     time.className="message-time";
     time.textContent=formatTime(data.createdAt);
+
     const header=document.createElement("div");
     header.className="message-header";
     header.append(sender,time);
+
     const body=document.createElement("div");
     body.className="message-body";
     body.textContent=data.text||"";
-    box.append(header,body);
+
+    content.append(header,body);
+    box.append(avatar,content);
     messages.append(box);
    });
+
    messages.scrollTop=messages.scrollHeight;
   },error=>{
    $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
   });
 
   await set(push(ref(db,"publicChat/messages")),{
-   uid:user.uid,name:"Thông báo hệ thống",
-   text:displayName+" đã vào chat",createdAt:Date.now()
+   uid:user.uid,
+   name:"Thông báo hệ thống",
+   text:displayName+" đã vào chat",
+   createdAt:Date.now()
   });
+
   $("chatStatus").textContent="Đã kết nối.";
  }catch(error){
   console.error(error);
@@ -466,31 +580,47 @@ $("enter").addEventListener("click",async()=>{
  }
 });
 
-$("chatPassword").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click()});
-$("name").addEventListener("keydown",e=>{if(e.key==="Enter")$("enter").click()});
+$("chatPassword").addEventListener("keydown",e=>{
+ if(e.key==="Enter")$("enter").click();
+});
+
+$("name").addEventListener("keydown",e=>{
+ if(e.key==="Enter")$("enter").click();
+});
 
 /* GỬI TIN NHẮN */
 $("composer").addEventListener("submit",async event=>{
  event.preventDefault();
+
  const text=$("message").value.trim();
  if(!text||!user)return;
+
  const button=$("composer").querySelector('button[type="submit"]');
  button.disabled=true;
+
  try{
   await set(push(ref(db,"publicChat/messages")),{
-   uid:user.uid,name:displayName,text,createdAt:Date.now()
+   uid:user.uid,
+   name:displayName,
+   avatar:selectedAvatar,
+   text,
+   createdAt:Date.now()
   });
+
   floatHearts();
   $("message").value="";
   $("message").focus();
  }catch(error){
   $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
- }finally{button.disabled=false}
+ }finally{
+  button.disabled=false;
+ }
 });
 
-/* TÌM KIẾM YOUTUBE - ĐÃ SỬA */
+/* TÌM KIẾM YOUTUBE */
 $("musicForm").addEventListener("submit",async event=>{
  event.preventDefault();
+
  const term=$("musicQuery").value.trim();
  if(!term)return;
 
@@ -509,6 +639,7 @@ $("musicForm").addEventListener("submit",async event=>{
 
  try{
   const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
+
   endpoint.search=new URLSearchParams({
    part:"snippet",
    type:"video",
@@ -524,11 +655,13 @@ $("musicForm").addEventListener("submit",async event=>{
    const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
    const detail=data.error?.message||"Không rõ nguyên nhân";
    let tip="";
+
    if(reason==="keyInvalid")tip=" Kiểm tra API key.";
    else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
    else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
    else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website (HTTP referrer) của API key.";
    else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
+
    throw new Error(reason+": "+detail+tip);
   }
 
@@ -538,11 +671,14 @@ $("musicForm").addEventListener("submit",async event=>{
   }
 
   let count=0;
+
   for(const item of data.items){
    const id=item.id?.videoId;
    if(!id)continue;
+
    count++;
    const snippet=item.snippet||{};
+
    const btn=document.createElement("button");
    btn.type="button";
    btn.className="song";
@@ -552,12 +688,15 @@ $("musicForm").addEventListener("submit",async event=>{
    img.alt="Ảnh video";
 
    const info=document.createElement("div");
+
    const title=document.createElement("div");
    title.className="song-title";
    title.textContent=snippet.title||"Video YouTube";
+
    const channel=document.createElement("div");
    channel.className="song-channel";
    channel.textContent=snippet.channelTitle||"YouTube";
+
    info.append(title,channel);
    btn.append(img,info);
 
@@ -566,7 +705,9 @@ $("musicForm").addEventListener("submit",async event=>{
      setMusicError("Hãy vào phòng chat trước khi chọn nhạc.");
      return;
     }
+
     const revision=Date.now();
+
     const state={
      videoId:id,
      title:snippet.title||"Nhạc YouTube",
@@ -581,22 +722,26 @@ $("musicForm").addEventListener("submit",async event=>{
     $("playerWrap").hidden=false;
     setMusicError("🎵 Đang chọn: "+state.title);
     $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
+
     latestMusicState=state;
     currentVideoId=id;
     lastAppliedRevision=revision;
 
     try{
      await set(musicStateRef(),state);
+
      if(playerReady){
       applyingRemoteState=true;
       player.loadVideoById({videoId:id,startSeconds:0});
       setTimeout(()=>{applyingRemoteState=false},900);
      }
+
      $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
     }catch(error){
      $("syncStatus").textContent="Không đổi được nhạc: "+error.message;
     }
    });
+
    $("musicResults").append(btn);
   }
 
@@ -612,4 +757,6 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-1409
+
+
+
