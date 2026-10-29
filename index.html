@@ -77,12 +77,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){.rabbit,.floating-heart{animation:none}}
 </style>
 </head>
-
 <body>
-<header>
-<h1 class="amino-title"><span class="rabbit">🐰</span> Amino Chat <span class="rabbit">🐇</span></h1>
-</header>
-
 <main>
 <section id="login">
 <p>Nhập mật khẩu để vào Amino Chat</p>
@@ -90,15 +85,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <p id="passwordError" aria-live="polite"></p>
 <h3>Chào mừng đến Amino Chat!</h3>
 <p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
-<input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
+<input id="name" maxlength="24" placeholder="Tên hiển thị của cậu">
 <button id="enter" type="button">Vào chat thui 👆</button>
 <p id="status">Sẵn sàng kết nối.</p>
 </section>
-
 <section id="chat" hidden>
-<h3> Welcome! </h3>
-<p id="welcome"></p>
-
 <div id="chatLayout">
 <div id="chatMain">
 <div id="messages"></div>
@@ -306,7 +297,7 @@ async function publishTypingDraft(){
   console.warn("Không cập nhật được nội dung đang nhập:",error);
  }
 
- // Dọn bản nháp nếu người dùng ngừng gõ 12 giây.
+ // Dọn bản nháp nếu người dùng ngừng gõ 7 giây.
  typingClearTimer=setTimeout(async()=>{
   if(!user)return;
   if($("message").value===text){
@@ -314,7 +305,7 @@ async function publishTypingDraft(){
    catch(error){console.warn("Không dọn được bản nháp:",error)}
    lastTypingText="";
   }
- },12000);
+ },7000);
 }
 
 function startTypingSync(){
