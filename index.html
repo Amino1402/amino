@@ -558,7 +558,16 @@ function startMusicSync(){
 
   if(state.revision!==lastRevision){
    lastRevision=state.revision;
-   applyMusicState(state,true);
+
+   // Bản thân trình duyệt vừa phát trạng thái này lên Firebase thì không
+   // cần tự áp dụng lại lên player (tránh seek/play/pause lặp mỗi 6 giây).
+   // Ngoại lệ: nếu player chưa nạp video này, vẫn phải nạp trạng thái ban đầu.
+   if(state.changedBy===user?.uid && currentVideoId===state.videoId){
+    return;
+   }
+
+   // Chỉ ép đồng bộ khi đổi video; cùng video thì chỉ sửa lệch vị trí lớn.
+   applyMusicState(state, state.videoId!==currentVideoId);
   }
  },error=>{
   $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
