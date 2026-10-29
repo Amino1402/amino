@@ -8,6 +8,10 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f1f3f8;color:#222}
+header{background:#6750a4;color:white;padding:18px;text-align:center}
+.amino-title{margin:0;font-size:24px}
+.rabbit{display:inline-block;animation:jump 1s infinite}
+@keyframes jump{50%{transform:translateY(-8px)}}
 main{max-width:1000px;margin:20px auto;padding:16px}
 #login,#chat{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
 input,button{padding:12px;border-radius:8px;font-size:15px}
@@ -69,11 +73,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
  #musicForm{flex-direction:column}
  #musicForm button{width:100%}
 }
-@media(prefers-reduced-motion:reduce){.floating-heart{animation:none}}
+@media(prefers-reduced-motion:reduce){.rabbit,.floating-heart{animation:none}}
 </style>
 </head>
 
 <body>
+<header>
+<h1 class="amino-title"><span class="rabbit">🐰</span> Amino Chat <span class="rabbit">🐇</span></h1>
+</header>
 
 <main>
 <section id="login">
@@ -88,6 +95,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </section>
 
 <section id="chat" hidden>
+<h3> Welcome! </h3>
+<p id="welcome"></p>
+
 <div id="chatLayout">
 <div id="chatMain">
 <div id="messages"></div>
@@ -129,6 +139,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
  document.head.appendChild(tag);
 })();
 </script>
+
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
@@ -201,24 +212,24 @@ function startPresence(){
 
  onValue(ref(db,".info/connected"),async snapshot=>{
   if(snapshot.val()!==true)return;
-const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
+  const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
 
-try{
- // Chuẩn bị thông báo khi kết nối bị ngắt
- const leaveMessageRef=push(ref(db,"publicChat/messages"));
+  try{
+   // Chuẩn bị thông báo khi kết nối bị ngắt
+   const leaveMessageRef=push(ref(db,"publicChat/messages"));
 
- await onDisconnect(leaveMessageRef).set({
-  uid:user.uid,
-  name:"Thông báo hệ thống",
-  text:displayName+" đã rời phòng",
-  createdAt:serverTimestamp()
- });
+   await onDisconnect(leaveMessageRef).set({
+    uid:user.uid,
+    name:"Thông báo hệ thống",
+    text:displayName+" đã rời phòng",
+    createdAt:serverTimestamp()
+   });
 
- // Tự xóa trạng thái kết nối khi mất kết nối
- await onDisconnect(connectionRef).remove();
+   // Tự xóa trạng thái kết nối khi mất kết nối
+   await onDisconnect(connectionRef).remove();
 
- await set(ref(db,`presence/${user.uid}/name`),displayName);
- await set(connectionRef,true);
+   await set(ref(db,`presence/${user.uid}/name`),displayName);
+   await set(connectionRef,true);
   }catch(error){
    $("chatStatus").textContent="Lỗi online: "+error.message;
   }
@@ -233,14 +244,18 @@ try{
    const data=item.val()||{};
    if(!Object.keys(data.connections||{}).length)return;
    count++;
+
    const member=document.createElement("div");
    member.className="online-user";
+
    const dot=document.createElement("span");
    dot.className="online-dot";
    dot.textContent="●";
+
    const name=document.createElement("span");
    name.className="online-name";
    name.textContent=data.name||"Khách";
+
    member.append(dot,name);
    list.append(member);
   });
@@ -264,13 +279,15 @@ function myTypingRef(){
 
 async function publishTypingDraft(){
  if(!user||!db)return;
+
  const text=$("message").value;
  const ownRef=myTypingRef();
  clearTimeout(typingClearTimer);
 
  if(!text.trim()){
   lastTypingText="";
-  try{await set(ownRef,null)}catch(error){console.warn("Không xóa được trạng thái nhập:",error)}
+  try{await set(ownRef,null)}
+  catch(error){console.warn("Không xóa được trạng thái nhập:",error)}
   return;
  }
 
@@ -292,7 +309,8 @@ async function publishTypingDraft(){
  typingClearTimer=setTimeout(async()=>{
   if(!user)return;
   if($("message").value===text){
-   try{await set(ownRef,null)}catch(error){console.warn("Không dọn được bản nháp:",error)}
+   try{await set(ownRef,null)}
+   catch(error){console.warn("Không dọn được bản nháp:",error)}
    lastTypingText="";
   }
  },12000);
@@ -325,11 +343,14 @@ function startTypingSync(){
    count++;
    const row=document.createElement("div");
    row.className="typing-user";
+
    const label=document.createElement("strong");
    label.textContent=(data.name||"Ai đó")+" đang nhập:";
+
    const draft=document.createElement("div");
    draft.className="typing-draft";
    draft.textContent=data.text;
+
    row.append(label,draft);
    container.append(row);
   });
@@ -357,9 +378,28 @@ function createPlayer(){
    onStateChange:event=>{
     if(applyingRemoteState||!currentVideoId||!user)return;
     if(event.data===YT.PlayerState.PLAYING)publishPlayerState(true);
-    async function publishPlayerState(playing){
+    else if(event.data===YT.PlayerState.PAUSED)publishPlayerState(false);
+    else if(event.data===YT.PlayerState.ENDED)publishPlayerState(false);
+   },
+   onError:event=>{
+    const errors={
+     2:"Video ID không hợp lệ.",
+     5:"Lỗi trình phát HTML5.",
+     100:"Video không tồn tại hoặc đã bị xóa.",
+     101:"Chủ video không cho phép phát nhúng.",
+     150:"Chủ video không cho phép phát nhúng."
+    };
+    $("syncStatus").textContent="YouTube: "+(errors[event.data]||("lỗi "+event.data))+" Hãy thử bài khác.";
+   }
+  }
+ });
+}
+ async function publishPlayerState(playing){
  if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
+
+ // Chỉ tài khoản đã chọn bài mới được phát trạng thái của player lên Firebase.
  if(latestMusicState?.changedBy!==user.uid)return;
+
  const now=Date.now();
 
  const state={
@@ -371,7 +411,9 @@ function createPlayer(){
   revision:latestMusicState?.revision||now,
   changedBy:user.uid
  };
+
  latestMusicState=state;
+
  try{await set(musicStateRef(),state)}
  catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
 }
@@ -384,6 +426,7 @@ function targetPosition(state){
 
 function applyMusicState(state,force=false){
  if(!state?.videoId||!playerReady||!player)return;
+
  const changed=state.videoId!==currentVideoId;
  const target=targetPosition(state);
 
@@ -402,15 +445,22 @@ function applyMusicState(state,force=false){
    else player.cueVideoById({videoId:state.videoId,startSeconds:target});
   }else{
    const actual=Number(player.getCurrentTime?.())||0;
+
    if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
+
    const playerState=player.getPlayerState?.();
+
    if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
    else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
   }
-  $("syncStatus").textContent=state.playing?"🎵 Đang đồng bộ nhạc chung.":"⏸ Nhạc đang tạm dừng.";
+
+  $("syncStatus").textContent=state.playing
+   ?"🎵 Đang đồng bộ nhạc chung."
+   :"⏸ Nhạc đang tạm dừng.";
  }catch(error){
   $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
  }
+
  applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
 }
 
@@ -421,6 +471,7 @@ function startMusicSync(){
  onValue(musicStateRef(),snapshot=>{
   const state=snapshot.val();
   if(!state?.videoId)return;
+
   const isNewRevision=state.revision!==lastAppliedRevision;
   latestMusicState=state;
 
@@ -441,12 +492,15 @@ function startMusicSync(){
   $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
  });
 
- // Chỉ cập nhật vị trí khi player thực sự đang phát.
+ // Chỉ cập nhật vị trí khi player THỰC SỰ đang phát.
+ // Không dùng trạng thái playing=true cũ để tự phát lại sau khi pause.
  setInterval(()=>{
   if(!playerReady||!currentVideoId||!latestMusicState||!user)return;
   if(latestMusicState.changedBy!==user.uid)return;
   if(!window.YT?.PlayerState)return;
+
   if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
+
   publishPlayerState(true);
  },8000);
 }
@@ -461,6 +515,7 @@ $("enter").addEventListener("click",async()=>{
  }
 
  displayName=$("name").value.trim();
+
  if(!displayName){
   $("status").textContent="Cậu nhập tên trước nhé.";
   return;
@@ -481,13 +536,19 @@ $("enter").addEventListener("click",async()=>{
 
   $("login").hidden=true;
   $("chat").hidden=false;
+  $("welcome").textContent="Đang trò chuyện với tên "+displayName;
 
   if(window.YT?.Player)createPlayer();
+
   startPresence();
   startTypingSync();
   startMusicSync();
 
-  const recent=query(ref(db,"publicChat/messages"),orderByChild("createdAt"),limitToLast(100));
+  const recent=query(
+   ref(db,"publicChat/messages"),
+   orderByChild("createdAt"),
+   limitToLast(100)
+  );
 
   onValue(recent,snapshot=>{
    messages.replaceChildren();
@@ -595,9 +656,11 @@ $("composer").addEventListener("submit",async event=>{
   button.disabled=false;
  }
 });
-    /* TÌM KIẾM YOUTUBE */
+
+/* TÌM KIẾM YOUTUBE */
 $("musicForm").addEventListener("submit",async event=>{
  event.preventDefault();
+
  const term=$("musicQuery").value.trim();
  if(!term)return;
 
@@ -616,6 +679,7 @@ $("musicForm").addEventListener("submit",async event=>{
 
  try{
   const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
+
   endpoint.search=new URLSearchParams({
    part:"snippet",
    type:"video",
@@ -651,9 +715,11 @@ $("musicForm").addEventListener("submit",async event=>{
   for(const item of data.items){
    const id=item.id?.videoId;
    if(!id)continue;
+
    count++;
 
    const snippet=item.snippet||{};
+
    const btn=document.createElement("button");
    btn.type="button";
    btn.className="song";
@@ -682,6 +748,7 @@ $("musicForm").addEventListener("submit",async event=>{
     }
 
     const revision=Date.now();
+
     const state={
      videoId:id,
      title:snippet.title||"Nhạc YouTube",
