@@ -1,11 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Amino Chat</title>
-
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f1f3f8;color:#222}
@@ -15,8 +13,8 @@ header{background:#6750a4;color:white;padding:18px;text-align:center}
 @keyframes jump{50%{transform:translateY(-8px)}}
 main{max-width:1000px;margin:20px auto;padding:16px}
 #login,#chat{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
-input,button{padding:12px;border-radius:8px;font-size:15px}
-input{border:1px solid #ccc;min-width:0}
+input,button,textarea{padding:12px;border-radius:8px;font-size:15px}
+input,textarea{border:1px solid #ccc;min-width:0}
 button{border:0;background:#6750a4;color:white;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 #name,#chatPassword{width:100%;margin:12px 0}
@@ -68,27 +66,25 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .floating-heart{position:fixed;z-index:9999;pointer-events:none;animation:heartFly 1.3s ease-out forwards}
 @keyframes heartFly{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--drift)),-140px) scale(.8)}}
 
-/* LỊCH NHẬT KÝ */
-#diaryPanel{margin:0 0 16px;padding:14px;border:1px solid #e1dced;border-radius:12px;background:#fff}
-.diary-heading{font-weight:bold;color:#6750a4;font-size:18px;margin-bottom:6px}
-.diary-help{font-size:12px;color:#777;line-height:1.5;margin:0 0 12px}
-.diary-monthbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
-.diary-monthbar button{padding:8px 12px;flex-shrink:0}
-#diaryMonthLabel{font-weight:bold;text-align:center;color:#4f3b82}
-#diaryWeekdays,#diaryDays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
-.diary-weekday{text-align:center;font-size:12px;font-weight:bold;color:#777;padding:5px 0}
-.diary-day{min-width:0;padding:8px 2px;background:#f5f2fc;color:#333;border:1px solid #e8e1f5;border-radius:8px;font-size:13px;min-height:39px}
-.diary-day.selected{background:#6750a4;color:#fff;border-color:#6750a4}
-.diary-day.today{outline:2px solid #d977a8;outline-offset:-2px}
-.diary-day.has-entry::after{content:"♥";display:block;color:#e91e63;font-size:10px;line-height:10px}
-.diary-day.selected.has-entry::after{color:#ffd6e7}
-#diaryEditor{margin-top:14px}
-#diarySelectedLabel{font-weight:bold;color:#6750a4;margin-bottom:8px}
-#diaryText{display:block;width:100%;min-height:150px;resize:vertical;padding:12px;border:1px solid #d8d0e8;border-radius:9px;font:14px/1.6 Arial,sans-serif}
-.diary-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
-#diarySave{padding:9px 14px}
-#diaryStatus{font-size:12px;color:#777;overflow-wrap:anywhere}
-
+/* Icon lịch nhỏ, chỉ mở bảng khi bấm */
+#diaryToolbar{display:flex;justify-content:flex-end;margin:4px 0 8px}
+#diaryToggle{width:34px;height:34px;padding:0;font-size:17px;border-radius:50%;display:grid;place-items:center;background:#f1eaff;color:#6750a4;border:1px solid #ded2fa}
+#diaryPanel{margin:8px 0 16px;padding:14px;border:1px solid #e1dced;border-radius:12px;background:#fff}
+#diaryPanel[hidden]{display:none}
+.diary-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;color:#6750a4}
+.diary-header button{min-width:34px;padding:6px 10px;font-size:20px}
+.diary-weekdays,#diaryCalendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
+.diary-weekdays{margin-bottom:6px;color:#777;font-size:12px}
+.diary-day{min-width:0;min-height:36px;padding:5px 0;border-radius:8px;background:#f5f2fc;color:#333;font-size:13px;position:relative}
+.diary-day.selected{background:#6750a4;color:white}
+.diary-day.today{outline:2px solid #c4b5fd}
+.diary-day.has-entry:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:#e91e63;bottom:3px;left:calc(50% - 2px)}
+.diary-day.selected.has-entry:after{background:white}
+.diary-day.empty{visibility:hidden}
+.diary-editor{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+#diaryDateTitle{font-size:14px;font-weight:bold;color:#6750a4}
+#diaryText{width:100%;min-height:120px;resize:vertical;border:1px solid #ddd;border-radius:9px;padding:10px;font:inherit;line-height:1.5}
+#diarySaveStatus{color:#777;font-size:12px}
 @media(max-width:700px){
  main{margin:10px auto;padding:10px}
  #chatLayout{grid-template-columns:1fr}
@@ -96,20 +92,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
  #musicForm{flex-direction:column}
  #musicForm button{width:100%}
 }
-@media(max-width:420px){
- .diary-day{min-height:34px;padding:6px 1px;font-size:12px}
- #diaryWeekdays,#diaryDays{gap:3px}
- #diaryPanel{padding:10px}
-}
 @media(prefers-reduced-motion:reduce){.rabbit,.floating-heart{animation:none}}
 </style>
 </head>
-
 <body>
-<header>
-<h1 class="amino-title"><span class="rabbit">🐰</span> Amino Chat <span class="rabbit">🐇</span></h1>
-</header>
-
 <main>
 <section id="login">
 <p>Nhập mật khẩu để vào Amino Chat</p>
@@ -125,39 +111,32 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <section id="chat" hidden>
 <p id="welcome"></p>
 
-<!-- NHẬT KÝ -->
-<section id="diaryPanel" aria-label="Nhật ký cá nhân">
-  <div class="diary-heading">📔 Nhật ký của tớ</div>
-  <p class="diary-help">Chọn ngày để viết hoặc xem lại nhật ký. Nội dung sẽ được tự lưu.</p>
+<div id="diaryToolbar">
+<button id="diaryToggle" type="button" aria-label="Mở lịch nhật ký" title="Lịch nhật ký" aria-expanded="false">📅</button>
+</div>
 
-  <div class="diary-monthbar">
+<section id="diaryPanel" hidden>
+  <div class="diary-header">
     <button id="diaryPrev" type="button" aria-label="Tháng trước">‹</button>
-    <div id="diaryMonthLabel"></div>
+    <strong id="diaryMonthTitle"></strong>
     <button id="diaryNext" type="button" aria-label="Tháng sau">›</button>
   </div>
-
-  <div id="diaryWeekdays"></div>
-  <div id="diaryDays"></div>
-
-  <div id="diaryEditor">
-    <div id="diarySelectedLabel"></div>
-    <textarea id="diaryText" maxlength="10000" placeholder="Hôm nay của m thế nào? Viết hết vào đây nha..."></textarea>
-    <div class="diary-actions">
-      <button id="diarySave" type="button">Lưu nhật ký</button>
-      <span id="diaryStatus" aria-live="polite">Đăng nhập để bắt đầu viết nhật ký.</span>
-    </div>
+  <div class="diary-weekdays"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
+  <div id="diaryCalendar"></div>
+  <div class="diary-editor">
+    <label id="diaryDateTitle" for="diaryText">Nhật ký</label>
+    <textarea id="diaryText" maxlength="10000" placeholder="Hôm nay của cậu thế nào? 💜"></textarea>
+    <small id="diarySaveStatus" aria-live="polite">Nhật ký tự động lưu.</small>
   </div>
 </section>
 
 <div id="chatLayout">
 <div id="chatMain">
 <div id="messages"></div>
-
 <form id="composer">
 <input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
 <button type="submit">Gửi</button>
 </form>
-
 <div id="typingIndicator" aria-live="polite"></div>
 <p id="chatStatus" aria-live="polite"></p>
 </div>
@@ -197,8 +176,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
- getDatabase,ref,push,set,onValue,query,orderByChild,
- limitToLast,onDisconnect,serverTimestamp,get
+ getDatabase,ref,push,set,get,onValue,query,orderByChild,
+ limitToLast,onDisconnect,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 /* FIREBASE */
@@ -225,197 +204,37 @@ let lastWriteAt=0;
 let presenceStarted=false,musicListenerStarted=false;
 let applyingTimer=null;
 
-/* LỊCH NHẬT KÝ */
-const diaryWeekdays=["T2","T3","T4","T5","T6","T7","CN"];
-let diaryMonth=new Date();
-diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1);
-let diarySelectedDate=localDateKey(new Date());
-let diaryEntries={};
-let diarySaveTimer=null;
-let diaryLoadToken=0;
-let diaryDirty=false;
-let diaryStarted=false;
+/* LIVE TYPING */
+let typingListenerStarted=false;
+let typingWriteTimer=null,typingClearTimer=null;
+let lastTypingText="";
 
-function localDateKey(date){
- const y=date.getFullYear();
- const m=String(date.getMonth()+1).padStart(2,"0");
- const d=String(date.getDate()).padStart(2,"0");
- return `${y}-${m}-${d}`;
-}
+function musicStateRef(){return ref(db,"roomMusic/state")}
 
-function diaryMonthKey(){
- return `${diaryMonth.getFullYear()}-${String(diaryMonth.getMonth()+1).padStart(2,"0")}`;
-}
-
-function diaryDateLabel(key){
- const [y,m,d]=key.split("-").map(Number);
- return new Date(y,m-1,d).toLocaleDateString("vi-VN",{
-  weekday:"long",day:"numeric",month:"long",year:"numeric"
+function formatTime(timestamp){
+ if(typeof timestamp!=="number")return "";
+ return new Date(timestamp).toLocaleTimeString("vi-VN",{
+  timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
  });
 }
 
-function renderDiaryCalendar(){
- $("diaryMonthLabel").textContent=diaryMonth.toLocaleDateString("vi-VN",{
-  month:"long",year:"numeric"
- });
+function setMusicError(message){$("musicError").textContent=message}
 
- const weekdays=$("diaryWeekdays");
- weekdays.replaceChildren();
-
- diaryWeekdays.forEach(day=>{
-  const el=document.createElement("div");
-  el.className="diary-weekday";
-  el.textContent=day;
-  weekdays.append(el);
- });
-
- const days=$("diaryDays");
- days.replaceChildren();
-
- const year=diaryMonth.getFullYear();
- const month=diaryMonth.getMonth();
- const offset=(new Date(year,month,1).getDay()+6)%7;
- const count=new Date(year,month+1,0).getDate();
-
- for(let i=0;i<offset;i++){
-  days.append(document.createElement("div"));
+function floatHearts(){
+ const button=$("composer").querySelector('button[type="submit"]');
+ const rect=button.getBoundingClientRect();
+ const hearts=["💗","💕","💖","💘","❤️","💓"];
+ for(let i=0;i<5;i++){
+  const heart=document.createElement("span");
+  heart.className="floating-heart";
+  heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+  heart.style.left=(rect.left+rect.width/2+(Math.random()-.5)*80)+"px";
+  heart.style.top=rect.top+rect.height/2+"px";
+  heart.style.fontSize=(16+Math.random()*14)+"px";
+  heart.style.setProperty("--drift",((Math.random()-.5)*90)+"px");
+  document.body.append(heart);
+  heart.addEventListener("animationend",()=>heart.remove(),{once:true});
  }
-
- for(let day=1;day<=count;day++){
-  const dateKey=`${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-  const btn=document.createElement("button");
-  btn.type="button";
-  btn.className="diary-day";
-  btn.textContent=String(day);
-
-  if(dateKey===diarySelectedDate)btn.classList.add("selected");
-  if(dateKey===localDateKey(new Date()))btn.classList.add("today");
-  if(String(diaryEntries[dateKey]||"").trim())btn.classList.add("has-entry");
-
-  btn.setAttribute("aria-label",diaryDateLabel(dateKey));
-  btn.addEventListener("click",()=>selectDiaryDate(dateKey));
-  days.append(btn);
- }
-}
-
-async function loadDiaryMonth(){
- if(!user||!db)return;
-
- const token=++diaryLoadToken;
- const monthKey=diaryMonthKey();
- $("diaryStatus").textContent="Đang tải nhật ký...";
-
- try{
-  const snapshot=await get(ref(db,`diary/${user.uid}/${monthKey}`));
-  if(token!==diaryLoadToken)return;
-
-  diaryEntries=snapshot.val()||{};
-  renderDiaryCalendar();
-
-  $("diarySelectedLabel").textContent=diaryDateLabel(diarySelectedDate);
-  $("diaryText").value=diaryEntries[diarySelectedDate]||"";
-  diaryDirty=false;
-
-  $("diaryStatus").textContent="Đã tải nhật ký.";
- }catch(error){
-  if(token!==diaryLoadToken)return;
-  $("diaryStatus").textContent="Không tải được nhật ký: "+error.message;
- }
-}
-
-async function saveDiaryEntry(){
- if(!user||!db||!diaryDirty)return true;
-
- clearTimeout(diarySaveTimer);
-
- const dateKey=diarySelectedDate;
- const monthKey=dateKey.slice(0,7);
- const value=$("diaryText").value;
-
- $("diaryStatus").textContent="Đang lưu...";
-
- try{
-  await set(
-   ref(db,`diary/${user.uid}/${monthKey}/${dateKey}`),
-   value.trim()?value:null
-  );
-
-  if(value.trim())diaryEntries[dateKey]=value;
-  else delete diaryEntries[dateKey];
-
-  diaryDirty=false;
-
-  if(diaryMonthKey()===monthKey)renderDiaryCalendar();
-
-  $("diaryStatus").textContent=value.trim()
-   ?"Đã tự lưu nhật ký 💗"
-   :"Đã xóa nội dung ngày này.";
-
-  return true;
- }catch(error){
-  $("diaryStatus").textContent="Lưu thất bại: "+error.message;
-  return false;
- }
-}
-
-async function selectDiaryDate(dateKey){
- if(diaryDirty){
-  clearTimeout(diarySaveTimer);
-  const saved=await saveDiaryEntry();
-  if(!saved)return;
- }
-
- diarySelectedDate=dateKey;
- $("diarySelectedLabel").textContent="💜 Nhật ký ngày "+diaryDateLabel(dateKey);
- $("diaryText").value=diaryEntries[dateKey]||"";
- diaryDirty=false;
-
- renderDiaryCalendar();
-
- $("diaryStatus").textContent=String(diaryEntries[dateKey]||"").trim()
-  ?"Có nhật ký trong ngày này 💗"
-  :"Ngày này chưa có nhật ký.";
-}
-
-function startDiary(){
- if(diaryStarted)return;
- diaryStarted=true;
-
- $("diaryText").disabled=false;
- $("diarySelectedLabel").textContent="💜 Nhật ký ngày "+diaryDateLabel(diarySelectedDate);
-
- renderDiaryCalendar();
-
- $("diaryPrev").addEventListener("click",async()=>{
-  if(diaryDirty){
-   clearTimeout(diarySaveTimer);
-   if(!(await saveDiaryEntry()))return;
-  }
-
-  diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth()-1,1);
-  diarySelectedDate=localDateKey(new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1));
-  await loadDiaryMonth();
- });
-
- $("diaryNext").addEventListener("click",async()=>{
-  if(diaryDirty){
-   clearTimeout(diarySaveTimer);
-   if(!(await saveDiaryEntry()))return;
-  }
-
-  diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth()+1,1);
-  diarySelectedDate=localDateKey(new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1));
-  await loadDiaryMonth();
- });
-
- $("diaryText").addEventListener("input",()=>{
-  diaryDirty=true;
-  $("diaryStatus").textContent="Đang chờ lưu...";
-  clearTimeout(diarySaveTimer);
-  diarySaveTimer=setTimeout(()=>saveDiaryEntry(),700);
- });
-
- $("diarySave").addEventListener("click",()=>saveDiaryEntry());
 }
 
 /* ONLINE */
@@ -425,7 +244,6 @@ function startPresence(){
 
  onValue(ref(db,".info/connected"),async snapshot=>{
   if(snapshot.val()!==true)return;
-
   const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
 
   try{
@@ -472,7 +290,6 @@ function startPresence(){
   });
 
   $("onlineCount").textContent=String(count);
-
   if(!count){
    const empty=document.createElement("div");
    empty.id="onlineEmpty";
@@ -527,10 +344,6 @@ async function publishTypingDraft(){
  },12000);
 }
 
-let typingListenerStarted=false;
-let typingWriteTimer=null,typingClearTimer=null;
-let lastTypingText="";
-
 function startTypingSync(){
  if(typingListenerStarted)return;
  typingListenerStarted=true;
@@ -556,7 +369,6 @@ function startTypingSync(){
    if(now-(Number(data.updatedAt)||0)>15000)return;
 
    count++;
-
    const row=document.createElement("div");
    row.className="typing-user";
 
@@ -575,6 +387,199 @@ function startTypingSync(){
  },error=>{
   $("chatStatus").textContent="Không đọc được nội dung đang nhập: "+error.message;
  });
+}
+
+/* LỊCH VÀ NHẬT KÝ */
+let diaryMonth=new Date();
+diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1);
+let diarySelectedDate=diaryLocalKey(new Date());
+let diaryEntries={};
+let diarySaveTimer=null;
+let diaryLoadToken=0;
+let diaryStarted=false;
+
+function diaryLocalKey(date){
+ const y=date.getFullYear();
+ const m=String(date.getMonth()+1).padStart(2,"0");
+ const d=String(date.getDate()).padStart(2,"0");
+ return `${y}-${m}-${d}`;
+}
+
+function diaryMonthKey(){
+ return `${diaryMonth.getFullYear()}-${String(diaryMonth.getMonth()+1).padStart(2,"0")}`;
+}
+
+function diaryDateLabel(key){
+ const [y,m,d]=key.split("-").map(Number);
+ return new Date(y,m-1,d).toLocaleDateString("vi-VN",{
+  weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"
+ });
+}
+
+function renderDiaryCalendar(){
+ const calendar=$("diaryCalendar");
+ calendar.replaceChildren();
+
+ $("diaryMonthTitle").textContent=diaryMonth.toLocaleDateString("vi-VN",{
+  month:"long",year:"numeric"
+ });
+
+ const year=diaryMonth.getFullYear();
+ const month=diaryMonth.getMonth();
+ const offset=(new Date(year,month,1).getDay()+6)%7;
+ const daysInMonth=new Date(year,month+1,0).getDate();
+ const today=diaryLocalKey(new Date());
+
+ for(let i=0;i<offset;i++){
+  const blank=document.createElement("span");
+  blank.className="diary-day empty";
+  calendar.append(blank);
+ }
+
+ for(let day=1;day<=daysInMonth;day++){
+  const key=diaryLocalKey(new Date(year,month,day));
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="diary-day";
+  button.textContent=String(day);
+
+  if(key===diarySelectedDate)button.classList.add("selected");
+  if(key===today)button.classList.add("today");
+  if(typeof diaryEntries[key]==="string"&&diaryEntries[key].trim())button.classList.add("has-entry");
+
+  button.setAttribute("aria-label",diaryDateLabel(key));
+  button.addEventListener("click",()=>selectDiaryDate(key));
+  calendar.append(button);
+ }
+}
+
+async function loadDiaryMonth(){
+ if(!user||!db)return;
+
+ const token=++diaryLoadToken;
+ const monthKey=diaryMonthKey();
+ $("diarySaveStatus").textContent="Đang tải nhật ký...";
+
+ try{
+  const snapshot=await get(ref(db,`diary/${user.uid}/${monthKey}`));
+  if(token!==diaryLoadToken)return;
+
+  diaryEntries=snapshot.val()||{};
+  renderDiaryCalendar();
+  $("diaryText").value=diaryEntries[diarySelectedDate]||"";
+  $("diaryDateTitle").textContent="Nhật ký — "+diaryDateLabel(diarySelectedDate);
+  $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
+ }catch(error){
+  if(token!==diaryLoadToken)return;
+  $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
+ }
+}
+
+async function saveDiaryEntry(dateKey,value){
+ if(!user||!db)return;
+
+ const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
+ $("diarySaveStatus").textContent="Đang lưu...";
+
+ try{
+  if(value.trim()){
+   await set(entryRef,value);
+   if(dateKey.slice(0,7)===diaryMonthKey())diaryEntries[dateKey]=value;
+  }else{
+   await set(entryRef,null);
+   if(dateKey.slice(0,7)===diaryMonthKey())delete diaryEntries[dateKey];
+  }
+
+  if(dateKey===diarySelectedDate)$("diarySaveStatus").textContent="Đã lưu tự động ✓";
+  renderDiaryCalendar();
+ }catch(error){
+  if(dateKey===diarySelectedDate)$("diarySaveStatus").textContent="Lưu thất bại: "+error.message;
+ }
+}
+
+function scheduleDiarySave(){
+ clearTimeout(diarySaveTimer);
+
+ const key=diarySelectedDate;
+ const value=$("diaryText").value;
+
+ if(key.slice(0,7)===diaryMonthKey()){
+  if(value.trim())diaryEntries[key]=value;
+  else delete diaryEntries[key];
+  renderDiaryCalendar();
+ }
+
+ $("diarySaveStatus").textContent="Đang chờ lưu...";
+ diarySaveTimer=setTimeout(()=>saveDiaryEntry(key,value),650);
+}
+
+async function selectDiaryDate(key){
+ clearTimeout(diarySaveTimer);
+
+ const previousKey=diarySelectedDate;
+ const previousValue=$("diaryText").value;
+
+ if(previousValue!==String(diaryEntries[previousKey]||"")){
+  await saveDiaryEntry(previousKey,previousValue);
+ }
+
+ diarySelectedDate=key;
+ const keyMonth=key.slice(0,7);
+
+ if(keyMonth!==diaryMonthKey()){
+  const [year,month]=keyMonth.split("-").map(Number);
+  diaryMonth=new Date(year,month-1,1);
+  await loadDiaryMonth();
+ }else{
+  $("diaryDateTitle").textContent="Nhật ký — "+diaryDateLabel(key);
+  $("diaryText").value=diaryEntries[key]||"";
+  $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
+  renderDiaryCalendar();
+ }
+}
+
+function startDiary(){
+ if(diaryStarted)return;
+ diaryStarted=true;
+
+ $("diaryToggle").addEventListener("click",async()=>{
+  const willOpen=$("diaryPanel").hidden;
+  $("diaryPanel").hidden=!willOpen;
+  $("diaryToggle").setAttribute("aria-expanded",String(willOpen));
+  if(willOpen)await loadDiaryMonth();
+ });
+
+ $("diaryPrev").addEventListener("click",async()=>{
+  clearTimeout(diarySaveTimer);
+
+  const oldKey=diarySelectedDate;
+  const oldValue=$("diaryText").value;
+
+  if(!$("diaryPanel").hidden&&oldValue!==String(diaryEntries[oldKey]||"")){
+   await saveDiaryEntry(oldKey,oldValue);
+  }
+
+  diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth()-1,1);
+  diarySelectedDate=diaryLocalKey(new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1));
+  await loadDiaryMonth();
+ });
+
+ $("diaryNext").addEventListener("click",async()=>{
+  clearTimeout(diarySaveTimer);
+
+  const oldKey=diarySelectedDate;
+  const oldValue=$("diaryText").value;
+
+  if(!$("diaryPanel").hidden&&oldValue!==String(diaryEntries[oldKey]||"")){
+   await saveDiaryEntry(oldKey,oldValue);
+  }
+
+  diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth()+1,1);
+  diarySelectedDate=diaryLocalKey(new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1));
+  await loadDiaryMonth();
+ });
+
+ $("diaryText").addEventListener("input",scheduleDiarySave);
 }
 
 /* YOUTUBE PLAYER */
@@ -613,6 +618,7 @@ function createPlayer(){
 
 async function publishPlayerState(playing){
  if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
+
  if(latestMusicState?.changedBy!==user.uid)return;
 
  const now=Date.now();
@@ -631,40 +637,6 @@ async function publishPlayerState(playing){
 
  try{await set(musicStateRef(),state)}
  catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
-}
-
-function musicStateRef(){
- return ref(db,"roomMusic/state");
-}
-
-function formatTime(timestamp){
- if(typeof timestamp!=="number")return "";
- return new Date(timestamp).toLocaleTimeString("vi-VN",{
-  timeZone:"Asia/Ho_Chi_Minh",
-  hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
- });
-}
-
-function setMusicError(message){
- $("musicError").textContent=message;
-}
-
-function floatHearts(){
- const button=$("composer").querySelector('button[type="submit"]');
- const rect=button.getBoundingClientRect();
- const hearts=["💗","💕","💖","💘","❤️","💓"];
-
- for(let i=0;i<5;i++){
-  const heart=document.createElement("span");
-  heart.className="floating-heart";
-  heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
-  heart.style.left=(rect.left+rect.width/2+(Math.random()-.5)*80)+"px";
-  heart.style.top=rect.top+rect.height/2+"px";
-  heart.style.fontSize=(16+Math.random()*14)+"px";
-  heart.style.setProperty("--drift",((Math.random()-.5)*90)+"px");
-  document.body.append(heart);
-  heart.addEventListener("animationend",()=>heart.remove(),{once:true});
- }
 }
 
 function targetPosition(state){
@@ -694,9 +666,11 @@ function applyMusicState(state,force=false){
    else player.cueVideoById({videoId:state.videoId,startSeconds:target});
   }else{
    const actual=Number(player.getCurrentTime?.())||0;
+
    if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
 
    const playerState=player.getPlayerState?.();
+
    if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
    else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
   }
@@ -739,12 +713,13 @@ function startMusicSync(){
   $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
  });
 
- // Chỉ cập nhật vị trí khi player thực sự đang phát.
  setInterval(()=>{
   if(!playerReady||!currentVideoId||!latestMusicState||!user)return;
   if(latestMusicState.changedBy!==user.uid)return;
   if(!window.YT?.PlayerState)return;
+
   if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
+
   publishPlayerState(true);
  },8000);
 }
@@ -780,7 +755,6 @@ $("enter").addEventListener("click",async()=>{
 
   $("login").hidden=true;
   $("chat").hidden=false;
-  $("welcome").textContent="Đang trò chuyện với tên "+displayName;
 
   if(window.YT?.Player)createPlayer();
 
@@ -788,7 +762,6 @@ $("enter").addEventListener("click",async()=>{
   startTypingSync();
   startMusicSync();
   startDiary();
-  await loadDiaryMonth();
 
   const recent=query(
    ref(db,"publicChat/messages"),
