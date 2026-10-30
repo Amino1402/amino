@@ -1,4 +1,4 @@
-1
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -140,6 +140,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #mapStatus{font-size:13px;line-height:1.5;color:#6750a4;margin:8px 0}
 #mapContainer{height:65vh;min-height:340px;max-height:650px;border-radius:12px;border:1px solid #ddd;z-index:1}
 .map-popup-name{font-weight:bold;color:#6750a4;margin-bottom:4px}
+.amino-member-marker{background:transparent;border:0}
+.amino-member-marker-inner{display:flex;align-items:center;gap:4px;white-space:nowrap;transform:translateY(-2px)}
+.amino-member-marker-pin{font-size:27px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
+.amino-member-marker-heart{font-size:29px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
+.amino-member-marker-name{font-size:12px;font-weight:700;color:#222;background:rgba(255,255,255,.94);border:1px solid #888;border-radius:6px;padding:2px 5px;box-shadow:0 1px 4px #0005;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:700px){#mapPage{padding:12px}#mapContainer{height:60vh;min-height:320px}}
 
 @media(max-width:700px){
@@ -255,7 +260,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <section id="mapPage" hidden>
   <button id="mapBack" type="button">← Quay lại phòng chat</button>
   <h2>📍 Bản đồ Amino</h2>
-  <p class="hint">Bản đồ hiển thị vị trí GPS được các thành viên đồng ý chia sẻ. Khi bạn mở bản đồ lần đầu, ứng dụng sẽ hỏi xác nhận trước khi công khai vị trí của bạn.</p>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
   <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
   <p class="hint">Vị trí của bạn được cập nhật khi đang mở ứng dụng. Nếu hai thành viên cách nhau không quá 1 km, cả hai ghim sẽ hiện trái tim ❤️. GPS cần HTTPS và quyền định vị.</p>
@@ -1045,9 +1049,12 @@ function distanceBetweenMeters(a,b){
   return 6371000*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
-function heartMarkerIcon(){
-  return L.divIcon({className:"amino-heart-marker",html:'<span style="font-size:34px;line-height:38px;text-shadow:0 2px 5px #333;">❤️</span>',
-    iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-18]});
+function memberMarkerIcon(memberName,isHeart){
+  const safeName=String(memberName||"Thành viên Amino").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+  const symbol=isHeart?"❤️":"📍";
+  const symbolClass=isHeart?"amino-member-marker-heart":"amino-member-marker-pin";
+  const html='<div class="amino-member-marker-inner"><span class="'+symbolClass+'">'+symbol+'</span><span class="amino-member-marker-name">'+safeName+'</span></div>';
+  return L.divIcon({className:"amino-member-marker",html,iconSize:[150,34],iconAnchor:[14,30],popupAnchor:[0,-28]});
 }
 
 function updateMapMarkers(){
@@ -1072,11 +1079,12 @@ function updateMapMarkers(){
     const online=memberIsOnline(uid);
     const marker=mapMarkers[uid]||L.marker([lat,lng]).addTo(aminoMap);
     marker.setLatLng([lat,lng]);
-    marker.setIcon(heartUids.has(uid)?heartMarkerIcon():new L.Icon.Default());
+    const memberName=location.name||presenceForMap?.[uid]?.name||"Thành viên Amino";
+    marker.setIcon(memberMarkerIcon(memberName,heartUids.has(uid)));
     const popup=document.createElement("div");
     const name=document.createElement("div");
     name.className="map-popup-name";
-    name.textContent=location.name||presenceForMap?.[uid]?.name||"Thành viên Amino";
+    name.textContent=memberName;
     const status=document.createElement("div");
     status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí chia sẻ gần nhất";
     status.style.color=online?"#16a34a":"#777";
