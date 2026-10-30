@@ -1008,7 +1008,7 @@ function ensureAminoMap(){
   }
   aminoMap=L.map("mapContainer").setView([16.0,107.8],5);
 
-  // Thu tu: OpenStreetMap, neu may chu tile loi thi tu dong doi sang CARTO.
+  // Thu tu: OpenStreetMap, neu loi thi thu Esri World Street Map (khong can API key).
   let activeTileLayer=null;
   let tileErrors=0;
   let usingFallbackTiles=false;
@@ -1023,13 +1023,12 @@ function ensureAminoMap(){
         if(activeTileLayer){aminoMap.removeLayer(activeTileLayer);activeTileLayer=null;}
         $("mapStatus").textContent="Nguồn bản đồ chính đang lỗi, đang thử máy chủ bản đồ dự phòng...";
         showTileLayer(
-          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
           {
-            subdomains:"abcd",
-            maxZoom:20,
-            attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            maxZoom:19,
+            attribution:'Tiles &copy; Esri &mdash; Sources: Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community'
           },
-          "CARTO"
+          "Esri"
         );
       }else if(tileErrors>=3 && usingFallbackTiles){
         $("mapStatus").textContent="Không tải được ảnh từ cả máy chủ bản đồ chính và dự phòng. Hãy thử đổi mạng Wi-Fi/4G, tắt VPN hoặc chặn quảng cáo rồi tải lại trang.";
@@ -1038,7 +1037,7 @@ function ensureAminoMap(){
     activeTileLayer.on("load",()=>{
       tileErrors=0;
       $("mapStatus").textContent=usingFallbackTiles
-        ? "Bản đồ đã tải bằng máy chủ dự phòng. Chưa có thành viên nào chia sẻ vị trí."
+        ? "Bản đồ đã tải bằng máy chủ dự phòng Esri. Chưa có thành viên nào chia sẻ vị trí."
         : "Bản đồ đã tải. Chưa có thành viên nào chia sẻ vị trí.";
     });
   }
@@ -1421,3 +1420,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+1
