@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -90,9 +89,40 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #diaryPassword{width:100%;margin:10px 0}
 #diaryPasswordError{color:#b42318;font-size:13px;min-height:18px}
 #diaryContent{margin-top:10px}
-#diaryViews{margin:18px 0;padding:12px;border:1px solid #e7def7;border-radius:10px;background:#faf8ff}
-#diaryViewsToggle{width:100%;text-align:left;background:#f1eaff;color:#6750a4;font-weight:bold}
-#diaryViewsList{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+
+/* LỊCH SỬ XEM NẰM CUỐI TRANG VÀ CÓ THANH CUỘN RIÊNG */
+#diaryViews{
+  margin:28px 0 4px;
+  padding:12px;
+  border:1px solid #e7def7;
+  border-radius:10px;
+  background:#faf8ff;
+}
+#diaryViewsToggle{
+  width:100%;
+  text-align:left;
+  background:#f1eaff;
+  color:#6750a4;
+  font-weight:bold;
+}
+#diaryViewsList{
+  margin-top:10px;
+  max-height:220px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding-right:5px;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#diaryViewsList[hidden]{display:none!important}
+#diaryViewsList::-webkit-scrollbar{width:5px}
+#diaryViewsList::-webkit-scrollbar-thumb{
+  background:#c4b5fd;
+  border-radius:10px;
+}
 .diary-view-item{padding:10px;background:white;border:1px solid #eee;border-radius:8px;font-size:12px;line-height:1.6}
 .diary-view-name{font-weight:bold;color:#6750a4;font-size:13px}
 .diary-view-live{color:#16a34a;font-weight:bold}
@@ -187,11 +217,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
     <h4 id="diaryDateTitle"></h4>
 
-    <section id="diaryViews">
-      <button id="diaryViewsToggle" type="button">👀 Ai đã xem nhật ký ngày này (0)</button>
-      <div id="diaryViewsList" hidden></div>
-    </section>
-
     <div id="publicDiaryEntries"></div>
 
     <p class="entry-label">✍️ Nhật ký của bạn trong ngày này</p>
@@ -199,6 +224,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <small id="diarySaveStatus" aria-live="polite">Nhật ký tự động lưu.</small>
     <button id="diaryDelete" type="button">Xóa nhật ký của tôi trong ngày này</button>
     <p class="hint">Chỉ bạn mới sửa hoặc xóa được nhật ký của chính mình.</p>
+
+    <!-- ĐÃ CHUYỂN XUỐNG CUỐI TRANG -->
+    <section id="diaryViews">
+      <button id="diaryViewsToggle" type="button">👀 Ai đã xem nhật ký ngày này (0)</button>
+      <div id="diaryViewsList" hidden></div>
+    </section>
   </div>
 </section>
 
@@ -597,15 +628,17 @@ async function startDiaryVisit(dateKey){
   activeDiaryDisconnect=disconnectHandler;
 
   try{
-    await disconnectHandler.update({
-      exitedAt:serverTimestamp()
-    });
-
+    /* Tạo bản ghi trước để Firebase kiểm tra quyền sở hữu */
     await set(visitRef,{
       uid:user.uid,
       name:displayName,
       enteredAt:serverTimestamp(),
       exitedAt:null
+    });
+
+    /* Sau đó mới đăng ký cập nhật khi mất kết nối */
+    await disconnectHandler.update({
+      exitedAt:serverTimestamp()
     });
   }catch(error){
     console.warn("Không thể ghi nhận lượt xem:",error);
@@ -1145,3 +1178,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+1406
