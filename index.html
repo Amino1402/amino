@@ -139,14 +139,24 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #mapActions button{flex:1 1 130px}
 #stopSharing{background:#b42318}
 #mapStatus{font-size:13px;line-height:1.5;color:#6750a4;margin:8px 0}
-#mapContainer{height:65vh;min-height:340px;max-height:650px;border-radius:12px;border:1px solid #ddd;z-index:1}
+#mapWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:stretch}
+#mapContainer{height:65vh;min-height:340px;max-height:650px;border-radius:12px;border:1px solid #ddd;z-index:1;min-width:0}
+#mapMeetingPanel{height:65vh;min-height:340px;max-height:650px;display:flex;flex-direction:column;border:1px solid #e1dced;border-radius:12px;background:#fcfbff;overflow:hidden;min-width:0}
+#mapMeetingPanel h3{font-size:16px;color:#6750a4;margin:0;padding:12px;border-bottom:1px solid #e8e1f2}
+#mapMeetingSummary{font-size:12px;color:#666;padding:8px 12px;border-bottom:1px solid #eee}
+#mapMeetingList{padding:9px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.map-meeting-item{padding:10px;border:1px solid #e8def7;border-radius:9px;background:white;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.map-meeting-pair{font-weight:bold;color:#6750a4;font-size:13px;margin-bottom:4px}
+.map-meeting-live{color:#15803d;font-weight:bold}
+.map-meeting-muted{color:#777}
+.map-meeting-empty{font-size:12px;color:#777;text-align:center;padding:16px 8px}
 .map-popup-name{font-weight:bold;color:#6750a4;margin-bottom:4px}
 .amino-member-marker{background:transparent;border:0}
 .amino-member-marker-inner{display:flex;align-items:center;gap:4px;white-space:nowrap;transform:translateY(-2px)}
 .amino-member-marker-pin{font-size:27px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
 .amino-member-marker-heart{font-size:29px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
 .amino-member-marker-name{font-size:12px;font-weight:700;color:#222;background:rgba(255,255,255,.94);border:1px solid #888;border-radius:6px;padding:2px 5px;box-shadow:0 1px 4px #0005;max-width:120px;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:700px){#mapPage{padding:12px}#mapContainer{height:60vh;min-height:320px}}
+@media(max-width:700px){#mapPage{padding:12px}#mapWorkspace{grid-template-columns:1fr}#mapContainer{height:55vh;min-height:300px}#mapMeetingPanel{height:280px;min-height:220px;max-height:360px}}
 
 @media(max-width:700px){
  main{margin:10px auto;padding:10px}
@@ -178,7 +188,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <p id="welcome"></p>
   <div id="diaryToolbar">
     <button id="diaryToggle" type="button" aria-label="Mở trang nhật ký" title="Nhật ký công khai">📅</button>
-    <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">🗺️</button>
+    <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">📍</button>
   </div>
   <div id="chatLayout">
     <div id="chatMain">
@@ -260,10 +270,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <section id="mapPage" hidden>
   <button id="mapBack" type="button">← Quay lại phòng chat</button>
-  <h2>🗺️ Bản đồ Amino</h2>
+  <h2>📍 Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
-  <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
-  
+  <div id="mapWorkspace">
+    <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
+    <aside id="mapMeetingPanel" aria-label="Lịch sử gặp nhau gần 100 mét">
+      <h3>❤️ Lịch sử gặp nhau</h3>
+      <div id="mapMeetingSummary">Đang tải lịch sử...</div>
+      <div id="mapMeetingList"><div class="map-meeting-empty">Chưa có lần gặp nào được ghi nhận.</div></div>
+    </aside>
+  </div>
 </section>
 
 </main>
@@ -281,7 +297,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
   getDatabase,ref,push,set,onValue,query,orderByChild,
-  limitToLast,onDisconnect,serverTimestamp,update
+  limitToLast,onDisconnect,serverTimestamp,update,runTransaction
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 const firebaseConfig={
@@ -1000,6 +1016,10 @@ let locationWatchId=null;
 let myLocationDisconnect=null;
 let currentLocationRequested=false;
 let hasCenteredOnMyLocation=false;
+let activeMapMeetings={};
+let mapMeetingHistoryData={};
+let meetingSyncRunning=false;
+let meetingSyncQueued=false;
 
 function ensureAminoMap(){
   if(aminoMap)return;
@@ -1027,10 +1047,7 @@ function ensureAminoMap(){
         $("mapStatus").textContent="Không tải được ảnh bản đồ. Hãy thử đổi mạng hoặc tắt VPN/chặn quảng cáo.";
       }
     });
-    activeTileLayer.on("load",()=>{
-      tileErrors=0;
-      $("mapStatus").textContent=usingFallbackTiles?"":"Bản đồ nền đã tải.";
-    });
+    activeTileLayer.on("load",()=>{tileErrors=0;});
   }
   showTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
     maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -1052,10 +1069,80 @@ function distanceBetweenMeters(a,b){
 
 function memberMarkerIcon(memberName,isHeart){
   const safeName=String(memberName||"Thành viên Amino").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
-  const symbol=isHeart?"❤️":"🍁";
+  const symbol=isHeart?"❤️":"📍";
   const symbolClass=isHeart?"amino-member-marker-heart":"amino-member-marker-pin";
   const html='<div class="amino-member-marker-inner"><span class="'+symbolClass+'">'+symbol+'</span><span class="amino-member-marker-name">'+safeName+'</span></div>';
   return L.divIcon({className:"amino-member-marker",html,iconSize:[150,34],iconAnchor:[14,30],popupAnchor:[0,-28]});
+}
+
+function pairKeyFor(a,b){return [a,b].sort().join("__");}
+
+function formatMeetingDuration(start,end){
+  const seconds=Math.max(0,Math.floor((Number(end)-Number(start))/1000));
+  const hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60),secs=seconds%60;
+  if(hours)return `${hours} giờ ${minutes} phút`;
+  if(minutes)return `${minutes} phút ${secs} giây`;
+  return `${secs} giây`;
+}
+
+function renderMapMeetingHistory(){
+  const list=$("mapMeetingList"),summary=$("mapMeetingSummary");
+  if(!list||!summary)return;
+  const items=[];
+  for(const [key,meeting] of Object.entries(activeMapMeetings||{})){
+    if(meeting)items.push({key,meeting,active:true});
+  }
+  for(const [key,meeting] of Object.entries(mapMeetingHistoryData||{})){
+    if(meeting)items.push({key,meeting,active:false});
+  }
+  items.sort((a,b)=>Number(b.meeting.startedAt||0)-Number(a.meeting.startedAt||0));
+  summary.textContent=`${Object.keys(activeMapMeetings||{}).length} cặp đang ở gần · ${Object.keys(mapMeetingHistoryData||{}).length} lần đã kết thúc`;
+  list.replaceChildren();
+  if(!items.length){
+    const empty=document.createElement("div");empty.className="map-meeting-empty";
+    empty.textContent="Chưa có cặp nào cùng online trong phạm vi 100 m.";list.append(empty);return;
+  }
+  for(const item of items){
+    const m=item.meeting,card=document.createElement("article");card.className="map-meeting-item";
+    const pair=document.createElement("div");pair.className="map-meeting-pair";
+    pair.textContent=`❤️ ${m.nameA||"Thành viên"} & ${m.nameB||"Thành viên"}`;
+    const status=document.createElement("div");status.className=item.active?"map-meeting-live":"map-meeting-muted";
+    status.textContent=item.active?"● Đang ở gần nhau":"Đã kết thúc";
+    const start=document.createElement("div");start.textContent="Bắt đầu: "+(m.startedAt?new Date(Number(m.startedAt)).toLocaleString("vi-VN"):"Không rõ");
+    const end=document.createElement("div");end.textContent=item.active?"Kết thúc: Chưa kết thúc":"Kết thúc: "+(m.endedAt?new Date(Number(m.endedAt)).toLocaleString("vi-VN"):"Không rõ");
+    const duration=document.createElement("div");duration.textContent="Thời gian: "+formatMeetingDuration(m.startedAt||Date.now(),m.endedAt||Date.now());
+    const pos=document.createElement("div");pos.textContent=`Vị trí A: ${Number(m.latA).toFixed(5)}, ${Number(m.lngA).toFixed(5)} · Vị trí B: ${Number(m.latB).toFixed(5)}, ${Number(m.lngB).toFixed(5)}`;
+    card.append(pair,status,start,end,duration,pos);list.append(card);
+  }
+}
+
+async function syncMapMeetings(eligiblePairs){
+  if(meetingSyncRunning){meetingSyncQueued=true;return;}
+  meetingSyncRunning=true;
+  try{
+    const activeRef=ref(db,"mapMeetings/active");
+    for(const [key,record] of Object.entries(eligiblePairs)){
+      const pairRef=ref(db,`mapMeetings/active/${key}`);
+      await runTransaction(pairRef,current=>current||record);
+    }
+    for(const [key,current] of Object.entries(activeMapMeetings||{})){
+      if(eligiblePairs[key]||!current||current.endedAt)continue;
+      const pairRef=ref(db,`mapMeetings/active/${key}`);
+      const result=await runTransaction(pairRef,value=>value&&!value.endedAt?{...value,endedAt:Date.now()}:value);
+      const ended=result.snapshot.val();
+      if(ended?.endedAt){
+        const historyKey=`${key}_${ended.startedAt}`;
+        await set(ref(db,`mapMeetings/history/${historyKey}`),ended);
+        await set(pairRef,null);
+      }
+    }
+  }catch(error){
+    console.warn("Không lưu được lịch sử gặp nhau:",error);
+    const summary=$("mapMeetingSummary");if(summary)summary.textContent="Không lưu được lịch sử. Kiểm tra Firebase Rules.";
+  }finally{
+    meetingSyncRunning=false;
+    if(meetingSyncQueued){meetingSyncQueued=false;updateMapMarkers();}
+  }
 }
 
 function updateMapMarkers(){
@@ -1065,43 +1152,45 @@ function updateMapMarkers(){
     if(!location||!Number.isFinite(Number(location.lat))||!Number.isFinite(Number(location.lng)))continue;
     const lat=Number(location.lat),lng=Number(location.lng);
     if(lat < -90 || lat > 90 || lng < -180 || lng > 180)continue;
-    valid.push({uid,location,lat,lng});
+    valid.push({uid,location,lat,lng,online:memberIsOnline(uid)});
   }
-  const heartUids=new Set();
+  const heartUids=new Set(),eligiblePairs={};
   for(let i=0;i<valid.length;i++){
     for(let j=i+1;j<valid.length;j++){
-      if(distanceBetweenMeters(valid[i],valid[j])<=100){heartUids.add(valid[i].uid);heartUids.add(valid[j].uid);}
+      const a=valid[i],b=valid[j];
+      if(a.online&&b.online&&distanceBetweenMeters(a,b)<=100){
+        heartUids.add(a.uid);heartUids.add(b.uid);
+        const ordered=[a,b].sort((x,y)=>x.uid.localeCompare(y.uid));
+        const first=ordered[0],second=ordered[1],key=pairKeyFor(first.uid,second.uid);
+        eligiblePairs[key]={uidA:first.uid,uidB:second.uid,
+          nameA:first.location.name||presenceForMap?.[first.uid]?.name||"Thành viên Amino",
+          nameB:second.location.name||presenceForMap?.[second.uid]?.name||"Thành viên Amino",
+          latA:first.lat,lngA:first.lng,latB:second.lat,lngB:second.lng,
+          startedAt:Date.now()};
+      }
     }
   }
+  syncMapMeetings(eligiblePairs);
   const keep=new Set();
   for(const item of valid){
-    const {uid,location,lat,lng}=item;
+    const {uid,location,lat,lng,online}=item;
     keep.add(uid);
-    const online=memberIsOnline(uid);
     const marker=mapMarkers[uid]||L.marker([lat,lng]).addTo(aminoMap);
     marker.setLatLng([lat,lng]);
     const memberName=location.name||presenceForMap?.[uid]?.name||"Thành viên Amino";
     marker.setIcon(memberMarkerIcon(memberName,heartUids.has(uid)));
     const popup=document.createElement("div");
-    const name=document.createElement("div");
-    name.className="map-popup-name";
-    name.textContent=memberName;
-    const status=document.createElement("div");
-    status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí chia sẻ gần nhất";
-    status.style.color=online?"#16a34a":"#777";
-    const relation=document.createElement("div");
-    relation.textContent=heartUids.has(uid)?"❤️ Có thành viên khác cách bạn không quá 100 m":"";
-    const updated=document.createElement("div");
-    updated.textContent="Cập nhật: "+(location.updatedAt?new Date(Number(location.updatedAt)).toLocaleString("vi-VN"):"không rõ");
-    popup.append(name,status,relation,updated);
-    marker.bindPopup(popup);
-    mapMarkers[uid]=marker;
+    const name=document.createElement("div");name.className="map-popup-name";name.textContent=memberName;
+    const status=document.createElement("div");status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí chia sẻ gần nhất";status.style.color=online?"#16a34a":"#777";
+    const relation=document.createElement("div");relation.textContent=heartUids.has(uid)?"❤️ Có thành viên đang online cách bạn không quá 100 m":"";
+    const updated=document.createElement("div");updated.textContent="Cập nhật: "+(location.updatedAt?new Date(Number(location.updatedAt)).toLocaleString("vi-VN"):"không rõ");
+    popup.append(name,status,relation,updated);marker.bindPopup(popup);mapMarkers[uid]=marker;
   }
   for(const [uid,marker] of Object.entries(mapMarkers)){
     if(!keep.has(uid)){aminoMap.removeLayer(marker);delete mapMarkers[uid];}
   }
   const count=valid.length;
-  $("mapStatus").textContent=count?`Đang hiển thị ${count} vị trí thành viên đã chia sẻ${heartUids.size?" · Có cặp ở gần nhau ❤️":""}.`:"Chưa có thành viên nào chia sẻ vị trí. Hãy mở bản đồ và đồng ý chia sẻ để xuất hiện.";
+  $("mapStatus").textContent=count?`Đang hiển thị ${count} vị trí thành viên đã chia sẻ${heartUids.size?" · Có cặp cùng online ở gần nhau ❤️":""}.`:"Chưa có thành viên nào chia sẻ vị trí. Hãy mở bản đồ và đồng ý chia sẻ để xuất hiện.";
 }
 
 function startMapListeners(){
@@ -1115,6 +1204,15 @@ function startMapListeners(){
     presenceForMap=snapshot.val()||{};
     updateMapMarkers();
   },error=>console.warn("Không đọc được trạng thái online cho bản đồ:",error));
+  onValue(ref(db,"mapMeetings/active"),snapshot=>{
+    activeMapMeetings=snapshot.val()||{};
+    renderMapMeetingHistory();
+    updateMapMarkers();
+  },error=>console.warn("Không đọc được các cặp đang ở gần:",error));
+  onValue(ref(db,"mapMeetings/history"),snapshot=>{
+    mapMeetingHistoryData=snapshot.val()||{};
+    renderMapMeetingHistory();
+  },error=>console.warn("Không đọc được lịch sử gặp nhau:",error));
 }
 
 function openMapPage(){
