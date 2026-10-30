@@ -1,4 +1,4 @@
-1
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1007,24 +1007,50 @@ function ensureAminoMap(){
     return;
   }
   aminoMap=L.map("mapContainer").setView([16.0,107.8],5);
-  const tileLayer=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-    maxZoom:19,
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(aminoMap);
 
+  // Thu tu: OpenStreetMap, neu may chu tile loi thi tu dong doi sang CARTO.
+  let activeTileLayer=null;
   let tileErrors=0;
-  tileLayer.on("tileerror",()=>{
-    tileErrors++;
-    if(tileErrors>=3){
-      $("mapStatus").textContent=
-        "Bản đồ đã mở nhưng không tải được ảnh bản đồ. Hãy kiểm tra Internet, VPN/chặn quảng cáo hoặc thử mở lại trang.";
-    }
-  });
-  tileLayer.on("load",()=>{
-    if(tileErrors===0 && !Object.keys(mapMarkers).length){
-      $("mapStatus").textContent="Bản đồ đã tải. Chưa có thành viên nào chia sẻ vị trí.";
-    }
-  });
+  let usingFallbackTiles=false;
+
+  function showTileLayer(url,options,providerName){
+    activeTileLayer=L.tileLayer(url,options).addTo(aminoMap);
+    activeTileLayer.on("tileerror",()=>{
+      tileErrors++;
+      if(tileErrors>=3 && !usingFallbackTiles){
+        usingFallbackTiles=true;
+        tileErrors=0;
+        if(activeTileLayer){aminoMap.removeLayer(activeTileLayer);activeTileLayer=null;}
+        $("mapStatus").textContent="Nguồn bản đồ chính đang lỗi, đang thử máy chủ bản đồ dự phòng...";
+        showTileLayer(
+          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+          {
+            subdomains:"abcd",
+            maxZoom:20,
+            attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          },
+          "CARTO"
+        );
+      }else if(tileErrors>=3 && usingFallbackTiles){
+        $("mapStatus").textContent="Không tải được ảnh từ cả máy chủ bản đồ chính và dự phòng. Hãy thử đổi mạng Wi-Fi/4G, tắt VPN hoặc chặn quảng cáo rồi tải lại trang.";
+      }
+    });
+    activeTileLayer.on("load",()=>{
+      tileErrors=0;
+      $("mapStatus").textContent=usingFallbackTiles
+        ? "Bản đồ đã tải bằng máy chủ dự phòng. Chưa có thành viên nào chia sẻ vị trí."
+        : "Bản đồ đã tải. Chưa có thành viên nào chia sẻ vị trí.";
+    });
+  }
+
+  showTileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom:19,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    },
+    "OpenStreetMap"
+  );
   setTimeout(()=>aminoMap&&aminoMap.invalidateSize(),250);
 }
 
@@ -1395,4 +1421,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-1409
