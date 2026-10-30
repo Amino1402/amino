@@ -255,10 +255,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <section id="mapPage" hidden>
   <button id="mapBack" type="button">← Quay lại phòng chat</button>
   <h2>📍 Bản đồ Amino</h2>
-  <p class="hint">Bản đồ tự động định vị vị trí hiện tại của bạn. Vị trí này chỉ hiển thị trên thiết bị của bạn, không tự chia sẻ với người khác.</p>
+  <p class="hint">Bản đồ hiển thị vị trí GPS được các thành viên đồng ý chia sẻ. Khi bạn mở bản đồ lần đầu, ứng dụng sẽ hỏi xác nhận trước khi công khai vị trí của bạn.</p>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
   <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
-  <p class="hint">Cho phép truy cập vị trí khi trình duyệt hỏi. GPS cần HTTPS và dịch vụ định vị của thiết bị được bật.</p>
+  <p class="hint">Vị trí của bạn được cập nhật khi đang mở ứng dụng. Nếu hai thành viên cách nhau không quá 1 km, cả hai ghim sẽ hiện trái tim ❤️. GPS cần HTTPS và quyền định vị.</p>
 </section>
 
 </main>
@@ -985,7 +985,7 @@ function startMusicSync(){
 }
 
 
-/* BẢN ĐỒ GPS - CHỈ CHIA SẺ KHI NGƯỜI DÙNG CHỦ ĐỘNG ĐỒNG Ý */
+/* BẢN ĐỒ GPS - CÁC THÀNH VIÊN ĐỒNG Ý SẼ HIỂN THỊ CÔNG KHAI */
 let aminoMap=null;
 let mapMarkers={};
 let sharedLocationsData={};
@@ -993,37 +993,8 @@ let presenceForMap={};
 let mapListenersStarted=false;
 let locationWatchId=null;
 let myLocationDisconnect=null;
-let myCurrentLocationMarker=null;
 let currentLocationRequested=false;
-
-function locateCurrentPosition(){
-  if(currentLocationRequested)return;
-  currentLocationRequested=true;
-  if(!navigator.geolocation){
-    $("mapStatus").textContent="Thiết bị hoặc trình duyệt không hỗ trợ định vị GPS.";
-    return;
-  }
-  $("mapStatus").textContent="Đang xác định vị trí hiện tại...";
-  navigator.geolocation.getCurrentPosition(position=>{
-    if(!aminoMap)return;
-    const lat=position.coords.latitude;
-    const lng=position.coords.longitude;
-    aminoMap.setView([lat,lng],15);
-    if(myCurrentLocationMarker)aminoMap.removeLayer(myCurrentLocationMarker);
-    myCurrentLocationMarker=L.circleMarker([lat,lng],{
-      radius:9,color:"#ffffff",weight:3,fillColor:"#2878e8",fillOpacity:1
-    }).addTo(aminoMap).bindPopup("Vị trí hiện tại của bạn");
-    $("mapStatus").textContent="Đã xác định vị trí hiện tại của bạn.";
-  },error=>{
-    currentLocationRequested=false;
-    const messages={
-      1:"Bạn chưa cấp quyền vị trí. Hãy cho phép định vị trong cài đặt trình duyệt.",
-      2:"Không xác định được vị trí. Hãy bật dịch vụ định vị/GPS và thử mở lại bản đồ.",
-      3:"Định vị quá thời gian chờ. Hãy thử lại."
-    };
-    $("mapStatus").textContent=messages[error.code]||"Không thể xác định vị trí hiện tại.";
-  },{enableHighAccuracy:true,timeout:20000,maximumAge:60000});
-}
+let hasCenteredOnMyLocation=false;
 
 function ensureAminoMap(){
   if(aminoMap)return;
@@ -1032,49 +1003,33 @@ function ensureAminoMap(){
     return;
   }
   aminoMap=L.map("mapContainer").setView([16.0,107.8],5);
-
-  // Thu tu: OpenStreetMap, neu loi thi thu Esri World Street Map (khong can API key).
   let activeTileLayer=null;
   let tileErrors=0;
   let usingFallbackTiles=false;
-
-  function showTileLayer(url,options,providerName){
+  function showTileLayer(url,options){
     activeTileLayer=L.tileLayer(url,options).addTo(aminoMap);
     activeTileLayer.on("tileerror",()=>{
       tileErrors++;
       if(tileErrors>=3 && !usingFallbackTiles){
-        usingFallbackTiles=true;
-        tileErrors=0;
+        usingFallbackTiles=true;tileErrors=0;
         if(activeTileLayer){aminoMap.removeLayer(activeTileLayer);activeTileLayer=null;}
-        $("mapStatus").textContent="Nguồn bản đồ chính đang lỗi, đang thử máy chủ bản đồ dự phòng...";
-        showTileLayer(
-          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-          {
-            maxZoom:19,
-            attribution:'Tiles &copy; Esri &mdash; Sources: Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community'
-          },
-          "Esri"
-        );
+        $("mapStatus").textContent="Nguồn bản đồ chính đang lỗi, đang thử máy chủ dự phòng...";
+        showTileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",{
+          maxZoom:19,
+          attribution:'Tiles &copy; Esri &mdash; Sources: Esri, HERE, Garmin, OpenStreetMap contributors'
+        });
       }else if(tileErrors>=3 && usingFallbackTiles){
-        $("mapStatus").textContent="Không tải được ảnh từ cả máy chủ bản đồ chính và dự phòng. Hãy thử đổi mạng Wi-Fi/4G, tắt VPN hoặc chặn quảng cáo rồi tải lại trang.";
+        $("mapStatus").textContent="Không tải được ảnh bản đồ. Hãy thử đổi mạng hoặc tắt VPN/chặn quảng cáo.";
       }
     });
     activeTileLayer.on("load",()=>{
       tileErrors=0;
-      $("mapStatus").textContent=usingFallbackTiles
-        ? "Bản đồ đã tải bằng máy chủ dự phòng Esri. Chưa có thành viên nào chia sẻ vị trí."
-        : "Bản đồ đã tải. Chưa có thành viên nào chia sẻ vị trí.";
+      $("mapStatus").textContent=usingFallbackTiles?"Bản đồ nền đã tải (Esri).":"Bản đồ nền đã tải.";
     });
   }
-
-  showTileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-      maxZoom:19,
-      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    },
-    "OpenStreetMap"
-  );
+  showTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  });
   setTimeout(()=>aminoMap&&aminoMap.invalidateSize(),250);
 }
 
@@ -1083,39 +1038,61 @@ function memberIsOnline(uid){
   return !!connections&&Object.keys(connections).length>0;
 }
 
+function distanceBetweenMeters(a,b){
+  const rad=value=>value*Math.PI/180;
+  const dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng);
+  const x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;
+  return 6371000*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function heartMarkerIcon(){
+  return L.divIcon({className:"amino-heart-marker",html:'<span style="font-size:34px;line-height:38px;text-shadow:0 2px 5px #333;">❤️</span>',
+    iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-18]});
+}
+
 function updateMapMarkers(){
   if(!aminoMap)return;
-  const keep=new Set();
+  const valid=[];
   for(const [uid,location] of Object.entries(sharedLocationsData||{})){
     if(!location||!Number.isFinite(Number(location.lat))||!Number.isFinite(Number(location.lng)))continue;
     const lat=Number(location.lat),lng=Number(location.lng);
     if(lat < -90 || lat > 90 || lng < -180 || lng > 180)continue;
+    valid.push({uid,location,lat,lng});
+  }
+  const heartUids=new Set();
+  for(let i=0;i<valid.length;i++){
+    for(let j=i+1;j<valid.length;j++){
+      if(distanceBetweenMeters(valid[i],valid[j])<=1000){heartUids.add(valid[i].uid);heartUids.add(valid[j].uid);}
+    }
+  }
+  const keep=new Set();
+  for(const item of valid){
+    const {uid,location,lat,lng}=item;
     keep.add(uid);
     const online=memberIsOnline(uid);
     const marker=mapMarkers[uid]||L.marker([lat,lng]).addTo(aminoMap);
     marker.setLatLng([lat,lng]);
+    marker.setIcon(heartUids.has(uid)?heartMarkerIcon():new L.Icon.Default());
     const popup=document.createElement("div");
     const name=document.createElement("div");
     name.className="map-popup-name";
     name.textContent=location.name||presenceForMap?.[uid]?.name||"Thành viên Amino";
     const status=document.createElement("div");
-    status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí cuối cùng";
+    status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí chia sẻ gần nhất";
     status.style.color=online?"#16a34a":"#777";
-    const coordinates=document.createElement("div");
-    coordinates.textContent=`Tọa độ: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    const accuracy=document.createElement("div");
-    if(Number.isFinite(Number(location.accuracy)))accuracy.textContent=`Độ chính xác GPS: khoảng ${Math.round(Number(location.accuracy))} m`;
+    const relation=document.createElement("div");
+    relation.textContent=heartUids.has(uid)?"❤️ Có thành viên khác cách bạn không quá 1 km":"";
     const updated=document.createElement("div");
     updated.textContent="Cập nhật: "+(location.updatedAt?new Date(Number(location.updatedAt)).toLocaleString("vi-VN"):"không rõ");
-    popup.append(name,status,coordinates,accuracy,updated);
+    popup.append(name,status,relation,updated);
     marker.bindPopup(popup);
     mapMarkers[uid]=marker;
   }
   for(const [uid,marker] of Object.entries(mapMarkers)){
     if(!keep.has(uid)){aminoMap.removeLayer(marker);delete mapMarkers[uid];}
   }
-  const count=Object.keys(mapMarkers).length;
-  $("mapStatus").textContent=count?`Đang hiển thị ${count} vị trí đã được chia sẻ.`:"Chưa có thành viên nào chia sẻ vị trí.";
+  const count=valid.length;
+  $("mapStatus").textContent=count?`Đang hiển thị ${count} vị trí thành viên đã chia sẻ${heartUids.size?" · Có cặp ở gần nhau ❤️":""}.`:"Chưa có thành viên nào chia sẻ vị trí. Hãy mở bản đồ và đồng ý chia sẻ để xuất hiện.";
 }
 
 function startMapListeners(){
@@ -1124,9 +1101,7 @@ function startMapListeners(){
   onValue(ref(db,"sharedLocations"),snapshot=>{
     sharedLocationsData=snapshot.val()||{};
     updateMapMarkers();
-  },error=>{
-    $("mapStatus").textContent="Không đọc được vị trí: "+error.message+". Kiểm tra Firebase Rules.";
-  });
+  },error=>{$("mapStatus").textContent="Không đọc được vị trí: "+error.message+". Kiểm tra Firebase Rules.";});
   onValue(ref(db,"presence"),snapshot=>{
     presenceForMap=snapshot.val()||{};
     updateMapMarkers();
@@ -1139,77 +1114,45 @@ function openMapPage(){
   $("mapPage").hidden=false;
   ensureAminoMap();
   startMapListeners();
-  locateCurrentPosition();
+  beginLocationSharing();
   requestAnimationFrame(()=>requestAnimationFrame(()=>aminoMap&&aminoMap.invalidateSize()));
   window.scrollTo({top:0,behavior:"auto"});
 }
 
 async function beginLocationSharing(){
-  if(!user||!db)return;
-  if(!navigator.geolocation){
-    $("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";
+  if(!user||!db||locationWatchId!==null)return;
+  if(!navigator.geolocation){$("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";return;}
+  if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
+    $("mapStatus").textContent="Bạn chưa chia sẻ vị trí. Các thành viên khác sẽ không thấy vị trí của bạn.";
     return;
   }
-  if(locationWatchId!==null){
-    $("mapStatus").textContent="Bạn đang chia sẻ vị trí rồi.";
-    return;
-  }
-  if(!window.confirm("Bạn đồng ý chia sẻ vị trí GPS hiện tại với các thành viên Amino Chat chứ?"))return;
-  $("shareLocation").disabled=true;
-  $("mapStatus").textContent="Đang xin quyền GPS và kết nối...";
+  $("mapStatus").textContent="Đang xin quyền GPS và bắt đầu chia sẻ vị trí...";
   try{
     const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
-    myLocationDisconnect=onDisconnect(ownLocationRef);
-    await myLocationDisconnect.update({lastSeenAt:serverTimestamp()});
     locationWatchId=navigator.geolocation.watchPosition(async position=>{
       const coords=position.coords;
-      const payload={
-        uid:user.uid,name:displayName,
-        lat:coords.latitude,lng:coords.longitude,
-        accuracy:coords.accuracy,updatedAt:Date.now()
-      };
+      const payload={uid:user.uid,name:displayName,lat:coords.latitude,lng:coords.longitude,
+        accuracy:coords.accuracy,updatedAt:Date.now()};
       try{
         await set(ownLocationRef,payload);
-        $("mapStatus").textContent="Đang chia sẻ vị trí của bạn. Ghim sẽ giữ vị trí cuối cùng khi bạn offline.";
-        if(aminoMap){aminoMap.setView([coords.latitude,coords.longitude],15);}
+        if(aminoMap&&!hasCenteredOnMyLocation){
+          aminoMap.setView([coords.latitude,coords.longitude],15);
+          hasCenteredOnMyLocation=true;
+        }
+        updateMapMarkers();
       }catch(error){
-        $("mapStatus").textContent="Không lưu được vị trí: "+error.message+". Kiểm tra Firebase Rules.";
+        $("mapStatus").textContent="Không lưu được vị trí công khai: "+error.message+". Kiểm tra Firebase Rules.";
       }
     },error=>{
-      const messages={1:"Bạn chưa cấp quyền truy cập vị trí.",2:"Không xác định được vị trí GPS. Hãy bật định vị.",3:"Lấy vị trí quá thời gian cho phép. Hãy thử lại."};
+      const messages={1:"Bạn chưa cấp quyền truy cập vị trí.",2:"Không xác định được GPS. Hãy bật định vị.",3:"Lấy vị trí quá thời gian cho phép. Hãy thử mở lại bản đồ."};
       $("mapStatus").textContent=messages[error.code]||("Lỗi GPS: "+error.message);
       if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;}
-      $("shareLocation").disabled=false;
     },{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
-    $("mapStatus").textContent="Đã bật theo dõi GPS, đang chờ tọa độ...";
+    $("mapStatus").textContent="Đã bật chia sẻ vị trí. Đang chờ GPS...";
   }catch(error){
-    $("mapStatus").textContent="Không bật được chia sẻ GPS: "+error.message;
     locationWatchId=null;
-  }finally{
-    $("shareLocation").disabled=false;
+    $("mapStatus").textContent="Không bật được chia sẻ GPS: "+error.message;
   }
-}
-
-async function stopLocationSharing(){
-  if(!user||!db)return;
-  if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;}
-  try{
-    if(myLocationDisconnect){await myLocationDisconnect.cancel();myLocationDisconnect=null;}
-    await set(ref(db,`sharedLocations/${user.uid}`),null);
-    $("mapStatus").textContent="Bạn đã dừng chia sẻ và vị trí của bạn đã được gỡ khỏi bản đồ.";
-  }catch(error){
-    $("mapStatus").textContent="Đã tắt GPS nhưng không xóa được ghim: "+error.message;
-  }
-}
-
-function setupMapControls(){
-  $("mapToggle").addEventListener("click",openMapPage);
-  $("mapBack").addEventListener("click",()=>{
-    $("mapPage").hidden=true;
-    $("chat").hidden=false;
-    window.scrollTo({top:0,behavior:"auto"});
-  });
-
 }
 
 
@@ -1437,3 +1380,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+1
