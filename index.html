@@ -255,16 +255,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <section id="mapPage" hidden>
   <button id="mapBack" type="button">← Quay lại phòng chat</button>
   <h2>📍 Bản đồ Amino</h2>
-  <p class="hint">Chỉ vị trí do thành viên chủ động chia sẻ mới xuất hiện. Thành viên khác có thể xem vị trí đã chia sẻ gần nhất.</p>
-  <div id="mapActions">
-    <button id="shareLocation" type="button">📍 Chia sẻ vị trí của tôi</button>
-    <button id="stopSharing" type="button">Dừng chia sẻ</button>
-    <button id="mapVietnam" type="button">🇻🇳 Việt Nam</button>
-    <button id="mapWorld" type="button">🌍 Toàn thế giới</button>
-  </div>
-  <p id="mapStatus" aria-live="polite">Đang tải vị trí các thành viên...</p>
-  <div id="mapContainer" role="application" aria-label="Bản đồ vị trí thành viên"></div>
-  <p class="hint">Lưu ý: GPS cần quyền truy cập vị trí và trang web phải chạy trên HTTPS. Khi bạn offline, ghim sẽ giữ vị trí cuối cùng đã chia sẻ.</p>
+  <p class="hint">Bản đồ tự động định vị vị trí hiện tại của bạn. Vị trí này chỉ hiển thị trên thiết bị của bạn, không tự chia sẻ với người khác.</p>
+  <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
+  <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
+  <p class="hint">Cho phép truy cập vị trí khi trình duyệt hỏi. GPS cần HTTPS và dịch vụ định vị của thiết bị được bật.</p>
 </section>
 
 </main>
@@ -999,6 +993,37 @@ let presenceForMap={};
 let mapListenersStarted=false;
 let locationWatchId=null;
 let myLocationDisconnect=null;
+let myCurrentLocationMarker=null;
+let currentLocationRequested=false;
+
+function locateCurrentPosition(){
+  if(currentLocationRequested)return;
+  currentLocationRequested=true;
+  if(!navigator.geolocation){
+    $("mapStatus").textContent="Thiết bị hoặc trình duyệt không hỗ trợ định vị GPS.";
+    return;
+  }
+  $("mapStatus").textContent="Đang xác định vị trí hiện tại...";
+  navigator.geolocation.getCurrentPosition(position=>{
+    if(!aminoMap)return;
+    const lat=position.coords.latitude;
+    const lng=position.coords.longitude;
+    aminoMap.setView([lat,lng],15);
+    if(myCurrentLocationMarker)aminoMap.removeLayer(myCurrentLocationMarker);
+    myCurrentLocationMarker=L.circleMarker([lat,lng],{
+      radius:9,color:"#ffffff",weight:3,fillColor:"#2878e8",fillOpacity:1
+    }).addTo(aminoMap).bindPopup("Vị trí hiện tại của bạn");
+    $("mapStatus").textContent="Đã xác định vị trí hiện tại của bạn.";
+  },error=>{
+    currentLocationRequested=false;
+    const messages={
+      1:"Bạn chưa cấp quyền vị trí. Hãy cho phép định vị trong cài đặt trình duyệt.",
+      2:"Không xác định được vị trí. Hãy bật dịch vụ định vị/GPS và thử mở lại bản đồ.",
+      3:"Định vị quá thời gian chờ. Hãy thử lại."
+    };
+    $("mapStatus").textContent=messages[error.code]||"Không thể xác định vị trí hiện tại.";
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:60000});
+}
 
 function ensureAminoMap(){
   if(aminoMap)return;
@@ -1114,6 +1139,7 @@ function openMapPage(){
   $("mapPage").hidden=false;
   ensureAminoMap();
   startMapListeners();
+  locateCurrentPosition();
   requestAnimationFrame(()=>requestAnimationFrame(()=>aminoMap&&aminoMap.invalidateSize()));
   window.scrollTo({top:0,behavior:"auto"});
 }
@@ -1183,16 +1209,7 @@ function setupMapControls(){
     $("chat").hidden=false;
     window.scrollTo({top:0,behavior:"auto"});
   });
-  $("shareLocation").addEventListener("click",beginLocationSharing);
-  $("stopSharing").addEventListener("click",()=>{
-    if(window.confirm("Dừng chia sẻ và xóa vị trí của bạn khỏi bản đồ nhé?"))stopLocationSharing();
-  });
-  $("mapVietnam").addEventListener("click",()=>{
-    ensureAminoMap();if(aminoMap)aminoMap.setView([16.0,107.8],5);
-  });
-  $("mapWorld").addEventListener("click",()=>{
-    ensureAminoMap();if(aminoMap)aminoMap.setView([20,0],2);
-  });
+
 }
 
 
@@ -1420,4 +1437,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-1
