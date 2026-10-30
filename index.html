@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -216,7 +217,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
   getDatabase,ref,push,set,onValue,query,orderByChild,
-  limitToLast,onDisconnect,serverTimestamp,update,cancel
+  limitToLast,onDisconnect,serverTimestamp,update
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 const firebaseConfig={
@@ -396,6 +397,7 @@ let diaryStarted=false;
 let diaryRequestVersion=0;
 let activeDiaryVisitRef=null;
 let activeDiaryVisitDate=null;
+let activeDiaryDisconnect=null;
 let diaryViewsUnsubscribe=null;
 let diaryPageUnlocked=false;
 let diaryViewsData={};
@@ -557,30 +559,48 @@ async function savePendingDiary(){
   if(value!==saved)await saveDiaryEntry(diarySelectedDate,value);
 }
 
-/* Ghi nhận một lượt xem riêng biệt cho từng lần mở ngày */
+/* Đóng lượt xem nhật ký */
 async function closeDiaryVisit(){
   if(!activeDiaryVisitRef)return;
+
   const visitRef=activeDiaryVisitRef;
+  const disconnectHandler=activeDiaryDisconnect;
+
   activeDiaryVisitRef=null;
   activeDiaryVisitDate=null;
+  activeDiaryDisconnect=null;
+
   try{
-    await update(visitRef,{exitedAt:serverTimestamp()});
-    await cancel(onDisconnect(visitRef));
+    await update(visitRef,{
+      exitedAt:serverTimestamp()
+    });
+
+    if(disconnectHandler){
+      await disconnectHandler.cancel();
+    }
   }catch(error){
     console.warn("Không thể đóng lượt xem nhật ký:",error);
   }
 }
 
+/* Mỗi lần mở một ngày sẽ tạo một lượt xem mới */
 async function startDiaryVisit(dateKey){
   if(!user||!db||!diaryPageUnlocked)return;
+
   await closeDiaryVisit();
 
   const visitRef=push(ref(db,`diaryViews/${dateKey}`));
+  const disconnectHandler=onDisconnect(visitRef);
+
   activeDiaryVisitRef=visitRef;
   activeDiaryVisitDate=dateKey;
+  activeDiaryDisconnect=disconnectHandler;
 
   try{
-    await onDisconnect(visitRef).update({exitedAt:serverTimestamp()});
+    await disconnectHandler.update({
+      exitedAt:serverTimestamp()
+    });
+
     await set(visitRef,{
       uid:user.uid,
       name:displayName,
@@ -589,7 +609,15 @@ async function startDiaryVisit(dateKey){
     });
   }catch(error){
     console.warn("Không thể ghi nhận lượt xem:",error);
-    $("diarySaveStatus").textContent="Không lưu được lịch sử xem: "+error.message;
+
+    if(activeDiaryVisitRef===visitRef){
+      activeDiaryVisitRef=null;
+      activeDiaryVisitDate=null;
+      activeDiaryDisconnect=null;
+    }
+
+    $("diarySaveStatus").textContent=
+      "Không lưu được lịch sử xem: "+error.message;
   }
 }
 
@@ -722,7 +750,7 @@ function startDiary(){
   $("diaryToggle").addEventListener("click",()=>{
     $("chat").hidden=true;
     $("diaryPage").hidden=false;
-    $("diaryGate").hidden=!(!diaryPageUnlocked);
+    $("diaryGate").hidden=diaryPageUnlocked;
     $("diaryContent").hidden=!diaryPageUnlocked;
     if(diaryPageUnlocked){
       refreshDiaryView();
@@ -773,7 +801,6 @@ function startDiary(){
     $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
   });
 
-  /* Đóng lượt xem khi tab bị đóng hoặc tải lại; Firebase cũng có onDisconnect dự phòng */
   window.addEventListener("pagehide",()=>{
     if(activeDiaryVisitRef){
       update(activeDiaryVisitRef,{exitedAt:serverTimestamp()}).catch(()=>{});
@@ -1118,4 +1145,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-1406
