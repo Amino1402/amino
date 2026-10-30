@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Amino Chat</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f1f3f8;color:#222}
@@ -151,7 +152,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 @media(prefers-reduced-motion:reduce){.floating-heart{animation:none}}
 </style>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <main>
@@ -1006,10 +1007,25 @@ function ensureAminoMap(){
     return;
   }
   aminoMap=L.map("mapContainer").setView([16.0,107.8],5);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-    maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  const tileLayer=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(aminoMap);
-  setTimeout(()=>aminoMap&&aminoMap.invalidateSize(),150);
+
+  let tileErrors=0;
+  tileLayer.on("tileerror",()=>{
+    tileErrors++;
+    if(tileErrors>=3){
+      $("mapStatus").textContent=
+        "Bản đồ đã mở nhưng không tải được ảnh bản đồ. Hãy kiểm tra Internet, VPN/chặn quảng cáo hoặc thử mở lại trang.";
+    }
+  });
+  tileLayer.on("load",()=>{
+    if(tileErrors===0 && !Object.keys(mapMarkers).length){
+      $("mapStatus").textContent="Bản đồ đã tải. Chưa có thành viên nào chia sẻ vị trí.";
+    }
+  });
+  setTimeout(()=>aminoMap&&aminoMap.invalidateSize(),250);
 }
 
 function memberIsOnline(uid){
@@ -1073,7 +1089,7 @@ function openMapPage(){
   $("mapPage").hidden=false;
   ensureAminoMap();
   startMapListeners();
-  setTimeout(()=>aminoMap&&aminoMap.invalidateSize(),180);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>aminoMap&&aminoMap.invalidateSize()));
   window.scrollTo({top:0,behavior:"auto"});
 }
 
@@ -1379,3 +1395,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+1409
