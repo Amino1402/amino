@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -7,36 +7,44 @@
 <title>Amino Chat</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f1f3f8;color:#222}
+header{background:#6750a4;color:white;padding:18px;text-align:center}
+.amino-title{margin:0;font-size:24px}
+.rabbit{display:inline-block;animation:jump 1s infinite}
+@keyframes jump{50%{transform:translateY(-8px)}}
 main{max-width:1000px;margin:20px auto;padding:16px}
-#login,#chat,#diaryPage,#mapPage{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
-#diaryPage,#mapPage{margin-top:10px}
-[hidden]{display:none!important}
-input,button,textarea{padding:12px;border-radius:8px;font-size:15px}
-input,textarea{border:1px solid #ccc;min-width:0}
+#login,#chat,#mapPage{background:white;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}
+input,button{padding:12px;border-radius:8px;font-size:15px}
+input{border:1px solid #ccc;min-width:0}
 button{border:0;background:#6750a4;color:white;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 #name,#chatPassword{width:100%;margin:12px 0}
 #enter{width:100%}
-#passwordError{color:#b42318}
+#passwordError{color:red}
 #status,#chatStatus{font-size:13px;color:#666}
+#chatTools{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+#mapToggle{padding:9px 14px;border-radius:20px;font-size:14px}
 #chatLayout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
 #chatMain,#sidePanel{min-width:0}
-#messages{height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;padding:10px;margin:12px 0;border-radius:8px;background-image:linear-gradient(rgba(255,255,255,.25),rgba(255,255,255,.25)),url("./chat-bg.jpg");background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:local}
+#messages{
+ height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;
+ padding:10px;margin:12px 0;border-radius:8px;
+ background-image:linear-gradient(rgba(255,255,255,.25),rgba(255,255,255,.25)),url("./chat-bg.jpg");
+ background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:local
+}
 .message{padding:10px;margin:8px 0;border:2px solid #e91e63;border-left-width:6px;border-radius:12px;overflow-wrap:anywhere}
 .message-header{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:5px}
-.sender{font-size:12px;font-weight:bold;color:#6750a4}
-.message-time{color:#999;font-size:10px}
+.sender{display:inline;font-size:12px;font-weight:bold;color:#6750a4;margin:0}
+.message-time{color:#999;font-size:10px;font-weight:normal}
 .message-body{white-space:pre-wrap;line-height:1.5}
 .system-message{width:fit-content;max-width:95%;margin:12px auto;padding:7px 12px;border-radius:999px;background:#f3e8ff;color:#6750a4;font-size:13px;overflow-wrap:anywhere}
 .system-time{margin-left:6px;color:#999;font-size:11px}
 #composer{display:flex;gap:8px}
 #message{flex:1;width:100%}
-#typingIndicator{margin:5px 2px 8px;font-size:12px;color:#6750a4;line-height:1.45}
+#typingIndicator{margin:5px 2px 8px;font-size:12px;color:#6750a4;line-height:1.45;overflow-wrap:anywhere}
 .typing-user{padding:7px 9px;margin:5px 0;background:#f5f0ff;border-radius:8px;border-left:3px solid #a78bfa}
 .typing-draft{color:#444;white-space:pre-wrap;overflow-wrap:anywhere}
 #onlinePanel,#musicPanel{border:1px solid #e1dced;border-radius:12px;background:white;padding:14px}
@@ -64,1484 +72,1072 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .floating-heart{position:fixed;z-index:9999;pointer-events:none;animation:heartFly 1.3s ease-out forwards}
 @keyframes heartFly{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--drift)),-140px) scale(.8)}}
 
-/* NÚT NHẬT KÝ VÀ BẢN ĐỒ */
-#diaryToolbar{display:flex;justify-content:flex-end;gap:8px;margin:4px 0 8px}
-#diaryToggle,#mapToggle{
-  width:38px;height:38px;padding:0;font-size:19px;
-  border-radius:50%;display:grid;place-items:center;
-  background:#f1eaff;color:#6750a4;border:1px solid #ded2fa
-}
-.diary-page-title{color:#6750a4;margin:12px 0}
-#diaryBack,#mapBack{margin-bottom:8px}
-.diary-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0;color:#6750a4}
-.diary-header button{min-width:38px;padding:6px 10px;font-size:20px}
-.diary-weekdays,#diaryCalendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
-.diary-weekdays{margin-bottom:6px;color:#777;font-size:12px}
-.diary-day{min-width:0;min-height:38px;padding:5px 0;border-radius:8px;background:#f5f2fc;color:#333;font-size:13px;position:relative}
-.diary-day.selected{background:#6750a4;color:white}
-.diary-day.today{outline:2px solid #c4b5fd}
-.diary-day.has-entry:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:#e91e63;bottom:3px;left:calc(50% - 2px)}
-.diary-day.selected.has-entry:after{background:white}
-.diary-day.empty{visibility:hidden}
-#diaryDateTitle{color:#6750a4;font-size:15px;margin:20px 0 12px}
-#publicDiaryEntries{display:flex;flex-direction:column;gap:10px}
-.public-entry{padding:12px;border:1px solid #e7def7;border-radius:10px;background:#faf8ff;overflow-wrap:anywhere}
-.public-entry.own-entry{border-left:4px solid #6750a4}
-.entry-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
-.entry-author{font-size:13px;font-weight:bold;color:#6750a4}
-.entry-time{font-size:11px;color:#888}
-.entry-content{white-space:pre-wrap;line-height:1.5;font-size:14px}
-.entry-label{font-size:13px;color:#6750a4;font-weight:bold;margin:22px 0 8px}
-#diaryText{width:100%;min-height:130px;resize:vertical;border:1px solid #ddd;border-radius:9px;padding:10px;font:inherit;line-height:1.5}
-#diarySaveStatus{color:#777;font-size:12px;display:block;margin-top:7px}
-#diaryDelete{background:#b42318;font-size:12px;padding:9px 12px;margin-top:10px}
-#diaryGate{max-width:430px;margin:35px auto;padding:20px;border:1px solid #e7def7;border-radius:14px;background:#faf8ff;text-align:center}
-#diaryGate h3{color:#6750a4}
-#diaryPassword{width:100%;margin:10px 0}
-#diaryPasswordError{color:#b42318;font-size:13px;min-height:18px}
-#diaryContent{margin-top:10px}
-
-/* LỊCH SỬ XEM NHẬT KÝ */
-#diaryViews{margin:28px 0 4px;padding:12px;border:1px solid #e7def7;border-radius:10px;background:#faf8ff}
-#diaryViewsToggle{width:100%;text-align:left;background:#f1eaff;color:#6750a4;font-weight:bold}
-#diaryViewsList{margin-top:10px;max-height:220px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:8px;padding-right:5px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-#diaryViewsList[hidden]{display:none!important}
-#diaryViewsList::-webkit-scrollbar{width:5px}
-#diaryViewsList::-webkit-scrollbar-thumb{background:#c4b5fd;border-radius:10px}
-.diary-view-item{padding:10px;background:white;border:1px solid #eee;border-radius:8px;font-size:12px;line-height:1.6}
-.diary-view-name{font-weight:bold;color:#6750a4;font-size:13px}
-.diary-view-live{color:#16a34a;font-weight:bold}
-
-/* BẢN ĐỒ AMINO */
-#mapPage{min-height:400px}
-.map-title{color:#6750a4;margin:12px 0}
-#mapControls{display:flex;gap:8px;margin:12px 0}
-#mapControls button{flex:1}
-#mapControls button.active{background:#4b367e}
-#aminoMap{width:100%;height:65vh;min-height:350px;border-radius:12px;z-index:1;background:#eee}
-#mapActions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-#shareLocationBtn{background:#6750a4;flex:1}
-#stopLocationBtn{background:#b42318;flex:1}
-#locationStatus{font-size:13px;line-height:1.6;color:#6750a4;overflow-wrap:anywhere}
-.map-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#555;margin:10px 0}
-.map-legend span{display:flex;align-items:center;gap:5px}
-.map-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.map-online{background:#16a34a}
-.map-offline{background:#999}
-.leaflet-popup-content{line-height:1.6;min-width:150px}
-.leaflet-popup-content strong{color:#6750a4}
-.map-member-status.online{color:#16a34a;font-weight:bold}
-.map-member-status.offline{color:#777;font-weight:bold}
-
+/* BẢN ĐỒ */
+#mapPage{margin-top:14px}
+#mapToolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+#mapToolbar button{font-size:13px;padding:10px 12px}
+#mapBack{background:#777}
+#stopLocation{background:#b42318}
+#mapStatus{font-size:13px;color:#6750a4;line-height:1.5;margin:10px 0;overflow-wrap:anywhere}
+#aminoMap{width:100%;height:65vh;min-height:350px;border-radius:12px;border:1px solid #ddd;z-index:1}
+.map-privacy{font-size:12px;color:#666;line-height:1.5;margin:10px 0}
+.leaflet-popup-content{line-height:1.5}
+.map-member-name{font-weight:bold;color:#6750a4}
+.map-member-status{font-size:12px;color:#666}
 @media(max-width:700px){
  main{margin:10px auto;padding:10px}
  #chatLayout{grid-template-columns:1fr}
  #onlineList{flex-direction:row;flex-wrap:wrap}
  #musicForm{flex-direction:column}
  #musicForm button{width:100%}
- #diaryPage,#mapPage{padding:12px}
- #mapControls button{padding:10px 6px;font-size:13px}
+ #aminoMap{height:60vh;min-height:320px}
+ #mapToolbar button{flex:1}
 }
-@media(prefers-reduced-motion:reduce){.floating-heart{animation:none}}
+@media(prefers-reduced-motion:reduce){.rabbit,.floating-heart{animation:none}}
 </style>
 </head>
 
 <body>
-<main>
 
+<main>
 <section id="login">
-  <p>Nhập mật khẩu để vào Amino Chat</p>
-  <input id="chatPassword" type="password" placeholder="Nhập mật khẩu">
-  <p id="passwordError" aria-live="polite"></p>
-  <h3>Chào mừng đến Amino Chat!</h3>
-  <p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
-  <input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
-  <button id="enter" type="button">Vào chat thui 👆</button>
-  <p id="status">Sẵn sàng kết nối.</p>
+<p>Nhập mật khẩu để vào Amino Chat</p>
+<input id="chatPassword" type="password" placeholder="Nhập mật khẩu">
+<p id="passwordError" aria-live="polite"></p>
+<h3>Chào mừng đến Amino Chat!</h3>
+<p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
+<input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
+<button id="enter" type="button">Vào chat thui 👆</button>
+<p id="status">Sẵn sàng kết nối.</p>
 </section>
 
 <section id="chat" hidden>
-  <p id="welcome"></p>
+<p id="welcome"></p>
 
-  <div id="diaryToolbar">
-    <button id="diaryToggle" type="button" aria-label="Mở trang nhật ký" title="Nhật ký công khai">📅</button>
-    <button id="mapToggle" type="button" aria-label="Mở bản đồ Amino" title="Bản đồ Amino">🗺️</button>
-  </div>
+<div id="chatTools">
+<button id="mapToggle" type="button" title="Mở bản đồ">📍 Bản đồ</button>
+</div>
 
-  <div id="chatLayout">
-    <div id="chatMain">
-      <div id="messages"></div>
-      <form id="composer">
-        <input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
-        <button type="submit">Gửi</button>
-      </form>
-      <div id="typingIndicator" aria-live="polite"></div>
-      <p id="chatStatus" aria-live="polite"></p>
-    </div>
+<div id="chatLayout">
+<div id="chatMain">
+<div id="messages"></div>
+<form id="composer">
+<input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
+<button type="submit">Gửi</button>
+</form>
+<div id="typingIndicator" aria-live="polite"></div>
+<p id="chatStatus" aria-live="polite"></p>
+</div>
 
-    <div id="sidePanel">
-      <aside id="onlinePanel">
-        <div class="online-heading">👥 Đang trực tuyến (<span id="onlineCount">0</span>)</div>
-        <div id="onlineList"><div id="onlineEmpty">Đang tải danh sách...</div></div>
-      </aside>
+<div id="sidePanel">
+<aside id="onlinePanel">
+<div class="online-heading">👥 Đang trực tuyến (<span id="onlineCount">0</span>)</div>
+<div id="onlineList"><div id="onlineEmpty">Đang tải danh sách...</div></div>
+</aside>
 
-      <section id="musicPanel">
-        <div class="music-heading">🎵 Nhạc chung cả phòng</div>
-        <div class="hint">Mọi người đều có thể tìm và đổi bài hát.</div>
-        <form id="musicForm">
-          <input id="musicQuery" placeholder="Nhập tên bài hát / ca sĩ..." required>
-          <button type="submit">Tìm</button>
-        </form>
-        <p id="musicError" aria-live="polite"></p>
-        <div id="musicResults"></div>
-        <div id="playerWrap" hidden><div id="player"></div></div>
-        <div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
-      </section>
-    </div>
-  </div>
+<section id="musicPanel">
+<div class="music-heading">🎵 Nhạc chung cả phòng</div>
+<div class="hint">Mọi người đều có thể tìm và đổi bài hát.</div>
+<form id="musicForm">
+<input id="musicQuery" placeholder="Nhập tên bài hát / ca sĩ..." required>
+<button type="submit">Tìm</button>
+</form>
+<p id="musicError" aria-live="polite"></p>
+<div id="musicResults"></div>
+<div id="playerWrap" hidden><div id="player"></div></div>
+<div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
+</section>
+</div>
+</div>
 </section>
 
-<section id="diaryPage" hidden>
-  <button id="diaryBack" type="button">← Quay lại phòng chat</button>
-
-  <div id="diaryGate">
-    <h3>🔒 Nhật ký Amino</h3>
-    <p>Nhập mật khẩu để mở trang nhật ký nhé.</p>
-    <p><strong>Gợi ý: Ngày của tôi</strong></p>
-    <input id="diaryPassword" type="password" inputmode="numeric" placeholder="Mật khẩu nhật ký">
-    <button id="diaryUnlock" type="button" style="width:100%">Mở nhật ký 💜</button>
-    <p id="diaryPasswordError" aria-live="polite"></p>
-  </div>
-
-  <div id="diaryContent" hidden>
-    <h2 class="diary-page-title">🗓️ Nhật ký Amino</h2>
-    <p class="hint">Nhật ký công khai: mọi thành viên đều có thể đọc.</p>
-
-    <div class="diary-header">
-      <button id="diaryPrev" type="button" aria-label="Tháng trước">‹</button>
-      <strong id="diaryMonthTitle"></strong>
-      <button id="diaryNext" type="button" aria-label="Tháng sau">›</button>
-    </div>
-
-    <div class="diary-weekdays">
-      <span>T2</span><span>T3</span><span>T4</span>
-      <span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-    </div>
-    <div id="diaryCalendar"></div>
-
-    <h4 id="diaryDateTitle"></h4>
-    <div id="publicDiaryEntries"></div>
-
-    <p class="entry-label">✍️ Nhật ký của bạn trong ngày này</p>
-    <textarea id="diaryText" maxlength="10000" placeholder="Chia sẻ hôm nay của cậu thế nào nhé 💜"></textarea>
-    <small id="diarySaveStatus" aria-live="polite">Nhật ký tự động lưu.</small>
-    <button id="diaryDelete" type="button">Xóa nhật ký của tôi trong ngày này</button>
-    <p class="hint">Chỉ bạn mới sửa hoặc xóa được nhật ký của chính mình.</p>
-
-    <section id="diaryViews">
-      <button id="diaryViewsToggle" type="button">👀 Ai đã xem nhật ký ngày này (0)</button>
-      <div id="diaryViewsList" hidden></div>
-    </section>
-  </div>
-</section>
-
-<!-- TRANG BẢN ĐỒ AMINO -->
 <section id="mapPage" hidden>
-  <button id="mapBack" type="button">← Quay lại phòng chat</button>
+<h3>📍 Bản đồ Amino Chat</h3>
+<p class="hint">Xem vị trí được các thành viên tự nguyện chia sẻ.</p>
 
-  <h2 class="map-title">🗺️ Bản đồ Amino</h2>
-  <p class="hint">Bản đồ hiển thị vị trí GPS của những thành viên đã tự nguyện bật chia sẻ.</p>
+<div id="mapToolbar">
+<button id="mapBack" type="button">← Quay lại chat</button>
+<button id="shareLocation" type="button">📍 Chia sẻ GPS của tôi</button>
+<button id="stopLocation" type="button" disabled>Ngừng chia sẻ</button>
+<button id="mapVietnam" type="button">🇻🇳 Việt Nam</button>
+<button id="mapWorld" type="button">🌍 Toàn thế giới</button>
+</div>
 
-  <div id="mapControls">
-    <button id="vietnamMapBtn" class="active" type="button">🇻🇳 Việt Nam</button>
-    <button id="worldMapBtn" type="button">🌍 Thế giới</button>
-  </div>
-
-  <div id="aminoMap"></div>
-
-  <div class="map-legend">
-    <span><i class="map-dot map-online"></i> Đang online</span>
-    <span><i class="map-dot map-offline"></i> Offline – vị trí cuối cùng</span>
-  </div>
-
-  <div id="mapActions">
-    <button id="shareLocationBtn" type="button">📍 Chia sẻ GPS của tôi</button>
-    <button id="stopLocationBtn" type="button">Tắt chia sẻ</button>
-  </div>
-
-  <p id="locationStatus" aria-live="polite">Bạn chưa chia sẻ vị trí.</p>
+<p id="mapStatus" aria-live="polite">GPS của bạn đang tắt. Chỉ vị trí do thành viên chủ động chia sẻ mới xuất hiện trên bản đồ.</p>
+<p class="map-privacy">Khi bật chia sẻ, vị trí GPS chính xác của bạn sẽ hiển thị cho tất cả thành viên đã đăng nhập. Khi mất kết nối, bản đồ giữ lại vị trí cuối cùng và đánh dấu bạn đã ngoại tuyến. Bấm “Ngừng chia sẻ” để xóa vị trí của bạn khỏi bản đồ.</p>
+<div id="aminoMap" aria-label="Bản đồ vị trí thành viên Amino"></div>
 </section>
-
 </main>
 
 <script>
 (function(){
-  const tag=document.createElement("script");
-  tag.src="https://www.youtube.com/iframe_api";
-  document.head.appendChild(tag);
+ const tag=document.createElement("script");
+ tag.src="https://www.youtube.com/iframe_api";
+ document.head.appendChild(tag);
 })();
 </script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
-  getDatabase,ref,push,set,onValue,query,orderByChild,
-  limitToLast,onDisconnect,serverTimestamp,update
+ getDatabase,ref,push,set,onValue,query,orderByChild,
+ limitToLast,onDisconnect,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
+/* FIREBASE */
 const firebaseConfig={
-  apiKey:"AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
-  authDomain:"amino-c6032.firebaseapp.com",
-  databaseURL:"https://amino-c6032-default-rtdb.asia-southeast1.firebasedatabase.app/",
-  projectId:"amino-c6032",
-  appId:"1:659773931860:web:c101fc013c28a1b4e508c1"
+ apiKey:"AIzaSyAlJdZGJYij_AOYMEawBgYnBRkBeHOsoeg",
+ authDomain:"amino-c6032.firebaseapp.com",
+ databaseURL:"https://amino-c6032-default-rtdb.asia-southeast1.firebasedatabase.app/",
+ projectId:"amino-c6032",
+ appId:"1:659773931860:web:c101fc013c28a1b4e508c1"
 };
 
+/* YOUTUBE API KEY */
 const YOUTUBE_API_KEY="AIzaSyB7iduznYdwJQbY4x6uWDlXjSS-Gz6dqdQ";
+
 const $=id=>document.getElementById(id);
 const messages=$("messages");
 
 let app,auth,db,user,displayName;
 let player=null,playerReady=false;
 let currentVideoId="",latestMusicState=null;
-let applyingRemoteState=false,lastAppliedRevision=null;
-let presenceStarted=false,musicListenerStarted=false;
-let typingListenerStarted=false;
-let typingWriteTimer=null,typingClearTimer=null,lastTypingText="";
+let applyingRemoteState=false;
+let lastAppliedRevision=null;
 let applyingTimer=null;
 
-/* BẢN ĐỒ VÀ GPS */
+/* LIVE TYPING */
+let typingListenerStarted=false;
+let typingWriteTimer=null,typingClearTimer=null;
+let lastTypingText="";
+
+/* MAP */
 let aminoMap=null;
+let mapMarkers=new Map();
 let mapListenerStarted=false;
-let locationMarkers={};
-let locationSharingActive=false;
 let locationWatchId=null;
+let locationSharingActive=false;
 let locationRecordCreated=false;
 let locationDisconnectRegistered=false;
-let locationConnectionListenerStarted=false;
+let mapConnectedListenerStarted=false;
 
-function myLocationRef(){
-  return ref(db,`sharedLocations/${user.uid}`);
-}
-
-function formatLocationTime(timestamp){
-  if(!timestamp)return "Chưa rõ thời gian";
-  return new Date(Number(timestamp)).toLocaleString("vi-VN",{
-    timeZone:"Asia/Ho_Chi_Minh",
-    day:"2-digit",month:"2-digit",year:"numeric",
-    hour:"2-digit",minute:"2-digit",second:"2-digit"
-  });
-}
-
-function initAminoMap(){
-  if(aminoMap){
-    setTimeout(()=>aminoMap.invalidateSize(),150);
-    return;
-  }
-
-  if(!window.L){
-    $("locationStatus").textContent="Không tải được thư viện bản đồ. Hãy tải lại trang.";
-    return;
-  }
-
-  aminoMap=L.map("aminoMap").setView([16,106],5);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-    maxZoom:19,
-    attribution:"&copy; OpenStreetMap contributors"
-  }).addTo(aminoMap);
-}
-
-function showAminoMap(){
-  $("chat").hidden=true;
-  $("diaryPage").hidden=true;
-  $("mapPage").hidden=false;
-  initAminoMap();
-  setTimeout(()=>{
-    if(aminoMap)aminoMap.invalidateSize();
-  },200);
-  window.scrollTo({top:0,behavior:"auto"});
-}
-
-function hideAminoMap(){
-  $("mapPage").hidden=true;
-  $("chat").hidden=false;
-  window.scrollTo({top:0,behavior:"auto"});
-}
-
-function setMapMode(mode){
-  initAminoMap();
-  if(!aminoMap)return;
-
-  if(mode==="vietnam"){
-    aminoMap.setView([16,106],5);
-    $("vietnamMapBtn").classList.add("active");
-    $("worldMapBtn").classList.remove("active");
-  }else{
-    aminoMap.setView([20,0],2);
-    $("worldMapBtn").classList.add("active");
-    $("vietnamMapBtn").classList.remove("active");
-  }
-
-  setTimeout(()=>aminoMap.invalidateSize(),100);
-}
-
-function createLocationPopup(data){
-  const box=document.createElement("div");
-
-  const name=document.createElement("strong");
-  name.textContent=data.name||"Thành viên Amino";
-
-  const status=document.createElement("div");
-  status.className="map-member-status "+(data.isOnline?"online":"offline");
-  status.textContent=data.isOnline?"● Đang online":"● Offline – vị trí cuối cùng";
-
-  const time=document.createElement("div");
-  time.textContent="Cập nhật: "+formatLocationTime(data.updatedAt);
-
-  const lastOnline=document.createElement("div");
-  lastOnline.textContent="Online cuối: "+formatLocationTime(data.lastOnlineAt);
-
-  box.append(name,status,time,lastOnline);
-  return box;
-}
-
-function renderSharedLocations(snapshot){
-  if(!aminoMap)return;
-
-  const currentIds=new Set();
-
-  snapshot.forEach(child=>{
-    const uid=child.key;
-    const data=child.val();
-
-    if(!data||data.sharingEnabled!==true)return;
-
-    const lat=Number(data.lat);
-    const lng=Number(data.lng);
-
-    if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
-    if(lat < -90 || lat > 90 || lng < -180 || lng > 180)return;
-
-    currentIds.add(uid);
-
-    const position=[lat,lng];
-    const color=data.isOnline?"#16a34a":"#888";
-
-    const markerIcon=L.divIcon({
-      className:"",
-      html:`<div style="
-        width:17px;height:17px;border-radius:50%;
-        background:${color};
-        border:3px solid white;
-        box-shadow:0 1px 6px #0007;
-      "></div>`,
-      iconSize:[17,17],
-      iconAnchor:[8,8]
-    });
-
-    if(locationMarkers[uid]){
-      locationMarkers[uid].setLatLng(position);
-      locationMarkers[uid].setIcon(markerIcon);
-      locationMarkers[uid].setPopupContent(createLocationPopup(data));
-    }else{
-      locationMarkers[uid]=L.marker(position,{icon:markerIcon})
-        .addTo(aminoMap)
-        .bindPopup(createLocationPopup(data));
-    }
-  });
-
-  for(const uid of Object.keys(locationMarkers)){
-    if(!currentIds.has(uid)){
-      aminoMap.removeLayer(locationMarkers[uid]);
-      delete locationMarkers[uid];
-    }
-  }
-}
-
-function startMapSync(){
-  if(mapListenerStarted||!user||!db)return;
-  mapListenerStarted=true;
-
-  initAminoMap();
-
-  onValue(ref(db,"sharedLocations"),snapshot=>{
-    renderSharedLocations(snapshot);
-  },error=>{
-    $("locationStatus").textContent="Không tải được vị trí: "+error.message;
-  });
-}
-
-async function registerLocationDisconnect(){
-  if(!user||!db||!locationSharingActive||!locationRecordCreated)return;
-
-  try{
-    await onDisconnect(myLocationRef()).update({
-      isOnline:false,
-      lastOnlineAt:serverTimestamp()
-    });
-    locationDisconnectRegistered=true;
-  }catch(error){
-    console.warn("Không đăng ký được trạng thái offline:",error);
-    $("locationStatus").textContent=
-      "Không thể đăng ký trạng thái offline: "+error.message;
-  }
-}
-
-function startLocationConnectionWatcher(){
-  if(locationConnectionListenerStarted)return;
-  locationConnectionListenerStarted=true;
-
-  onValue(ref(db,".info/connected"),async snapshot=>{
-    const connected=snapshot.val()===true;
-
-    if(!connected){
-      locationDisconnectRegistered=false;
-      return;
-    }
-
-    if(locationSharingActive&&locationRecordCreated){
-      await registerLocationDisconnect();
-    }
-  });
-}
-
-async function saveMyGPS(position){
-  if(!user||!db||!locationSharingActive)return;
-
-  const lat=position.coords.latitude;
-  const lng=position.coords.longitude;
-
-  if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
-
-  const data={
-    name:displayName,
-    lat,
-    lng,
-    updatedAt:Date.now(),
-    lastOnlineAt:Date.now(),
-    isOnline:true,
-    sharingEnabled:true
-  };
-
-  try{
-    await set(myLocationRef(),data);
-    locationRecordCreated=true;
-
-    if(!locationDisconnectRegistered){
-      await registerLocationDisconnect();
-    }
-
-    $("locationStatus").textContent=
-      "Đang chia sẻ GPS chính xác. Độ chính xác GPS khoảng "+
-      Math.round(position.coords.accuracy)+" mét.";
-  }catch(error){
-    $("locationStatus").textContent="Không lưu được GPS: "+error.message;
-  }
-}
-
-function shareMyLocation(){
-  if(!user||!db){
-    $("locationStatus").textContent="Hãy đăng nhập trước.";
-    return;
-  }
-
-  if(!navigator.geolocation){
-    $("locationStatus").textContent="Trình duyệt không hỗ trợ GPS.";
-    return;
-  }
-
-  const accepted=window.confirm(
-    "Bạn sắp chia sẻ tọa độ GPS chính xác của mình.\n\n"+
-    "Tất cả thành viên đã đăng nhập Amino có thể xem vị trí này trên bản đồ.\n"+
-    "Khi bạn offline, vị trí cuối cùng vẫn được giữ lại.\n\n"+
-    "Bạn có đồng ý tiếp tục không?"
-  );
-
-  if(!accepted)return;
-
-  if(locationWatchId!==null){
-    navigator.geolocation.clearWatch(locationWatchId);
-    locationWatchId=null;
-  }
-
-  locationSharingActive=true;
-  locationRecordCreated=false;
-  locationDisconnectRegistered=false;
-
-  $("locationStatus").textContent="Đang xin quyền truy cập GPS...";
-
-  navigator.geolocation.getCurrentPosition(
-    async position=>{
-      await saveMyGPS(position);
-
-      if(!locationSharingActive)return;
-
-      locationWatchId=navigator.geolocation.watchPosition(
-        saveMyGPS,
-        error=>{
-          $("locationStatus").textContent=
-            "Không cập nhật được GPS mới: "+error.message+
-            ". Vị trí cuối cùng vẫn được giữ.";
-        },
-        {
-          enableHighAccuracy:true,
-          maximumAge:10000,
-          timeout:20000
-        }
-      );
-    },
-    error=>{
-      locationSharingActive=false;
-      $("locationStatus").textContent=
-        "Không lấy được GPS: "+error.message+
-        ". Hãy cho phép quyền vị trí trong trình duyệt.";
-    },
-    {
-      enableHighAccuracy:true,
-      maximumAge:0,
-      timeout:20000
-    }
-  );
-}
-
-async function stopSharingLocation(){
-  if(!user||!db)return;
-
-  const accepted=window.confirm(
-    "Tắt chia sẻ sẽ xóa vị trí của bạn khỏi bản đồ Amino. Tiếp tục?"
-  );
-
-  if(!accepted)return;
-
-  locationSharingActive=false;
-
-  if(locationWatchId!==null){
-    navigator.geolocation.clearWatch(locationWatchId);
-    locationWatchId=null;
-  }
-
-  try{
-    await onDisconnect(myLocationRef()).cancel();
-    await set(myLocationRef(),null);
-
-    locationRecordCreated=false;
-    locationDisconnectRegistered=false;
-
-    $("locationStatus").textContent=
-      "Đã tắt chia sẻ và xóa vị trí của bạn khỏi bản đồ.";
-  }catch(error){
-    $("locationStatus").textContent=
-      "Không tắt được chia sẻ: "+error.message;
-  }
-}
-
-$("mapToggle").addEventListener("click",showAminoMap);
-$("mapBack").addEventListener("click",hideAminoMap);
-$("vietnamMapBtn").addEventListener("click",()=>setMapMode("vietnam"));
-$("worldMapBtn").addEventListener("click",()=>setMapMode("world"));
-$("shareLocationBtn").addEventListener("click",shareMyLocation);
-$("stopLocationBtn").addEventListener("click",stopSharingLocation);
-
-/* NHẠC */
 function musicStateRef(){return ref(db,"roomMusic/state")}
+function myLocationRef(){return ref(db,`sharedLocations/${user.uid}`)}
 
 function formatTime(timestamp){
-  if(typeof timestamp!=="number")return "";
-  return new Date(timestamp).toLocaleTimeString("vi-VN",{
-    timeZone:"Asia/Ho_Chi_Minh",
-    hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
-  });
+ if(typeof timestamp!=="number")return "";
+ return new Date(timestamp).toLocaleTimeString("vi-VN",{
+  timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
+ });
 }
+
+function formatDateTime(timestamp){
+ if(typeof timestamp!=="number")return "Không rõ";
+ return new Date(timestamp).toLocaleString("vi-VN",{
+  timeZone:"Asia/Ho_Chi_Minh",
+  day:"2-digit",month:"2-digit",year:"numeric",
+  hour:"2-digit",minute:"2-digit"
+ });
+}
+
 function setMusicError(message){$("musicError").textContent=message}
 
 function floatHearts(){
-  const button=$("composer").querySelector('button[type="submit"]');
-  const rect=button.getBoundingClientRect();
-  const hearts=["💗","💕","💖","💘","❤️","💓"];
-  for(let i=0;i<5;i++){
-    const heart=document.createElement("span");
-    heart.className="floating-heart";
-    heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
-    heart.style.left=(rect.left+rect.width/2+(Math.random()-.5)*80)+"px";
-    heart.style.top=rect.top+rect.height/2+"px";
-    heart.style.fontSize=(16+Math.random()*14)+"px";
-    heart.style.setProperty("--drift",((Math.random()-.5)*90)+"px");
-    document.body.append(heart);
-    heart.addEventListener("animationend",()=>heart.remove(),{once:true});
-  }
+ const button=$("composer").querySelector('button[type="submit"]');
+ const rect=button.getBoundingClientRect();
+ const hearts=["💗","💕","💖","💘","❤️","💓"];
+ for(let i=0;i<5;i++){
+  const heart=document.createElement("span");
+  heart.className="floating-heart";
+  heart.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+  heart.style.left=(rect.left+rect.width/2+(Math.random()-.5)*80)+"px";
+  heart.style.top=rect.top+rect.height/2+"px";
+  heart.style.fontSize=(16+Math.random()*14)+"px";
+  heart.style.setProperty("--drift",((Math.random()-.5)*90)+"px");
+  document.body.append(heart);
+  heart.addEventListener("animationend",()=>heart.remove(),{once:true});
+ }
 }
 
 /* ONLINE */
+let presenceStarted=false;
+
 function startPresence(){
-  if(presenceStarted)return;
-  presenceStarted=true;
+ if(presenceStarted)return;
+ presenceStarted=true;
 
-  onValue(ref(db,".info/connected"),async snapshot=>{
-    if(snapshot.val()!==true)return;
-    const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
-    try{
-      const leaveMessageRef=push(ref(db,"publicChat/messages"));
-      await onDisconnect(leaveMessageRef).set({
-        uid:user.uid,name:"Thông báo hệ thống",
-        text:displayName+" đã rời phòng",createdAt:serverTimestamp()
-      });
-      await onDisconnect(connectionRef).remove();
-      await set(ref(db,`presence/${user.uid}/name`),displayName);
-      await set(connectionRef,true);
-    }catch(error){
-      $("chatStatus").textContent="Lỗi online: "+error.message;
-    }
+ onValue(ref(db,".info/connected"),async snapshot=>{
+  if(snapshot.val()!==true)return;
+  const connectionRef=push(ref(db,`presence/${user.uid}/connections`));
+
+  try{
+   const leaveMessageRef=push(ref(db,"publicChat/messages"));
+
+   await onDisconnect(leaveMessageRef).set({
+    uid:user.uid,
+    name:"Thông báo hệ thống",
+    text:displayName+" đã rời phòng",
+    createdAt:serverTimestamp()
+   });
+
+   await onDisconnect(connectionRef).remove();
+
+   await set(ref(db,`presence/${user.uid}/name`),displayName);
+   await set(connectionRef,true);
+  }catch(error){
+   $("chatStatus").textContent="Lỗi online: "+error.message;
+  }
+ });
+
+ onValue(ref(db,"presence"),snapshot=>{
+  const list=$("onlineList");
+  list.replaceChildren();
+  let count=0;
+
+  snapshot.forEach(item=>{
+   const data=item.val()||{};
+   if(!Object.keys(data.connections||{}).length)return;
+   count++;
+
+   const member=document.createElement("div");
+   member.className="online-user";
+
+   const dot=document.createElement("span");
+   dot.className="online-dot";
+   dot.textContent="●";
+
+   const name=document.createElement("span");
+   name.className="online-name";
+   name.textContent=data.name||"Khách";
+
+   member.append(dot,name);
+   list.append(member);
   });
 
-  onValue(ref(db,"presence"),snapshot=>{
-    const list=$("onlineList");
-    list.replaceChildren();
-    let count=0;
-    snapshot.forEach(item=>{
-      const data=item.val()||{};
-      if(!Object.keys(data.connections||{}).length)return;
-      count++;
-      const member=document.createElement("div");
-      member.className="online-user";
-      const dot=document.createElement("span");
-      dot.className="online-dot";
-      dot.textContent="●";
-      const name=document.createElement("span");
-      name.className="online-name";
-      name.textContent=data.name||"Khách";
-      member.append(dot,name);
-      list.append(member);
-    });
-    $("onlineCount").textContent=String(count);
-    if(!count){
-      const empty=document.createElement("div");
-      empty.id="onlineEmpty";
-      empty.textContent="Chưa có ai trực tuyến.";
-      list.append(empty);
-    }
-  },error=>{
-    $("chatStatus").textContent="Không tải được online: "+error.message;
-  });
+  $("onlineCount").textContent=String(count);
+  if(!count){
+   const empty=document.createElement("div");
+   empty.id="onlineEmpty";
+   empty.textContent="Chưa có ai trực tuyến.";
+   list.append(empty);
+  }
+ },error=>{
+  $("chatStatus").textContent="Không tải được online: "+error.message;
+ });
 }
 
-/* LIVE TYPING */
-function myTypingRef(){return ref(db,`typing/${user.uid}`)}
+/* HIỂN THỊ NỘI DUNG ĐANG GÕ */
+function myTypingRef(){
+ return ref(db,`typing/${user.uid}`);
+}
 
 async function publishTypingDraft(){
-  if(!user||!db)return;
-  const text=$("message").value;
-  const ownRef=myTypingRef();
-  clearTimeout(typingClearTimer);
-  if(!text.trim()){
-    lastTypingText="";
-    try{await set(ownRef,null)}catch(error){console.warn(error)}
-    return;
+ if(!user||!db)return;
+
+ const text=$("message").value;
+ const ownRef=myTypingRef();
+ clearTimeout(typingClearTimer);
+
+ if(!text.trim()){
+  lastTypingText="";
+  try{await set(ownRef,null)}
+  catch(error){console.warn("Không xóa được trạng thái nhập:",error)}
+  return;
+ }
+
+ if(text===lastTypingText)return;
+ lastTypingText=text;
+
+ try{
+  await set(ownRef,{
+   uid:user.uid,
+   name:displayName,
+   text:text.slice(0,1000),
+   updatedAt:Date.now()
+  });
+ }catch(error){
+  console.warn("Không cập nhật được nội dung đang nhập:",error);
+ }
+
+ typingClearTimer=setTimeout(async()=>{
+  if(!user)return;
+  if($("message").value===text){
+   try{await set(ownRef,null)}
+   catch(error){console.warn("Không dọn được bản nháp:",error)}
+   lastTypingText="";
   }
-  if(text===lastTypingText)return;
-  lastTypingText=text;
-  try{
-    await set(ownRef,{
-      uid:user.uid,name:displayName,
-      text:text.slice(0,1000),updatedAt:Date.now()
-    });
-  }catch(error){console.warn("Không cập nhật được nội dung đang nhập:",error)}
-  typingClearTimer=setTimeout(async()=>{
-    if(!user)return;
-    if($("message").value===text){
-      try{await set(ownRef,null)}catch(error){console.warn(error)}
-      lastTypingText="";
-    }
-  },12000);
+ },12000);
 }
 
 function startTypingSync(){
-  if(typingListenerStarted)return;
-  typingListenerStarted=true;
-  $("message").addEventListener("input",()=>{
-    clearTimeout(typingWriteTimer);
-    typingWriteTimer=setTimeout(publishTypingDraft,150);
-  });
-  onDisconnect(myTypingRef()).remove().catch(console.warn);
+ if(typingListenerStarted)return;
+ typingListenerStarted=true;
 
-  onValue(ref(db,"typing"),snapshot=>{
-    const container=$("typingIndicator");
-    container.replaceChildren();
-    const now=Date.now();
-    let count=0;
-    snapshot.forEach(child=>{
-      const data=child.val();
-      if(!data||child.key===user.uid||typeof data.text!=="string"||!data.text.trim())return;
-      if(now-(Number(data.updatedAt)||0)>15000)return;
-      count++;
-      const row=document.createElement("div");
-      row.className="typing-user";
-      const label=document.createElement("strong");
-      label.textContent=(data.name||"Ai đó")+" đang nhập:";
-      const draft=document.createElement("div");
-      draft.className="typing-draft";
-      draft.textContent=data.text;
-      row.append(label,draft);
-      container.append(row);
-    });
-    if(!count)container.replaceChildren();
-  },error=>{
-    $("chatStatus").textContent="Không đọc được nội dung đang nhập: "+error.message;
-  });
-}
+ $("message").addEventListener("input",()=>{
+  clearTimeout(typingWriteTimer);
+  typingWriteTimer=setTimeout(publishTypingDraft,150);
+ });
 
-/* NHẬT KÝ CÔNG KHAI + LỊCH SỬ XEM */
-let diaryMonth=new Date();
-diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1);
-let diarySelectedDate=diaryLocalKey(new Date());
-let publicDiaryData={};
-let diarySaveTimer=null;
-let diaryStarted=false;
-let diaryRequestVersion=0;
-let activeDiaryVisitRef=null;
-let activeDiaryVisitDate=null;
-let activeDiaryDisconnect=null;
-let diaryViewsUnsubscribe=null;
-let diaryPageUnlocked=false;
-let diaryViewsData={};
+ onDisconnect(myTypingRef()).remove().catch(error=>{
+  console.warn("Không đăng ký được dọn trạng thái nhập:",error);
+ });
 
-function diaryLocalKey(date){
-  const y=date.getFullYear();
-  const m=String(date.getMonth()+1).padStart(2,"0");
-  const d=String(date.getDate()).padStart(2,"0");
-  return `${y}-${m}-${d}`;
-}
-
-function diaryDateLabel(key){
-  const [y,m,d]=key.split("-").map(Number);
-  return new Date(y,m-1,d).toLocaleDateString("vi-VN",{
-    weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"
-  });
-}
-
-function getEntriesForDate(dateKey){
-  const monthKey=dateKey.slice(0,7);
-  const entries=[];
-  for(const [uid,months] of Object.entries(publicDiaryData||{})){
-    const entry=months?.[monthKey]?.[dateKey];
-    if(!entry||typeof entry!=="object"||typeof entry.text!=="string")continue;
-    entries.push({
-      uid,
-      name:typeof entry.name==="string"?entry.name:"Thành viên",
-      text:entry.text,
-      updatedAt:Number(entry.updatedAt)||0
-    });
-  }
-  entries.sort((a,b)=>a.name.localeCompare(b.name,"vi"));
-  return entries;
-}
-
-function renderPublicEntries(){
-  const container=$("publicDiaryEntries");
+ onValue(ref(db,"typing"),snapshot=>{
+  const container=$("typingIndicator");
   container.replaceChildren();
-  const entries=getEntriesForDate(diarySelectedDate);
+  const now=Date.now();
+  let count=0;
 
-  if(!entries.length){
-    const empty=document.createElement("p");
-    empty.className="hint";
-    empty.textContent="Chưa có nhật ký nào trong ngày này. Cậu viết bài đầu tiên nhé!";
-    container.append(empty);
-    return;
-  }
+  snapshot.forEach(child=>{
+   const data=child.val();
+   if(!data||child.key===user.uid||typeof data.text!=="string"||!data.text.trim())return;
+   if(now-(Number(data.updatedAt)||0)>15000)return;
 
-  for(const entry of entries){
-    const own=entry.uid===user?.uid;
-    const card=document.createElement("article");
-    card.className="public-entry"+(own?" own-entry":"");
-    const heading=document.createElement("div");
-    heading.className="entry-heading";
-    const author=document.createElement("span");
-    author.className="entry-author";
-    author.textContent=entry.name+(own?" (Bạn)":"");
-    const time=document.createElement("span");
-    time.className="entry-time";
-    if(entry.updatedAt){
-      time.textContent="Cập nhật "+new Date(entry.updatedAt).toLocaleTimeString("vi-VN",{
-        hour:"2-digit",minute:"2-digit"
-      });
-    }
-    heading.append(author,time);
-    const content=document.createElement("div");
-    content.className="entry-content";
-    content.textContent=entry.text;
-    card.append(heading,content);
-    container.append(card);
-  }
-}
+   count++;
+   const row=document.createElement("div");
+   row.className="typing-user";
 
-function renderDiaryCalendar(){
-  const calendar=$("diaryCalendar");
-  calendar.replaceChildren();
-  $("diaryMonthTitle").textContent=diaryMonth.toLocaleDateString("vi-VN",{
-    month:"long",year:"numeric"
+   const label=document.createElement("strong");
+   label.textContent=(data.name||"Ai đó")+" đang nhập:";
+
+   const draft=document.createElement("div");
+   draft.className="typing-draft";
+   draft.textContent=data.text;
+
+   row.append(label,draft);
+   container.append(row);
   });
-  const year=diaryMonth.getFullYear();
-  const month=diaryMonth.getMonth();
-  const offset=(new Date(year,month,1).getDay()+6)%7;
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const today=diaryLocalKey(new Date());
 
-  for(let i=0;i<offset;i++){
-    const blank=document.createElement("span");
-    blank.className="diary-day empty";
-    calendar.append(blank);
-  }
-  for(let day=1;day<=daysInMonth;day++){
-    const key=diaryLocalKey(new Date(year,month,day));
-    const button=document.createElement("button");
-    button.type="button";
-    button.className="diary-day";
-    button.textContent=String(day);
-    if(key===diarySelectedDate)button.classList.add("selected");
-    if(key===today)button.classList.add("today");
-    if(getEntriesForDate(key).length)button.classList.add("has-entry");
-    button.setAttribute("aria-label",diaryDateLabel(key));
-    button.addEventListener("click",()=>selectDiaryDate(key));
-    calendar.append(button);
-  }
+  if(!count)container.replaceChildren();
+ },error=>{
+  $("chatStatus").textContent="Không đọc được nội dung đang nhập: "+error.message;
+ });
 }
 
-function getOwnEntry(dateKey){
-  return publicDiaryData?.[user?.uid]?.[dateKey.slice(0,7)]?.[dateKey]||null;
+/* BẢN ĐỒ LEAFLET */
+function initAminoMap(){
+ if(aminoMap)return;
+ if(!window.L){
+  $("mapStatus").textContent="Không tải được bản đồ. Hãy kiểm tra kết nối mạng rồi tải lại trang.";
+  return;
+ }
+
+ aminoMap=L.map("aminoMap").setView([16.2,106.5],5);
+
+ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  maxZoom:19,
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+ }).addTo(aminoMap);
 }
 
-function refreshDiaryView(){
-  renderDiaryCalendar();
-  $("diaryDateTitle").textContent="Nhật ký ngày "+diaryDateLabel(diarySelectedDate);
-  if(document.activeElement!==$("diaryText")){
-    $("diaryText").value=getOwnEntry(diarySelectedDate)?.text||"";
-  }
-  renderPublicEntries();
-  renderDiaryViews();
+function makeMemberPopup(data){
+ const wrapper=document.createElement("div");
+
+ const name=document.createElement("div");
+ name.className="map-member-name";
+ name.textContent=data.name||"Thành viên Amino";
+
+ const status=document.createElement("div");
+ status.className="map-member-status";
+ status.textContent=data.isOnline?"🟢 Đang trực tuyến":"⚪ Đã ngoại tuyến";
+
+ const updated=document.createElement("div");
+ updated.className="map-member-status";
+ updated.textContent=data.isOnline
+  ?"Cập nhật: "+formatDateTime(data.updatedAt)
+  :"Hoạt động cuối: "+formatDateTime(data.lastOnlineAt||data.updatedAt);
+
+ const accuracy=document.createElement("div");
+ accuracy.className="map-member-status";
+ accuracy.textContent="Độ chính xác GPS: khoảng "+(Number(data.accuracy)||0)+" m";
+
+ wrapper.append(name,status,updated,accuracy);
+ return wrapper;
 }
 
-async function saveDiaryEntry(dateKey,value){
-  if(!user||!db)return;
-  const requestVersion=++diaryRequestVersion;
-  const text=value.trim();
-  const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
-  $("diarySaveStatus").textContent="Đang lưu...";
-  try{
-    if(text){
-      await set(entryRef,{
-        uid:user.uid,name:displayName,text:value,updatedAt:Date.now()
-      });
-      if(requestVersion===diaryRequestVersion){
-        $("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
-      }
-    }else{
-      await set(entryRef,null);
-      if(requestVersion===diaryRequestVersion){
-        $("diarySaveStatus").textContent="Đã xóa nhật ký của bạn ✓";
-      }
-    }
-  }catch(error){
-    if(requestVersion===diaryRequestVersion){
-      $("diarySaveStatus").textContent="Lưu thất bại: "+error.message;
-    }
-  }
+function updateMemberMarker(uid,data){
+ const lat=Number(data.lat);
+ const lng=Number(data.lng);
+
+ if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat < -90||lat > 90||lng < -180||lng > 180){
+  const old=mapMarkers.get(uid);
+  if(old&&aminoMap)aminoMap.removeLayer(old);
+  mapMarkers.delete(uid);
+  return;
+ }
+
+ if(!aminoMap)return;
+
+ let marker=mapMarkers.get(uid);
+
+ if(!marker){
+  marker=L.marker([lat,lng]).addTo(aminoMap);
+  mapMarkers.set(uid,marker);
+ }else{
+  marker.setLatLng([lat,lng]);
+ }
+
+ marker.bindPopup(makeMemberPopup(data));
 }
 
-function scheduleDiarySave(){
-  clearTimeout(diarySaveTimer);
-  const key=diarySelectedDate;
-  const value=$("diaryText").value;
-  $("diarySaveStatus").textContent="Đang chờ lưu...";
-  diarySaveTimer=setTimeout(()=>saveDiaryEntry(key,value),700);
-}
+function startMapSync(){
+ if(mapListenerStarted)return;
+ mapListenerStarted=true;
 
-async function savePendingDiary(){
-  clearTimeout(diarySaveTimer);
-  const value=$("diaryText").value;
-  const saved=getOwnEntry(diarySelectedDate)?.text||"";
-  if(value!==saved)await saveDiaryEntry(diarySelectedDate,value);
-}
+ onValue(ref(db,"sharedLocations"),snapshot=>{
+  const found=new Set();
 
-async function closeDiaryVisit(){
-  if(!activeDiaryVisitRef)return;
+  snapshot.forEach(child=>{
+   const uid=child.key;
+   const data=child.val();
 
-  const visitRef=activeDiaryVisitRef;
-  const disconnectHandler=activeDiaryDisconnect;
+   if(!uid||!data||data.sharingEnabled!==true)return;
+   if(typeof data.lat!=="number"||typeof data.lng!=="number")return;
 
-  activeDiaryVisitRef=null;
-  activeDiaryVisitDate=null;
-  activeDiaryDisconnect=null;
-
-  try{
-    await update(visitRef,{exitedAt:serverTimestamp()});
-    if(disconnectHandler)await disconnectHandler.cancel();
-  }catch(error){
-    console.warn("Không thể đóng lượt xem nhật ký:",error);
-  }
-}
-
-async function startDiaryVisit(dateKey){
-  if(!user||!db||!diaryPageUnlocked)return;
-
-  await closeDiaryVisit();
-
-  const visitRef=push(ref(db,`diaryViews/${dateKey}`));
-  const disconnectHandler=onDisconnect(visitRef);
-
-  activeDiaryVisitRef=visitRef;
-  activeDiaryVisitDate=dateKey;
-  activeDiaryDisconnect=disconnectHandler;
-
-  try{
-    await set(visitRef,{
-      uid:user.uid,
-      name:displayName,
-      enteredAt:serverTimestamp(),
-      exitedAt:null
-    });
-
-    await disconnectHandler.update({exitedAt:serverTimestamp()});
-  }catch(error){
-    console.warn("Không thể ghi nhận lượt xem:",error);
-
-    if(activeDiaryVisitRef===visitRef){
-      activeDiaryVisitRef=null;
-      activeDiaryVisitDate=null;
-      activeDiaryDisconnect=null;
-    }
-
-    $("diarySaveStatus").textContent=
-      "Không lưu được lịch sử xem: "+error.message;
-  }
-}
-
-function formatVisitDate(timestamp){
-  if(typeof timestamp!=="number")return "Đang cập nhật";
-  return new Date(timestamp).toLocaleString("vi-VN",{
-    hour:"2-digit",minute:"2-digit",second:"2-digit",
-    day:"2-digit",month:"2-digit",year:"numeric"
+   found.add(uid);
+   updateMemberMarker(uid,data);
   });
-}
 
-function formatDuration(milliseconds){
-  const total=Math.max(0,Math.floor(milliseconds/1000));
-  const hours=Math.floor(total/3600);
-  const minutes=Math.floor((total%3600)/60);
-  const seconds=total%60;
-  if(hours)return `${hours} giờ ${minutes} phút ${seconds} giây`;
-  if(minutes)return `${minutes} phút ${seconds} giây`;
-  return `${seconds} giây`;
-}
-
-function renderDiaryViews(){
-  const container=$("diaryViewsList");
-  container.replaceChildren();
-  const visits=Object.entries(diaryViewsData||{})
-    .map(([id,data])=>({id,...(data||{})}))
-    .filter(item=>item.uid&&item.enteredAt)
-    .sort((a,b)=>(Number(b.enteredAt)||0)-(Number(a.enteredAt)||0));
-
-  $("diaryViewsToggle").textContent=`👀 Ai đã xem nhật ký ngày này (${visits.length})`;
-
-  if(!visits.length){
-    const empty=document.createElement("p");
-    empty.className="hint";
-    empty.textContent="Chưa có ai xem ngày này.";
-    container.append(empty);
-    return;
+  for(const [uid,marker] of mapMarkers.entries()){
+   if(!found.has(uid)){
+    if(aminoMap)aminoMap.removeLayer(marker);
+    mapMarkers.delete(uid);
+   }
   }
 
-  for(const visit of visits){
-    const item=document.createElement("div");
-    item.className="diary-view-item";
-
-    const name=document.createElement("div");
-    name.className="diary-view-name";
-    name.textContent=visit.name||"Thành viên";
-
-    const entered=document.createElement("div");
-    entered.textContent="Vào lúc: "+formatVisitDate(Number(visit.enteredAt));
-
-    const exited=document.createElement("div");
-    const isLive=!visit.exitedAt;
-    if(isLive){
-      exited.className="diary-view-live";
-      exited.textContent="● Đang xem";
-    }else{
-      exited.textContent="Rời lúc: "+formatVisitDate(Number(visit.exitedAt));
-    }
-
-    const duration=document.createElement("div");
-    const start=Number(visit.enteredAt)||0;
-    const end=Number(visit.exitedAt)||Date.now();
-    duration.textContent="Thời gian xem: "+formatDuration(end-start);
-
-    item.append(name,entered,exited,duration);
-    container.append(item);
-  }
+  $("mapStatus").textContent=
+   found.size
+    ?`Đang hiển thị vị trí được chia sẻ của ${found.size} thành viên.`
+    :"Chưa có thành viên nào bật chia sẻ vị trí.";
+ },error=>{
+  $("mapStatus").textContent="Không tải được vị trí thành viên: "+error.message;
+ });
 }
 
-function watchDiaryViews(dateKey){
-  if(diaryViewsUnsubscribe){
-    diaryViewsUnsubscribe();
-    diaryViewsUnsubscribe=null;
-  }
-  diaryViewsData={};
-  renderDiaryViews();
+async function registerLocationDisconnect(){
+ if(!user||!locationSharingActive||!locationRecordCreated||locationDisconnectRegistered)return;
 
-  diaryViewsUnsubscribe=onValue(ref(db,`diaryViews/${dateKey}`),snapshot=>{
-    diaryViewsData=snapshot.val()||{};
-    renderDiaryViews();
-  },error=>{
-    console.warn("Không tải được lịch sử xem:",error);
+ try{
+  await onDisconnect(myLocationRef()).update({
+   isOnline:false,
+   lastOnlineAt:serverTimestamp()
   });
+  locationDisconnectRegistered=true;
+ }catch(error){
+  $("mapStatus").textContent="Không đăng ký được trạng thái ngoại tuyến: "+error.message;
+ }
 }
 
-async function selectDiaryDate(key){
-  if(key===diarySelectedDate)return;
-  await savePendingDiary();
-  await closeDiaryVisit();
-  diarySelectedDate=key;
-  refreshDiaryView();
-  watchDiaryViews(key);
-  await startDiaryVisit(key);
-  $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
+function startMapConnectionWatcher(){
+ if(mapConnectedListenerStarted)return;
+ mapConnectedListenerStarted=true;
+
+ onValue(ref(db,".info/connected"),snapshot=>{
+  const connected=snapshot.val()===true;
+
+  if(!connected){
+   locationDisconnectRegistered=false;
+   return;
+  }
+
+  if(locationSharingActive&&locationRecordCreated){
+   registerLocationDisconnect();
+  }
+ });
 }
 
-async function changeDiaryMonth(amount){
-  await savePendingDiary();
-  await closeDiaryVisit();
-  diaryMonth=new Date(diaryMonth.getFullYear(),diaryMonth.getMonth()+amount,1);
-  diarySelectedDate=diaryLocalKey(
-    new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1)
+function showMap(){
+ $("chat").hidden=true;
+ $("mapPage").hidden=false;
+
+ initAminoMap();
+ startMapSync();
+
+ setTimeout(()=>{
+  if(aminoMap)aminoMap.invalidateSize();
+ },200);
+}
+
+function hideMap(){
+ $("mapPage").hidden=true;
+ $("chat").hidden=false;
+}
+
+function updateMyLocation(position){
+ if(!user||!locationSharingActive)return;
+
+ const coords=position.coords;
+ const data={
+  uid:user.uid,
+  name:displayName,
+  lat:coords.latitude,
+  lng:coords.longitude,
+  accuracy:Math.round(coords.accuracy||0),
+  isOnline:true,
+  sharingEnabled:true,
+  updatedAt:Date.now(),
+  lastOnlineAt:Date.now()
+ };
+
+ set(myLocationRef(),data).then(()=>{
+  locationRecordCreated=true;
+  registerLocationDisconnect();
+
+  $("mapStatus").textContent=
+   `Đang chia sẻ vị trí GPS của bạn. Độ chính xác hiện tại khoảng ${data.accuracy} mét.`;
+  $("shareLocation").disabled=true;
+  $("stopLocation").disabled=false;
+ }).catch(error=>{
+  $("mapStatus").textContent="Không lưu được vị trí: "+error.message;
+ });
+}
+
+function locationError(error){
+ let message="Không lấy được vị trí GPS.";
+
+ if(error.code===1)message="Bạn đã từ chối quyền truy cập vị trí. Hãy cấp quyền GPS cho trình duyệt nếu muốn chia sẻ.";
+ if(error.code===2)message="Không xác định được vị trí. Hãy bật GPS và thử lại.";
+ if(error.code===3)message="Lấy vị trí quá lâu. Hãy thử lại ở nơi có tín hiệu GPS tốt hơn.";
+
+ $("mapStatus").textContent=message;
+}
+
+function startLocationSharing(){
+ if(!user){
+  $("mapStatus").textContent="Bạn cần đăng nhập trước.";
+  return;
+ }
+
+ if(!navigator.geolocation){
+  $("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";
+  return;
+ }
+
+ if(!window.isSecureContext){
+  $("mapStatus").textContent="GPS cần trang web chạy bằng HTTPS hoặc localhost. Hãy mở Amino Chat bằng đường dẫn HTTPS.";
+  return;
+ }
+
+ const accepted=confirm(
+  "BẬT CHIA SẺ VỊ TRÍ GPS?\n\n"+
+  "Vị trí chính xác của bạn sẽ được gửi lên bản đồ và hiển thị cho TẤT CẢ thành viên đã đăng nhập Amino Chat.\n\n"+
+  "Khi bạn ngoại tuyến, vị trí cuối cùng vẫn được giữ trên bản đồ.\n\n"+
+  "Bạn có thể bấm 'Ngừng chia sẻ' bất cứ lúc nào để xóa vị trí.\n\n"+
+  "Bạn có đồng ý chia sẻ không?"
+ );
+
+ if(!accepted)return;
+
+ $("mapStatus").textContent="Đang xin quyền GPS...";
+ $("shareLocation").disabled=true;
+
+ navigator.geolocation.getCurrentPosition(position=>{
+  locationSharingActive=true;
+  locationRecordCreated=true;
+  updateMyLocation(position);
+
+  if(locationWatchId!==null){
+   navigator.geolocation.clearWatch(locationWatchId);
+  }
+
+  locationWatchId=navigator.geolocation.watchPosition(
+   updateMyLocation,
+   locationError,
+   {enableHighAccuracy:true,maximumAge:10000,timeout:20000}
   );
-  refreshDiaryView();
-  watchDiaryViews(diarySelectedDate);
-  await startDiaryVisit(diarySelectedDate);
-  $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
+
+  startMapConnectionWatcher();
+ },error=>{
+  $("shareLocation").disabled=false;
+  locationError(error);
+ },{
+  enableHighAccuracy:true,
+  maximumAge:0,
+  timeout:20000
+ });
 }
 
-function unlockDiary(){
-  if($("diaryPassword").value!=="1406"){
-    $("diaryPasswordError").textContent="Mật khẩu nhật ký không đúng!";
-    $("diaryPassword").value="";
-    return;
-  }
-  diaryPageUnlocked=true;
-  $("diaryGate").hidden=true;
-  $("diaryContent").hidden=false;
-  $("diaryPasswordError").textContent="";
-  $("diaryPassword").value="";
-  refreshDiaryView();
-  watchDiaryViews(diarySelectedDate);
-  startDiaryVisit(diarySelectedDate);
+async function stopLocationSharing(){
+ if(!user)return;
+
+ const accepted=confirm("Ngừng chia sẻ và xóa vị trí của bạn khỏi bản đồ?");
+ if(!accepted)return;
+
+ locationSharingActive=false;
+
+ if(locationWatchId!==null){
+  navigator.geolocation.clearWatch(locationWatchId);
+  locationWatchId=null;
+ }
+
+ try{
+  await onDisconnect(myLocationRef()).cancel();
+  await set(myLocationRef(),null);
+
+  locationRecordCreated=false;
+  locationDisconnectRegistered=false;
+
+  $("mapStatus").textContent="Bạn đã ngừng chia sẻ. Vị trí của bạn đã được xóa khỏi bản đồ.";
+  $("shareLocation").disabled=false;
+  $("stopLocation").disabled=true;
+ }catch(error){
+  $("mapStatus").textContent="Không xóa được vị trí: "+error.message;
+ }
 }
 
-function startDiary(){
-  if(diaryStarted)return;
-  diaryStarted=true;
+function startMapControls(){
+ $("mapToggle").addEventListener("click",showMap);
+ $("mapBack").addEventListener("click",hideMap);
+ $("shareLocation").addEventListener("click",startLocationSharing);
+ $("stopLocation").addEventListener("click",stopLocationSharing);
 
-  $("diaryToggle").addEventListener("click",()=>{
-    $("chat").hidden=true;
-    $("mapPage").hidden=true;
-    $("diaryPage").hidden=false;
-    $("diaryGate").hidden=diaryPageUnlocked;
-    $("diaryContent").hidden=!diaryPageUnlocked;
-    if(diaryPageUnlocked){
-      refreshDiaryView();
-      if(!activeDiaryVisitRef)startDiaryVisit(diarySelectedDate);
-    }else{
-      $("diaryPassword").focus();
-    }
-    window.scrollTo({top:0,behavior:"auto"});
-  });
+ $("mapVietnam").addEventListener("click",()=>{
+  if(aminoMap)aminoMap.setView([16.2,106.5],5);
+ });
 
-  $("diaryUnlock").addEventListener("click",unlockDiary);
-  $("diaryPassword").addEventListener("keydown",event=>{
-    if(event.key==="Enter")unlockDiary();
-  });
-
-  $("diaryBack").addEventListener("click",async()=>{
-    await savePendingDiary();
-    await closeDiaryVisit();
-    $("diaryPage").hidden=true;
-    $("chat").hidden=false;
-    window.scrollTo({top:0,behavior:"auto"});
-  });
-
-  $("diaryPrev").addEventListener("click",()=>changeDiaryMonth(-1));
-  $("diaryNext").addEventListener("click",()=>changeDiaryMonth(1));
-  $("diaryText").addEventListener("input",scheduleDiarySave);
-
-  $("diaryViewsToggle").addEventListener("click",()=>{
-    $("diaryViewsList").hidden=!$("diaryViewsList").hidden;
-  });
-
-  $("diaryDelete").addEventListener("click",async()=>{
-    clearTimeout(diarySaveTimer);
-    if(!getOwnEntry(diarySelectedDate)){
-      $("diarySaveStatus").textContent="Ngày này chưa có nhật ký của bạn.";
-      return;
-    }
-    if(!window.confirm("Mày có chắc muốn xóa nhật ký của mình trong ngày này không?"))return;
-    $("diaryText").value="";
-    await saveDiaryEntry(diarySelectedDate,"");
-    refreshDiaryView();
-  });
-
-  onValue(ref(db,"diary"),snapshot=>{
-    publicDiaryData=snapshot.val()||{};
-    refreshDiaryView();
-  },error=>{
-    $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
-  });
-
-  window.addEventListener("pagehide",()=>{
-    if(activeDiaryVisitRef){
-      update(activeDiaryVisitRef,{exitedAt:serverTimestamp()}).catch(()=>{});
-    }
-  });
+ $("mapWorld").addEventListener("click",()=>{
+  if(aminoMap)aminoMap.setView([20,0],2);
+ });
 }
 
 /* YOUTUBE PLAYER */
 window.onYouTubeIframeAPIReady=()=>createPlayer();
 
 function createPlayer(){
-  if(player||!window.YT?.Player)return;
-  player=new YT.Player("player",{
-    width:"100%",height:"100%",
-    playerVars:{autoplay:0,controls:1,playsinline:1,rel:0},
-    events:{
-      onReady:()=>{
-        playerReady=true;
-        if(latestMusicState)applyMusicState(latestMusicState,true);
-      },
-      onStateChange:event=>{
-        if(applyingRemoteState||!currentVideoId||!user)return;
-        if(event.data===YT.PlayerState.PLAYING)publishPlayerState(true);
-        else if(event.data===YT.PlayerState.PAUSED)publishPlayerState(false);
-        else if(event.data===YT.PlayerState.ENDED)publishPlayerState(false);
-      },
-      onError:event=>{
-        const errors={
-          2:"Video ID không hợp lệ.",5:"Lỗi trình phát HTML5.",
-          100:"Video không tồn tại hoặc đã bị xóa.",
-          101:"Chủ video không cho phép phát nhúng.",
-          150:"Chủ video không cho phép phát nhúng."
-        };
-        $("syncStatus").textContent="YouTube: "+(errors[event.data]||("lỗi "+event.data))+" Hãy thử bài khác.";
-      }
-    }
-  });
+ if(player||!window.YT?.Player)return;
+
+ player=new YT.Player("player",{
+  width:"100%",height:"100%",
+  playerVars:{autoplay:0,controls:1,playsinline:1,rel:0},
+  events:{
+   onReady:()=>{
+    playerReady=true;
+    if(latestMusicState)applyMusicState(latestMusicState,true);
+   },
+   onStateChange:event=>{
+    if(applyingRemoteState||!currentVideoId||!user)return;
+    if(event.data===YT.PlayerState.PLAYING)publishPlayerState(true);
+    else if(event.data===YT.PlayerState.PAUSED)publishPlayerState(false);
+    else if(event.data===YT.PlayerState.ENDED)publishPlayerState(false);
+   },
+   onError:event=>{
+    const errors={
+     2:"Video ID không hợp lệ.",
+     5:"Lỗi trình phát HTML5.",
+     100:"Video không tồn tại hoặc đã bị xóa.",
+     101:"Chủ video không cho phép phát nhúng.",
+     150:"Chủ video không cho phép phát nhúng."
+    };
+    $("syncStatus").textContent="YouTube: "+(errors[event.data]||("lỗi "+event.data))+" Hãy thử bài khác.";
+   }
+  }
+ });
 }
 
 async function publishPlayerState(playing){
-  if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
-  if(latestMusicState?.changedBy!==user.uid)return;
-  const now=Date.now();
-  const state={
-    videoId:currentVideoId,
-    title:latestMusicState?.title||"Nhạc YouTube",
-    position:Number(player.getCurrentTime?.())||0,
-    playing:!!playing,updatedAt:now,
-    revision:latestMusicState?.revision||now,changedBy:user.uid
-  };
-  latestMusicState=state;
-  try{await set(musicStateRef(),state)}
-  catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
+ if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
+ if(latestMusicState?.changedBy!==user.uid)return;
+
+ const now=Date.now();
+
+ const state={
+  videoId:currentVideoId,
+  title:latestMusicState?.title||"Nhạc YouTube",
+  position:Number(player.getCurrentTime?.())||0,
+  playing:!!playing,
+  updatedAt:now,
+  revision:latestMusicState?.revision||now,
+  changedBy:user.uid
+ };
+
+ latestMusicState=state;
+
+ try{await set(musicStateRef(),state)}
+ catch(error){$("syncStatus").textContent="Không cập nhật được nhạc: "+error.message}
 }
 
 function targetPosition(state){
-  const position=Number(state.position)||0;
-  if(!state.playing)return position;
-  return position+Math.max(0,Date.now()-(Number(state.updatedAt)||Date.now()))/1000;
+ const position=Number(state.position)||0;
+ if(!state.playing)return position;
+ return position+Math.max(0,Date.now()-(Number(state.updatedAt)||Date.now()))/1000;
 }
 
 function applyMusicState(state,force=false){
-  if(!state?.videoId||!playerReady||!player)return;
-  const changed=state.videoId!==currentVideoId;
-  const target=targetPosition(state);
+ if(!state?.videoId||!playerReady||!player)return;
+
+ const changed=state.videoId!==currentVideoId;
+ const target=targetPosition(state);
+
+ if(changed){
+  currentVideoId=state.videoId;
+  $("playerWrap").hidden=false;
+  setMusicError("🎵 Bài đang phát: "+(state.title||"Nhạc YouTube"));
+ }
+
+ applyingRemoteState=true;
+ if(applyingTimer)clearTimeout(applyingTimer);
+
+ try{
   if(changed){
-    currentVideoId=state.videoId;
-    $("playerWrap").hidden=false;
-    setMusicError("🎵 Bài đang phát: "+(state.title||"Nhạc YouTube"));
+   if(state.playing)player.loadVideoById({videoId:state.videoId,startSeconds:target});
+   else player.cueVideoById({videoId:state.videoId,startSeconds:target});
+  }else{
+   const actual=Number(player.getCurrentTime?.())||0;
+
+   if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
+
+   const playerState=player.getPlayerState?.();
+
+   if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
+   else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
   }
-  applyingRemoteState=true;
-  if(applyingTimer)clearTimeout(applyingTimer);
-  try{
-    if(changed){
-      if(state.playing)player.loadVideoById({videoId:state.videoId,startSeconds:target});
-      else player.cueVideoById({videoId:state.videoId,startSeconds:target});
-    }else{
-      const actual=Number(player.getCurrentTime?.())||0;
-      if(force||Math.abs(actual-target)>2.5)player.seekTo(target,true);
-      const playerState=player.getPlayerState?.();
-      if(state.playing&&playerState!==YT.PlayerState.PLAYING)player.playVideo();
-      else if(!state.playing&&playerState===YT.PlayerState.PLAYING)player.pauseVideo();
-    }
-    $("syncStatus").textContent=state.playing?"🎵 Đang đồng bộ nhạc chung.":"⏸ Nhạc đang tạm dừng.";
-  }catch(error){
-    $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
-  }
-  applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
+
+  $("syncStatus").textContent=state.playing
+   ?"🎵 Đang đồng bộ nhạc chung."
+   :"⏸ Nhạc đang tạm dừng.";
+ }catch(error){
+  $("syncStatus").textContent="Không đồng bộ được. Hãy thử bấm phát video.";
+ }
+
+ applyingTimer=setTimeout(()=>{applyingRemoteState=false},900);
 }
 
-function startMusicSync(){
-  if(musicListenerStarted)return;
-  musicListenerStarted=true;
-  onValue(musicStateRef(),snapshot=>{
-    const state=snapshot.val();
-    if(!state?.videoId)return;
-    const isNewRevision=state.revision!==lastAppliedRevision;
-    latestMusicState=state;
-    if(!playerReady){
-      $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
-      return;
-    }
-    if(state.changedBy===user.uid&&!isNewRevision)return;
-    if(isNewRevision){
-      lastAppliedRevision=state.revision;
-      applyMusicState(state,true);
-    }else if(state.changedBy!==user.uid){
-      applyMusicState(state,false);
-    }
-  },error=>{
-    $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
-  });
+let musicListenerStarted=false;
 
-  setInterval(()=>{
-    if(!playerReady||!currentVideoId||!latestMusicState||!user)return;
-    if(latestMusicState.changedBy!==user.uid)return;
-    if(!window.YT?.PlayerState)return;
-    if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
-    publishPlayerState(true);
-  },8000);
+function startMusicSync(){
+ if(musicListenerStarted)return;
+ musicListenerStarted=true;
+
+ onValue(musicStateRef(),snapshot=>{
+  const state=snapshot.val();
+  if(!state?.videoId)return;
+
+  const isNewRevision=state.revision!==lastAppliedRevision;
+  latestMusicState=state;
+
+  if(!playerReady){
+   $("syncStatus").textContent="Đã nhận bài hát, đang tải YouTube...";
+   return;
+  }
+
+  if(state.changedBy===user.uid&&!isNewRevision)return;
+
+  if(isNewRevision){
+   lastAppliedRevision=state.revision;
+   applyMusicState(state,true);
+  }else if(state.changedBy!==user.uid){
+   applyMusicState(state,false);
+  }
+ },error=>{
+  $("syncStatus").textContent="Lỗi Firebase nhạc: "+error.message;
+ });
+
+ setInterval(()=>{
+  if(!playerReady||!currentVideoId||!latestMusicState||!user)return;
+  if(latestMusicState.changedBy!==user.uid)return;
+  if(!window.YT?.PlayerState)return;
+
+  if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
+
+  publishPlayerState(true);
+ },8000);
 }
 
 /* ĐĂNG NHẬP */
 $("enter").addEventListener("click",async()=>{
-  $("passwordError").textContent="";
-  if($("chatPassword").value!=="1409"){
-    $("passwordError").textContent="Mật khẩu không đúng!";
-    return;
+ $("passwordError").textContent="";
+
+ if($("chatPassword").value!=="1409"){
+  $("passwordError").textContent="Mật khẩu không đúng!";
+  return;
+ }
+
+ displayName=$("name").value.trim();
+
+ if(!displayName){
+  $("status").textContent="Cậu nhập tên trước nhé.";
+  return;
+ }
+
+ $("enter").disabled=true;
+ $("status").textContent="Đang kết nối...";
+
+ try{
+  if(!app){
+   app=initializeApp(firebaseConfig);
+   auth=getAuth(app);
+   db=getDatabase(app);
   }
-  displayName=$("name").value.trim();
-  if(!displayName){
-    $("status").textContent="Cậu nhập tên trước nhé.";
-    return;
-  }
-  $("enter").disabled=true;
-  $("status").textContent="Đang kết nối...";
-  try{
-    if(!app){
-      app=initializeApp(firebaseConfig);
-      auth=getAuth(app);
-      db=getDatabase(app);
+
+  const result=await signInAnonymously(auth);
+  user=result.user;
+
+  $("login").hidden=true;
+  $("chat").hidden=false;
+  $("welcome").textContent="Xin chào, "+displayName+"!";
+
+  if(window.YT?.Player)createPlayer();
+
+  startPresence();
+  startTypingSync();
+  startMusicSync();
+  startMapControls();
+
+  const recent=query(
+   ref(db,"publicChat/messages"),
+   orderByChild("createdAt"),
+   limitToLast(100)
+  );
+
+  onValue(recent,snapshot=>{
+   messages.replaceChildren();
+
+   snapshot.forEach(item=>{
+    const data=item.val()||{};
+    const box=document.createElement("div");
+
+    if(data.name==="Thông báo hệ thống"){
+     box.className="system-message";
+
+     const text=document.createElement("span");
+     text.textContent=data.text||"";
+
+     const time=document.createElement("span");
+     time.className="system-time";
+     time.textContent=formatTime(data.createdAt);
+
+     box.append(text,time);
+     messages.append(box);
+     return;
     }
-    const result=await signInAnonymously(auth);
-    user=result.user;
-    $("login").hidden=true;
-    $("chat").hidden=false;
-    $("welcome").textContent="Xin chào, "+displayName+" 💜";
-    if(window.YT?.Player)createPlayer();
 
-    startPresence();
-    startTypingSync();
-    startMusicSync();
-    startDiary();
+    box.className="message";
 
-    startMapSync();
-    startLocationConnectionWatcher();
+    const sender=document.createElement("span");
+    sender.className="sender";
+    sender.textContent=data.name||"Khách";
 
-    const recent=query(
-      ref(db,"publicChat/messages"),
-      orderByChild("createdAt"),
-      limitToLast(100)
-    );
+    const time=document.createElement("small");
+    time.className="message-time";
+    time.textContent=formatTime(data.createdAt);
 
-    onValue(recent,snapshot=>{
-      messages.replaceChildren();
-      snapshot.forEach(item=>{
-        const data=item.val()||{};
-        const box=document.createElement("div");
-        if(data.name==="Thông báo hệ thống"){
-          box.className="system-message";
-          const text=document.createElement("span");
-          text.textContent=data.text||"";
-          const time=document.createElement("span");
-          time.className="system-time";
-          time.textContent=formatTime(data.createdAt);
-          box.append(text,time);
-          messages.append(box);
-          return;
-        }
-        box.className="message";
-        const sender=document.createElement("span");
-        sender.className="sender";
-        sender.textContent=data.name||"Khách";
-        const time=document.createElement("small");
-        time.className="message-time";
-        time.textContent=formatTime(data.createdAt);
-        const header=document.createElement("div");
-        header.className="message-header";
-        header.append(sender,time);
-        const body=document.createElement("div");
-        body.className="message-body";
-        body.textContent=data.text||"";
-        box.append(header,body);
-        messages.append(box);
-      });
-      messages.scrollTop=messages.scrollHeight;
-    },error=>{
-      $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
-    });
+    const header=document.createElement("div");
+    header.className="message-header";
+    header.append(sender,time);
 
-    await set(push(ref(db,"publicChat/messages")),{
-      uid:user.uid,name:"Thông báo hệ thống",
-      text:displayName+" đã vào chat",createdAt:Date.now()
-    });
-    $("chatStatus").textContent="Đã kết nối.";
-  }catch(error){
-    console.error(error);
-    $("status").textContent="Lỗi kết nối: "+(error.code||error.message);
-    $("enter").disabled=false;
-  }
+    const body=document.createElement("div");
+    body.className="message-body";
+    body.textContent=data.text||"";
+
+    box.append(header,body);
+    messages.append(box);
+   });
+
+   messages.scrollTop=messages.scrollHeight;
+  },error=>{
+   $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
+  });
+
+  await set(push(ref(db,"publicChat/messages")),{
+   uid:user.uid,
+   name:"Thông báo hệ thống",
+   text:displayName+" đã vào chat",
+   createdAt:Date.now()
+  });
+
+  $("chatStatus").textContent="Đã kết nối.";
+ }catch(error){
+  console.error(error);
+  $("status").textContent="Lỗi kết nối: "+(error.code||error.message);
+  $("enter").disabled=false;
+ }
 });
 
 $("chatPassword").addEventListener("keydown",e=>{
-  if(e.key==="Enter")$("enter").click();
+ if(e.key==="Enter")$("enter").click();
 });
+
 $("name").addEventListener("keydown",e=>{
-  if(e.key==="Enter")$("enter").click();
+ if(e.key==="Enter")$("enter").click();
 });
 
 /* GỬI TIN NHẮN */
 $("composer").addEventListener("submit",async event=>{
-  event.preventDefault();
-  const text=$("message").value.trim();
-  if(!text||!user)return;
-  const button=$("composer").querySelector('button[type="submit"]');
-  button.disabled=true;
-  try{
-    await set(push(ref(db,"publicChat/messages")),{
-      uid:user.uid,name:displayName,text,createdAt:Date.now()
-    });
-    floatHearts();
-    clearTimeout(typingWriteTimer);
-    clearTimeout(typingClearTimer);
-    lastTypingText="";
-    await set(myTypingRef(),null).catch(()=>{});
-    $("message").value="";
-    $("message").focus();
-  }catch(error){
-    $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
-  }finally{
-    button.disabled=false;
-  }
+ event.preventDefault();
+
+ const text=$("message").value.trim();
+ if(!text||!user)return;
+
+ const button=$("composer").querySelector('button[type="submit"]');
+ button.disabled=true;
+
+ try{
+  await set(push(ref(db,"publicChat/messages")),{
+   uid:user.uid,
+   name:displayName,
+   text,
+   createdAt:Date.now()
+  });
+
+  floatHearts();
+
+  clearTimeout(typingWriteTimer);
+  clearTimeout(typingClearTimer);
+  lastTypingText="";
+
+  await set(myTypingRef(),null).catch(()=>{});
+
+  $("message").value="";
+  $("message").focus();
+ }catch(error){
+  $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
+ }finally{
+  button.disabled=false;
+ }
 });
 
 /* TÌM KIẾM YOUTUBE */
 $("musicForm").addEventListener("submit",async event=>{
-  event.preventDefault();
-  const term=$("musicQuery").value.trim();
-  if(!term)return;
-  setMusicError("");
-  $("musicResults").replaceChildren();
-  $("musicResults").classList.remove("hidden");
-  if(!YOUTUBE_API_KEY){
-    setMusicError("Chưa cấu hình YouTube API key.");
-    return;
-  }
-  const button=$("musicForm").querySelector("button");
-  button.disabled=true;
-  button.textContent="Đang tìm...";
-  try{
-    const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
-    endpoint.search=new URLSearchParams({
-      part:"snippet",type:"video",maxResults:"8",
-      q:term,key:YOUTUBE_API_KEY
-    }).toString();
-    const response=await fetch(endpoint);
-    const data=await response.json();
-    if(!response.ok){
-      const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
-      const detail=data.error?.message||"Không rõ nguyên nhân";
-      let tip="";
-      if(reason==="keyInvalid")tip=" Kiểm tra API key.";
-      else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
-      else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
-      else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website của API key.";
-      else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
-      throw new Error(reason+": "+detail+tip);
-    }
-    if(!data.items?.length){
-      setMusicError("Không tìm thấy video. Thử từ khóa khác nhé.");
-      return;
-    }
-    let count=0;
-    for(const item of data.items){
-      const id=item.id?.videoId;
-      if(!id)continue;
-      count++;
-      const snippet=item.snippet||{};
-      const btn=document.createElement("button");
-      btn.type="button";
-      btn.className="song";
-      const img=document.createElement("img");
-      img.src=snippet.thumbnails?.medium?.url||snippet.thumbnails?.default?.url||"";
-      img.alt="Ảnh video";
-      const info=document.createElement("div");
-      const title=document.createElement("div");
-      title.className="song-title";
-      title.textContent=snippet.title||"Video YouTube";
-      const channel=document.createElement("div");
-      channel.className="song-channel";
-      channel.textContent=snippet.channelTitle||"YouTube";
-      info.append(title,channel);
-      btn.append(img,info);
+ event.preventDefault();
 
-      btn.addEventListener("click",async()=>{
-        if(!user){
-          setMusicError("Hãy vào phòng chat trước khi chọn nhạc.");
-          return;
-        }
-        const revision=Date.now();
-        const state={
-          videoId:id,title:snippet.title||"Nhạc YouTube",
-          position:0,playing:true,updatedAt:revision,
-          revision,changedBy:user.uid
-        };
-        $("musicResults").classList.add("hidden");
-        $("playerWrap").hidden=false;
-        setMusicError("🎵 Đang chọn: "+state.title);
-        $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
-        latestMusicState=state;
-        currentVideoId=id;
-        lastAppliedRevision=revision;
-        try{
-          await set(musicStateRef(),state);
-          if(playerReady){
-            applyingRemoteState=true;
-            player.loadVideoById({videoId:id,startSeconds:0});
-            setTimeout(()=>{applyingRemoteState=false},900);
-          }
-          $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
-        }catch(error){
-          $("syncStatus").textContent="Không đổi được nhạc: "+error.message;
-        }
-      });
-      $("musicResults").append(btn);
-    }
-    if(!count)setMusicError("Không có video hợp lệ trong kết quả.");
-  }catch(error){
-    console.error(error);
-    setMusicError("Lỗi YouTube: "+error.message);
-  }finally{
-    button.disabled=false;
-    button.textContent="Tìm";
+ const term=$("musicQuery").value.trim();
+ if(!term)return;
+
+ setMusicError("");
+ $("musicResults").replaceChildren();
+ $("musicResults").classList.remove("hidden");
+
+ if(!YOUTUBE_API_KEY){
+  setMusicError("Chưa cấu hình YouTube API key.");
+  return;
+ }
+
+ const button=$("musicForm").querySelector("button");
+ button.disabled=true;
+ button.textContent="Đang tìm...";
+
+ try{
+  const endpoint=new URL("https://www.googleapis.com/youtube/v3/search");
+
+  endpoint.search=new URLSearchParams({
+   part:"snippet",
+   type:"video",
+   maxResults:"8",
+   q:term,
+   key:YOUTUBE_API_KEY
+  }).toString();
+
+  const response=await fetch(endpoint);
+  const data=await response.json();
+
+  if(!response.ok){
+   const reason=data.error?.errors?.[0]?.reason||data.error?.status||"UNKNOWN";
+   const detail=data.error?.message||"Không rõ nguyên nhân";
+   let tip="";
+
+   if(reason==="keyInvalid")tip=" Kiểm tra API key.";
+   else if(reason==="quotaExceeded")tip=" API đã hết hạn mức trong ngày.";
+   else if(reason==="accessNotConfigured")tip=" Hãy bật YouTube Data API v3 trong Google Cloud.";
+   else if(reason==="ipRefererBlocked"||reason==="API_KEY_HTTP_REFERRER_BLOCKED")tip=" Kiểm tra giới hạn website (HTTP referrer) của API key.";
+   else if(reason==="forbidden")tip=" Kiểm tra quyền truy cập API và giới hạn của key.";
+
+   throw new Error(reason+": "+detail+tip);
   }
+
+  if(!data.items?.length){
+   setMusicError("Không tìm thấy video. Thử từ khóa khác nhé.");
+   return;
+  }
+
+  let count=0;
+
+  for(const item of data.items){
+   const id=item.id?.videoId;
+   if(!id)continue;
+
+   count++;
+
+   const snippet=item.snippet||{};
+
+   const btn=document.createElement("button");
+   btn.type="button";
+   btn.className="song";
+
+   const img=document.createElement("img");
+   img.src=snippet.thumbnails?.medium?.url||snippet.thumbnails?.default?.url||"";
+   img.alt="Ảnh video";
+
+   const info=document.createElement("div");
+
+   const title=document.createElement("div");
+   title.className="song-title";
+   title.textContent=snippet.title||"Video YouTube";
+
+   const channel=document.createElement("div");
+   channel.className="song-channel";
+   channel.textContent=snippet.channelTitle||"YouTube";
+
+   info.append(title,channel);
+   btn.append(img,info);
+
+   btn.addEventListener("click",async()=>{
+    if(!user){
+     setMusicError("Hãy vào phòng chat trước khi chọn nhạc.");
+     return;
+    }
+
+    const revision=Date.now();
+
+    const state={
+     videoId:id,
+     title:snippet.title||"Nhạc YouTube",
+     position:0,
+     playing:true,
+     updatedAt:revision,
+     revision,
+     changedBy:user.uid
+    };
+
+    $("musicResults").classList.add("hidden");
+    $("playerWrap").hidden=false;
+    setMusicError("🎵 Đang chọn: "+state.title);
+    $("syncStatus").textContent="Đang gửi bài mới tới cả phòng...";
+
+    latestMusicState=state;
+    currentVideoId=id;
+    lastAppliedRevision=revision;
+
+    try{
+     await set(musicStateRef(),state);
+
+     if(playerReady){
+      applyingRemoteState=true;
+      player.loadVideoById({videoId:id,startSeconds:0});
+      setTimeout(()=>{applyingRemoteState=false},900);
+     }
+
+     $("syncStatus").textContent="Đã gửi bài mới cho cả phòng.";
+    }catch(error){
+     $("syncStatus").textContent="Không đổi được nhạc: "+error.message;
+    }
+   });
+
+   $("musicResults").append(btn);
+  }
+
+  if(!count)setMusicError("Không có video hợp lệ trong kết quả.");
+ }catch(error){
+  console.error(error);
+  setMusicError("Lỗi YouTube: "+error.message);
+ }finally{
+  button.disabled=false;
+  button.textContent="Tìm";
+ }
 });
 </script>
 </body>
 </html>
+```
