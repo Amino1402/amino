@@ -262,7 +262,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <h2>📍 Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
   <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
-  <p class="hint"></p>
+  <p class="hint">Vị trí của bạn được cập nhật khi đang mở ứng dụng. Nếu hai thành viên cách nhau không quá 1 km, cả hai ghim sẽ hiện trái tim ❤️. GPS cần HTTPS và quyền định vị.</p>
 </section>
 
 </main>
@@ -1028,7 +1028,7 @@ function ensureAminoMap(){
     });
     activeTileLayer.on("load",()=>{
       tileErrors=0;
-      $("mapStatus").textContent=usingFallbackTiles?"";
+      $("mapStatus").textContent=usingFallbackTiles?"Bản đồ nền đã tải (Esri).":"Bản đồ nền đã tải.";
     });
   }
   showTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
