@@ -596,17 +596,17 @@ async function startDiaryVisit(dateKey){
   activeDiaryVisitDate=dateKey;
   activeDiaryDisconnect=disconnectHandler;
 
-  try{
-    await disconnectHandler.update({
-      exitedAt:serverTimestamp()
-    });
+try{
+  await set(visitRef,{
+    uid:user.uid,
+    name:displayName,
+    enteredAt:serverTimestamp(),
+    exitedAt:null
+  });
 
-    await set(visitRef,{
-      uid:user.uid,
-      name:displayName,
-      enteredAt:serverTimestamp(),
-      exitedAt:null
-    });
+  await disconnectHandler.update({
+    exitedAt:serverTimestamp()
+  });
   }catch(error){
     console.warn("Không thể ghi nhận lượt xem:",error);
 
