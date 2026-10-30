@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -262,7 +263,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <h2>📍 Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
   <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
-  <p class="hint">Vị trí của bạn được cập nhật khi đang mở ứng dụng. Nếu hai thành viên cách nhau không quá 1 km, cả hai ghim sẽ hiện trái tim ❤️. GPS cần HTTPS và quyền định vị.</p>
+  
 </section>
 
 </main>
@@ -1028,7 +1029,7 @@ function ensureAminoMap(){
     });
     activeTileLayer.on("load",()=>{
       tileErrors=0;
-      $("mapStatus").textContent=usingFallbackTiles?"Bản đồ nền đã tải (Esri).":"Bản đồ nền đã tải.";
+      $("mapStatus").textContent=usingFallbackTiles?"":"Bản đồ nền đã tải.";
     });
   }
   showTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
@@ -1069,7 +1070,7 @@ function updateMapMarkers(){
   const heartUids=new Set();
   for(let i=0;i<valid.length;i++){
     for(let j=i+1;j<valid.length;j++){
-      if(distanceBetweenMeters(valid[i],valid[j])<=1000){heartUids.add(valid[i].uid);heartUids.add(valid[j].uid);}
+      if(distanceBetweenMeters(valid[i],valid[j])<=100){heartUids.add(valid[i].uid);heartUids.add(valid[j].uid);}
     }
   }
   const keep=new Set();
@@ -1089,7 +1090,7 @@ function updateMapMarkers(){
     status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí chia sẻ gần nhất";
     status.style.color=online?"#16a34a":"#777";
     const relation=document.createElement("div");
-    relation.textContent=heartUids.has(uid)?"❤️ Có thành viên khác cách bạn không quá 1 km":"";
+    relation.textContent=heartUids.has(uid)?"❤️ Có thành viên khác cách bạn không quá 100 m":"";
     const updated=document.createElement("div");
     updated.textContent="Cập nhật: "+(location.updatedAt?new Date(Number(location.updatedAt)).toLocaleString("vi-VN"):"không rõ");
     popup.append(name,status,relation,updated);
