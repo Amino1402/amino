@@ -153,12 +153,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .map-meeting-empty{font-size:12px;color:#777;text-align:center;padding:16px 8px}
 .map-popup-name{font-weight:bold;color:#6750a4;margin-bottom:4px}
 .amino-member-marker{background:transparent;border:0}
-.amino-member-marker-inner{display:flex;align-items:center;gap:4px;white-space:nowrap;transform:translateY(-2px)}
+.amino-member-marker-inner{display:flex;align-items:center;gap:6px;white-space:nowrap;transform:translateY(-2px)}
+.amino-member-marker-symbol-wrap{width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;border:2px solid transparent;border-radius:50%;box-sizing:border-box}
+.amino-member-marker-symbol-wrap.is-online{border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18),0 0 9px rgba(34,197,94,.55)}
 .amino-member-marker-pin{font-size:27px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
 .amino-member-marker-heart{font-size:29px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
-.amino-member-marker-name{font-size:12px;font-weight:700;color:#222;background:rgba(255,255,255,.94);border:1px solid #888;border-radius:6px;padding:2px 5px;box-shadow:0 1px 4px #0005;max-width:120px;overflow:hidden;text-overflow:ellipsis}
-.amino-member-online-dot{display:inline-block;width:8px;height:8px;min-width:8px;border-radius:50%;background:#22c55e;border:1px solid #15803d;box-shadow:0 0 0 2px #fff,0 0 5px #16a34a;vertical-align:middle;margin-left:3px}
-.amino-member-offline-dot{display:none}
+.amino-member-marker-name{font-size:12px;font-weight:700;color:#222;background:transparent;border:0;border-radius:0;padding:2px 0;box-shadow:none;text-shadow:0 1px 2px rgba(255,255,255,.95),1px 0 2px rgba(255,255,255,.85),-1px 0 2px rgba(255,255,255,.85);max-width:120px;overflow:hidden;text-overflow:ellipsis}
+
 @media(max-width:700px){#mapPage{padding:12px}#mapWorkspace{grid-template-columns:1fr}#mapContainer{height:55vh;min-height:300px}#mapMeetingPanel{height:280px;min-height:220px;max-height:360px}}
 
 @media(max-width:700px){
@@ -1076,9 +1077,9 @@ function memberMarkerIcon(memberName,isHeart,isOnline){
   const safeName=String(memberName||"Thành viên Amino").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
   const symbol=isHeart?"❤️":"🍁";
   const symbolClass=isHeart?"amino-member-marker-heart":"amino-member-marker-pin";
-  const onlineDot=isOnline?'<span class="amino-member-online-dot" title="Đang hoạt động"></span>':'';
-  const html='<div class="amino-member-marker-inner"><span class="'+symbolClass+'">'+symbol+'</span><span class="amino-member-marker-name">'+safeName+'</span>'+onlineDot+'</div>';
-  return L.divIcon({className:"amino-member-marker",html,iconSize:[165,34],iconAnchor:[14,30],popupAnchor:[0,-28]});
+  const onlineClass=isOnline?' is-online':'';
+  const html='<div class="amino-member-marker-inner"><span class="amino-member-marker-symbol-wrap'+onlineClass+'" title="'+(isOnline?'Đang hoạt động':'Ngoại tuyến')+'"><span class="'+symbolClass+'">'+symbol+'</span></span><span class="amino-member-marker-name">'+safeName+'</span></div>';
+  return L.divIcon({className:"amino-member-marker",html,iconSize:[210,40],iconAnchor:[18,30],popupAnchor:[0,-28]});
 }
 
 function pairKeyFor(a,b){return [a,b].sort().join("__");}
