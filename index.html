@@ -1,13 +1,4 @@
 
-
-
-
-
-
-1
-
-
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1599,15 +1590,20 @@ function startDiary(){
   $("diaryPhotoMonthNext").addEventListener("click",()=>{diaryPhotoCalendarMonth=new Date(diaryPhotoCalendarMonth.getFullYear(),diaryPhotoCalendarMonth.getMonth()+1,1);renderDiaryPhotoCalendar()});
   $("diaryCameraRetake").addEventListener("click",retakeDiaryPhoto);
   $("diaryCameraSave").addEventListener("click",event=>{event.preventDefault();saveCapturedDiaryPhoto();});
-  $("diaryImageViewerClose").addEventListener("click",closeDiaryCamera);
+  // Đóng riêng ảnh đang phóng to, không thoát khỏi trang nhật ký.
+  $("diaryImageViewerClose").addEventListener("click",closeDiaryImageViewer);
   $("diaryImageViewer").addEventListener("click",event=>{
-    if(event.target===$("diaryImageViewer"))closeDiaryCamera();
+    if(event.target===$("diaryImageViewer"))closeDiaryImageViewer();
   });
   document.addEventListener("keydown",event=>{
     if(event.key==="Escape"){
-      const cameraOpen=!$("diaryCameraModal").hidden;
       const viewerOpen=!$("diaryImageViewer").hidden;
-      if(cameraOpen||viewerOpen)closeDiaryCamera();
+      const cameraOpen=!$("diaryCameraModal").hidden;
+      if(viewerOpen){
+        closeDiaryImageViewer();
+      }else if(cameraOpen){
+        closeDiaryCamera();
+      }
     }
   });
 
