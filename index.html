@@ -1,14 +1,4 @@
 
-
-
-
-
-
-
-1
-
-
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1916,13 +1906,15 @@ function updateMapMarkers(){
     if(!location||!Number.isFinite(Number(location.lat))||!Number.isFinite(Number(location.lng)))continue;
     const lat=Number(location.lat),lng=Number(location.lng);
     if(lat < -90 || lat > 90 || lng < -180 || lng > 180)continue;
-    valid.push({uid,location,lat,lng,online:memberIsOnline(uid)});
+    // Chỉ coi tọa độ là đang được chia sẻ khi thiết bị hiện tại xác nhận GPS.
+    // Dữ liệu cũ không có sharing=true chỉ là vị trí đã chia sẻ trước đây.
+    valid.push({uid,location,lat,lng,online:memberIsOnline(uid),sharing:location.sharing===true});
   }
   const heartUids=new Set(),eligiblePairs={};
 
   // HIỂN THỊ KHOẢNG CÁCH GIỮA HAI THÀNH VIÊN ĐANG ONLINE
   // Chỉ tính khi cả hai đã chủ động chia sẻ GPS.
-  const onlineMembers=valid.filter(item=>item.online);
+  const onlineMembers=valid.filter(item=>item.online&&item.sharing);
   const distanceBox=$("mapDistance");
   if(onlineMembers.length>=2){
     const first=onlineMembers[0],second=onlineMembers[1];
@@ -1956,7 +1948,7 @@ function updateMapMarkers(){
   for(let i=0;i<valid.length;i++){
     for(let j=i+1;j<valid.length;j++){
       const a=valid[i],b=valid[j];
-      if(a.online&&b.online&&distanceBetweenMeters(a,b)<=100){
+      if(a.online&&a.sharing&&b.online&&b.sharing&&distanceBetweenMeters(a,b)<=100){
         heartUids.add(a.uid);heartUids.add(b.uid);
         const ordered=[a,b].sort((x,y)=>x.uid.localeCompare(y.uid));
         const first=ordered[0],second=ordered[1],key=pairKeyFor(first.uid,second.uid);
@@ -1971,7 +1963,7 @@ function updateMapMarkers(){
   syncMapMeetings(eligiblePairs);
   const keep=new Set();
   for(const item of valid){
-    const {uid,location,lat,lng,online}=item;
+    const {uid,location,lat,lng,online,sharing}=item;
     keep.add(uid);
     const marker=mapMarkers[uid]||L.marker([lat,lng]).addTo(aminoMap);
     marker.setLatLng([lat,lng]);
@@ -1979,16 +1971,19 @@ function updateMapMarkers(){
     marker.setIcon(memberMarkerIcon(memberName,heartUids.has(uid),online));
     const popup=document.createElement("div");
     const name=document.createElement("div");name.className="map-popup-name";name.textContent=memberName;
-    const status=document.createElement("div");status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí chia sẻ gần nhất";status.style.color=online?"#16a34a":"#777";
+    const status=document.createElement("div");
+    status.textContent=online?(sharing?"● Đang trực tuyến · đang chia sẻ GPS":"● Đang trực tuyến · không chia sẻ GPS, đây là vị trí cũ"):"○ Ngoại tuyến · vị trí chia sẻ gần nhất";
+    status.style.color=online?"#16a34a":"#777";
     const relation=document.createElement("div");relation.textContent=heartUids.has(uid)?"❤️ Có thành viên đang online cách bạn không quá 100 m":"";
-    const updated=document.createElement("div");updated.textContent="Cập nhật: "+(location.updatedAt?new Date(Number(location.updatedAt)).toLocaleString("vi-VN"):"không rõ");
+    const updated=document.createElement("div");updated.textContent="Lần cuối cập nhật GPS: "+(location.updatedAt?new Date(Number(location.updatedAt)).toLocaleString("vi-VN"):"không rõ");
     popup.append(name,status,relation,updated);marker.bindPopup(popup);mapMarkers[uid]=marker;
   }
   for(const [uid,marker] of Object.entries(mapMarkers)){
     if(!keep.has(uid)){aminoMap.removeLayer(marker);delete mapMarkers[uid];}
   }
   const count=valid.length;
-  $("mapStatus").textContent=count?`Đang hiển thị ${count} vị trí thành viên đã chia sẻ${heartUids.size?" · Có cặp cùng online ở gần nhau ❤️":""}.`:"Chưa có thành viên nào chia sẻ vị trí. Hãy mở bản đồ và đồng ý chia sẻ để xuất hiện.";
+  const liveCount=valid.filter(item=>item.online&&item.sharing).length;
+  $("mapStatus").textContent=count?`Đang hiển thị ${count} vị trí đã chia sẻ trước đây · ${liveCount} người đang online và chia sẻ GPS${heartUids.size?" · Có cặp cùng online ở gần nhau ❤️":""}.`:"Chưa có thành viên nào chia sẻ vị trí. Hãy mở bản đồ và đồng ý chia sẻ để xuất hiện.";
 }
 
 function startMapListeners(){
@@ -2027,20 +2022,33 @@ function openMapPage(){
   window.scrollTo({top:0,behavior:"auto"});
 }
 
+async function setMyLocationSharingStatus(isSharing){
+  if(!user||!db)return;
+  const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
+  const previous=sharedLocationsData?.[user.uid]||{};
+  // Giữ tọa độ cũ để người khác biết vị trí chia sẻ gần nhất, nhưng đánh dấu rõ không còn chia sẻ trực tiếp.
+  await set(ownLocationRef,{...previous,uid:user.uid,name:displayName||previous.name||"Thành viên Amino",
+    sharing:isSharing,sharingStatusUpdatedAt:Date.now()});
+}
+
 async function beginLocationSharing(){
   if(!user||!db||locationWatchId!==null)return;
   if(!navigator.geolocation){$("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";return;}
   if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
-    $("mapStatus").textContent="Bạn chưa chia sẻ vị trí. Các thành viên khác sẽ không thấy vị trí của bạn.";
+    try{await setMyLocationSharingStatus(false);}catch(error){console.warn("Không cập nhật được trạng thái GPS:",error);}
+    $("mapStatus").textContent="Bạn chưa chia sẻ GPS. Bản đồ chỉ giữ vị trí chia sẻ gần nhất (nếu có).";
+    updateMapMarkers();
     return;
   }
   $("mapStatus").textContent="Đang xin quyền GPS và bắt đầu chia sẻ vị trí...";
   try{
     const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
+    // Tắt trạng thái chia sẻ cũ ngay khi bắt đầu xin quyền, tránh dùng tọa độ cũ như GPS trực tiếp.
+    await setMyLocationSharingStatus(false);
     locationWatchId=navigator.geolocation.watchPosition(async position=>{
       const coords=position.coords;
       const payload={uid:user.uid,name:displayName,lat:coords.latitude,lng:coords.longitude,
-        accuracy:coords.accuracy,updatedAt:Date.now()};
+        accuracy:coords.accuracy,updatedAt:Date.now(),sharing:true,sharingStatusUpdatedAt:Date.now()};
       try{
         await set(ownLocationRef,payload);
         if(aminoMap&&!hasCenteredOnMyLocation){
@@ -2055,6 +2063,8 @@ async function beginLocationSharing(){
       const messages={1:"Bạn chưa cấp quyền truy cập vị trí.",2:"Không xác định được GPS. Hãy bật định vị.",3:"Lấy vị trí quá thời gian cho phép. Hãy thử mở lại bản đồ."};
       $("mapStatus").textContent=messages[error.code]||("Lỗi GPS: "+error.message);
       if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;}
+      try{await setMyLocationSharingStatus(false);}catch(statusError){console.warn("Không cập nhật được trạng thái GPS:",statusError);}
+      updateMapMarkers();
     },{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
     $("mapStatus").textContent="Đã bật chia sẻ vị trí. Đang chờ GPS...";
   }catch(error){
