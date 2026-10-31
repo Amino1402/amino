@@ -1,5 +1,9 @@
 
 
+1
+
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -308,7 +312,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <button id="diaryCameraRetake" type="button">Chụp lại</button>
       <button id="diaryCameraSave" type="button">Lưu ảnh</button>
     </div>
-    <small class="hint" id="diaryCameraHint">Chụp ảnh trước, sau đó mới nhập caption.</small>
+    <small class="hint" id="diaryCameraHint" hidden></small>
   </div>
 </div>
 
@@ -1021,7 +1025,7 @@ function captureDiaryPhoto(){
   $("diaryCameraCaption").hidden=false;
   $("diaryLiveActions").hidden=true;
   $("diaryCapturedActions").hidden=false;
-  $("diaryCameraHint").textContent="Nhập caption để chèn giữa ảnh (chữ trắng viền đen), rồi bấm Lưu ảnh.";
+  $("diaryCameraHint").textContent="Nhập caption để chèn giữa ảnh (chữ hồng viền đen), rồi bấm Lưu ảnh.";
 }
 function retakeDiaryPhoto(){
   diaryCapturedData=null;diaryCapturedAt=null;
@@ -1056,7 +1060,7 @@ async function saveCapturedDiaryPhoto(){
     ctx.textAlign="center";ctx.textBaseline="middle";
     ctx.font=`600 ${fontSize}px Arial`;
     ctx.lineJoin="round";ctx.lineWidth=Math.max(3,fontSize*0.16);
-    ctx.strokeStyle="#000";ctx.fillStyle="#fff";
+    ctx.strokeStyle="#000";ctx.fillStyle="#ff69b4";
     if(caption){
       const maxWidth=canvas.width*0.84;
       const words=caption.split(/\\s+/);const lines=[];let line="";
