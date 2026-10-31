@@ -839,7 +839,7 @@ function compressDiaryImage(file){
       const image=new Image();
       image.onerror=()=>reject(new Error("Ảnh không hợp lệ."));
       image.onload=()=>{
-        const maxSide=900;
+        const maxSide=720;
         const scale=Math.min(1,maxSide/Math.max(image.width,image.height));
         const canvas=document.createElement("canvas");
         canvas.width=Math.max(1,Math.round(image.width*scale));
@@ -850,11 +850,11 @@ function compressDiaryImage(file){
         context.fillRect(0,0,canvas.width,canvas.height);
         context.drawImage(image,0,0,canvas.width,canvas.height);
         let data="";
-        for(const quality of [0.62,0.5,0.38,0.28,0.2]){
+        for(const quality of [0.58,0.46,0.36,0.28,0.2,0.14,0.1]){
           data=canvas.toDataURL("image/jpeg",quality);
-          if(data.length<=260000)break;
+          if(data.length<=240000)break;
         }
-        if(data.length>300000){reject(new Error("Ảnh sau nén vẫn quá lớn. Hãy chọn ảnh khác."));return;}
+        if(data.length>280000){reject(new Error("Ảnh sau nén vẫn quá lớn để lưu an toàn vào Firebase. Hãy thử chụp lại."));return;}
         resolve(data);
       };
       image.src=reader.result;
@@ -894,17 +894,55 @@ async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
       if(requestVersion===diaryRequestVersion){
         $("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
       }
+      return true;
     }else{
       await set(entryRef,null);
       if(requestVersion===diaryRequestVersion){
         $("diarySaveStatus").textContent="Đã xóa nhật ký của bạn ✓";
       }
+      return true;
     }
   }catch(error){
     if(requestVersion===diaryRequestVersion){
       $("diarySaveStatus").textContent="Lưu thất bại: "+error.message;
     }
+    console.error("Lưu nhật ký lên Firebase thất bại:",error);
+    return false;
   }
+}
+
+async function saveCapturedPhotoToFirebase(dateKey,imageData){
+  if(!user||!db)throw new Error("Chưa kết nối Firebase. Hãy tải lại phòng chat rồi thử lại.");
+  const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
+  const now=Date.now();
+  const result=await runTransaction(entryRef,current=>{
+    const previous=current&&typeof current==="object"?current:{};
+    let oldImages=[];
+    if(Array.isArray(previous.images)){
+      oldImages=previous.images.filter(value=>typeof value==="string"&&value.startsWith("data:image/"));
+    }else if(previous.images&&typeof previous.images==="object"){
+      oldImages=Object.keys(previous.images)
+        .sort((a,b)=>Number(a)-Number(b))
+        .map(key=>previous.images[key])
+        .filter(value=>typeof value==="string"&&value.startsWith("data:image/"));
+    }
+    return {
+      uid:user.uid,name:displayName,
+      text:typeof previous.text==="string"?previous.text:"",
+      images:[...oldImages,imageData],
+      createdAt:Number(previous.createdAt)||Number(previous.updatedAt)||now,
+      updatedAt:now
+    };
+  },{applyLocally:false});
+  if(!result.committed)throw new Error("Firebase không xác nhận giao dịch lưu ảnh.");
+  const saved=result.snapshot.val();
+  if(!saved||!Array.isArray(saved.images)||!saved.images.includes(imageData)){
+    throw new Error("Firebase phản hồi nhưng không tìm thấy ảnh vừa lưu.");
+  }
+  publicDiaryData[user.uid]??={};
+  publicDiaryData[user.uid][dateKey.slice(0,7)]??={};
+  publicDiaryData[user.uid][dateKey]=saved;
+  return saved;
 }
 
 function scheduleDiarySave(){
@@ -1444,12 +1482,10 @@ async function saveCapturedDiaryPhoto(){
     const file=new File([blob],`amino-${Date.now()}.jpg`,{type:"image/jpeg"});
     const compressed=await compressDiaryImage(file);
     const targetDate=diaryLocalKey(diaryCapturedAt);
-    const existingEntry=getOwnEntry(targetDate);
-    const targetImages=(existingEntry?.images||[]).slice();
-    targetImages.push(compressed);
-    await saveDiaryEntry(targetDate,existingEntry?.text||"",targetImages);
+    $("diarySaveStatus").textContent="Đang tải ảnh lên Firebase...";
+    const savedEntry=await saveCapturedPhotoToFirebase(targetDate,compressed);
     if(targetDate===diarySelectedDate){
-      diaryDraftImages=targetImages.slice();
+      diaryDraftImages=(savedEntry.images||[]).slice();
       renderDiaryImagePreview();
       refreshDiaryView();
     }
@@ -1605,6 +1641,9 @@ function createPlayer(){
         else if(event.data===YT.PlayerState.PAUSED)publishPlayerState(false);
         else if(event.data===YT.PlayerState.ENDED)publishPlayerState(false);
       },
+      onAutoplayBlocked:()=>{
+        $("syncStatus").textContent="Trình duyệt đang chặn tự phát nhạc. Hãy chạm nút ▶ trong trình phát một lần để bắt đầu đồng bộ.";
+      },
       onError:event=>{
         const errors={
           2:"Video ID không hợp lệ.",5:"Lỗi trình phát HTML5.",
@@ -1620,7 +1659,6 @@ function createPlayer(){
 
 async function publishPlayerState(playing){
   if(!playerReady||!currentVideoId||!user||applyingRemoteState)return;
-  if(latestMusicState?.changedBy!==user.uid)return;
   const now=Date.now();
   const state={
     videoId:currentVideoId,
@@ -1698,7 +1736,7 @@ function startMusicSync(){
     if(!window.YT?.PlayerState)return;
     if(player.getPlayerState?.()!==YT.PlayerState.PLAYING)return;
     publishPlayerState(true);
-  },8000);
+  },4000);
 }
 
 
