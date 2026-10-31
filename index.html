@@ -487,7 +487,7 @@ function renderAminoToasts(){
     const heading=document.createElement("strong");heading.textContent=item.title;
     const body=document.createElement("span");body.textContent=item.message;
     const time=document.createElement("small");time.className="amino-toast-time";
-    time.textContent="Tự biến mất sau 12 giờ · "+new Date(item.createdAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
+    time.textContent="Đăng lúc "+new Date(item.createdAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
     copy.append(heading,body,time);
     const close=document.createElement("button");close.type="button";close.className="amino-toast-close";close.textContent="×";close.setAttribute("aria-label","Ẩn thông báo");
     close.addEventListener("click",()=>{aminoToastItems.delete(item.key);renderAminoToasts()});
@@ -501,13 +501,13 @@ function syncDiaryAminoToasts(diary){
     for(const [monthKey,entries] of Object.entries(months||{})){
       for(const [dateKey,entry] of Object.entries(entries||{})){
         if(!entry||typeof entry!=="object")continue;
-        const updatedAt=Number(entry.updatedAt)||0;
-        if(!updatedAt||now-updatedAt>=AMINO_TOAST_TTL)continue;
+        const postedAt=Number(entry.createdAt)||Number(entry.updatedAt)||0;
+        if(!postedAt||now-postedAt>=AMINO_TOAST_TTL)continue;
         const name=typeof entry.name==="string"&&entry.name.trim()?entry.name:"Một thành viên";
         const hasText=typeof entry.text==="string"&&entry.text.trim().length>0;
         const hasImages=Array.isArray(entry.images)&&entry.images.length>0;
-        if(hasText)addAminoToast(`diary:${uid}:${dateKey}:text`,"📔","Nhật ký mới",`${name} vừa đăng nhật ký ngày ${dateKey}.`,updatedAt);
-        if(hasImages)addAminoToast(`diary:${uid}:${dateKey}:image:${entry.images.length}`,"📸","Ảnh mới",`${name} vừa đăng ảnh trong nhật ký ngày ${dateKey}.`,updatedAt);
+        if(hasText)addAminoToast(`diary:${uid}:${dateKey}:text`,"📔","Nhật ký mới",`${name} vừa đăng nhật ký ngày ${dateKey}.`,postedAt);
+        if(hasImages)addAminoToast(`diary:${uid}:${dateKey}:image:${entry.images.length}`,"📸","Ảnh mới",`${name} vừa đăng ảnh trong nhật ký ngày ${dateKey}.`,postedAt);
       }
     }
   }
@@ -882,8 +882,14 @@ async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
   $("diarySaveStatus").textContent="Đang lưu...";
   try{
     if(text||safeImages.length){
-      await set(entryRef,{
-        uid:user.uid,name:displayName,text:value,images:safeImages,updatedAt:Date.now()
+      const now=Date.now();
+      await runTransaction(entryRef,current=>{
+        const previous=current&&typeof current==="object"?current:{};
+        return {
+          uid:user.uid,name:displayName,text:value,images:safeImages,
+          createdAt:Number(previous.createdAt)||Number(previous.updatedAt)||now,
+          updatedAt:now
+        };
       });
       if(requestVersion===diaryRequestVersion){
         $("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
