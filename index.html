@@ -71,10 +71,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #diaryToggle{background:#f1eaff;color:#6750a4;border:1px solid #ded2fa}
 #photoToggle{background:#fff0f6;color:#d63384;border:1px solid #ffb6d2}
 #mapToggle{background:#e8f4ff;color:#1769aa;border:1px solid #c8e3fa}
-#photoPage{margin-top:10px}
-#photoPage h2{color:#d63384}
-#photoPage p{line-height:1.6}
-#photoOpenCamera{background:#e83e8c;margin:8px 0}
 .diary-page-title{color:#6750a4;margin:12px 0}
 #diaryBack{margin-bottom:8px}
 .diary-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0;color:#6750a4}
@@ -343,12 +339,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <img id="diaryImageViewerImage" alt="Ảnh nhật ký phóng to">
 </div>
 
-<section id="photoPage" hidden>
-  <button id="photoBack" type="button">← Quay lại phòng chat</button>
-  <h2 class="diary-page-title">📸 Chụp ảnh Amino</h2>
-  <p>Chụp ảnh và lưu thẳng vào Nhật ký hôm nay. Ảnh sẽ xuất hiện trong lịch với viền hồng.</p>
-  <button id="photoOpenCamera" type="button">📷 Mở camera</button>
-  <p id="photoStatus" class="hint" aria-live="polite">Ảnh chụp sẽ tự động lưu vào Nhật ký.</p>
+<section id="photoPage" hidden aria-hidden="true">
+  <p id="photoStatus" hidden aria-live="polite"></p>
 </section>
 
 <section id="mapPage" hidden>
@@ -1120,6 +1112,9 @@ function closeDiaryCamera(){
   $("diaryCameraModal").hidden=true;
   diaryCapturedData=null;diaryCapturedAt=null;
   diaryCameraSaveDate=null;
+  $("photoPage").hidden=true;
+  $("chat").hidden=false;
+  window.scrollTo({top:0,behavior:"auto"});
 }
 async function flipDiaryCamera(){
   diaryCameraFacing=diaryCameraFacing==="environment"?"user":"environment";
@@ -1265,36 +1260,12 @@ function startDiary(){
     $("chat").hidden=true;
     $("diaryPage").hidden=true;
     $("mapPage").hidden=true;
-    $("photoPage").hidden=false;
-    const today=new Date();
-    diaryCameraSaveDate=diaryLocalKey(today);
-    diarySelectedDate=diaryCameraSaveDate;
-    diaryMonth=new Date(today.getFullYear(),today.getMonth(),1);
-    if(!diaryDataLoaded){
-      $("photoStatus").textContent="Đang tải dữ liệu Nhật ký, đợi một chút rồi bấm Mở camera nhé.";
-      return;
-    }
-    $("photoStatus").textContent="Ảnh chụp sẽ tự động lưu vào Nhật ký ngày "+diaryDateLabel(diaryCameraSaveDate)+".";
-    openDiaryCamera();
-    window.scrollTo({top:0,behavior:"auto"});
-  });
-
-  $("photoOpenCamera").addEventListener("click",()=>{
-    if(!diaryDataLoaded){
-      $("photoStatus").textContent="Nhật ký vẫn đang tải, thử lại sau một chút nhé.";
-      return;
-    }
-    const today=new Date();
-    diaryCameraSaveDate=diaryLocalKey(today);
-    diarySelectedDate=diaryCameraSaveDate;
-    diaryMonth=new Date(today.getFullYear(),today.getMonth(),1);
-    openDiaryCamera();
-  });
-
-  $("photoBack").addEventListener("click",()=>{
-    if(!$("diaryCameraModal").hidden)closeDiaryCamera();
     $("photoPage").hidden=true;
-    $("chat").hidden=false;
+    const today=new Date();
+    diaryCameraSaveDate=diaryLocalKey(today);
+    diarySelectedDate=diaryCameraSaveDate;
+    diaryMonth=new Date(today.getFullYear(),today.getMonth(),1);
+    openDiaryCamera();
     window.scrollTo({top:0,behavior:"auto"});
   });
 
