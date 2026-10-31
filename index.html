@@ -30,6 +30,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #status,#chatStatus{font-size:13px;color:#666}
 #chatLayout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
 #chatMain,#sidePanel{min-width:0}
+#chatMain{position:relative}
+#aminoToastStack{position:absolute;top:8px;right:8px;z-index:30;width:min(330px,calc(100% - 16px));display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.amino-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:8px;padding:10px 11px;border:1px solid rgba(255,255,255,.62);border-radius:13px;background:rgba(255,255,255,.70);backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px);box-shadow:0 5px 18px rgba(50,30,60,.16);color:#44364b;font-size:12px;line-height:1.4;animation:aminoToastIn .25s ease-out}
+.amino-toast-icon{font-size:18px;line-height:1.2;flex:0 0 auto}
+.amino-toast-copy{min-width:0;flex:1;overflow-wrap:anywhere}
+.amino-toast-copy strong{display:block;color:#8b3b70;font-size:12px;margin-bottom:2px}
+.amino-toast-time{display:block;color:#887d8d;font-size:10px;margin-top:3px}
+.amino-toast-close{border:0!important;background:transparent!important;color:#756878!important;padding:0 2px!important;font-size:17px!important;line-height:1!important;min-width:18px!important}
+@keyframes aminoToastIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 #messages{height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;padding:10px;margin:12px 0;border-radius:8px;background-image:linear-gradient(rgba(255,255,255,.25),rgba(255,255,255,.25)),url("./chat-bg.jpg");background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:local}
 .message{padding:10px;margin:8px 0;border:2px solid #e91e63;border-left-width:6px;border-radius:12px;overflow-wrap:anywhere}
 .message-header{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:5px}
@@ -255,6 +264,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </div>
   <div id="chatLayout">
     <div id="chatMain">
+      <div id="aminoToastStack" aria-live="polite" aria-label="Thông báo Amino"></div>
       <div id="messages"></div>
       <form id="composer">
         <input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
@@ -450,6 +460,72 @@ function floatHearts(){
     heart.addEventListener("animationend",()=>heart.remove(),{once:true});
   }
 }
+
+
+/* THÔNG BÁO MỜ TRONG KHUNG CHAT — TỰ HẾT HẠN SAU 12 GIỜ */
+const AMINO_TOAST_TTL=12*60*60*1000;
+const aminoToastItems=new Map();
+function addAminoToast(key,icon,title,message,createdAt){
+  const time=Number(createdAt)||Date.now();
+  const age=Date.now()-time;
+  if(age<0||age>=AMINO_TOAST_TTL||aminoToastItems.has(key))return;
+  const item={key,icon,title,message,createdAt:time,expiresAt:time+AMINO_TOAST_TTL};
+  aminoToastItems.set(key,item);
+  renderAminoToasts();
+}
+function renderAminoToasts(){
+  const stack=$("aminoToastStack");
+  if(!stack)return;
+  const now=Date.now();
+  for(const [key,item] of aminoToastItems){if(item.expiresAt<=now)aminoToastItems.delete(key);}
+  stack.replaceChildren();
+  const items=[...aminoToastItems.values()].sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+  for(const item of items){
+    const card=document.createElement("div");card.className="amino-toast";
+    const icon=document.createElement("span");icon.className="amino-toast-icon";icon.textContent=item.icon;
+    const copy=document.createElement("div");copy.className="amino-toast-copy";
+    const heading=document.createElement("strong");heading.textContent=item.title;
+    const body=document.createElement("span");body.textContent=item.message;
+    const time=document.createElement("small");time.className="amino-toast-time";
+    time.textContent="Tự biến mất sau 12 giờ · "+new Date(item.createdAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
+    copy.append(heading,body,time);
+    const close=document.createElement("button");close.type="button";close.className="amino-toast-close";close.textContent="×";close.setAttribute("aria-label","Ẩn thông báo");
+    close.addEventListener("click",()=>{aminoToastItems.delete(item.key);renderAminoToasts()});
+    card.append(icon,copy,close);stack.append(card);
+  }
+}
+function syncDiaryAminoToasts(diary){
+  const now=Date.now();
+  for(const [uid,months] of Object.entries(diary||{})){
+    if(uid===user?.uid)continue;
+    for(const [monthKey,entries] of Object.entries(months||{})){
+      for(const [dateKey,entry] of Object.entries(entries||{})){
+        if(!entry||typeof entry!=="object")continue;
+        const updatedAt=Number(entry.updatedAt)||0;
+        if(!updatedAt||now-updatedAt>=AMINO_TOAST_TTL)continue;
+        const name=typeof entry.name==="string"&&entry.name.trim()?entry.name:"Một thành viên";
+        const hasText=typeof entry.text==="string"&&entry.text.trim().length>0;
+        const hasImages=Array.isArray(entry.images)&&entry.images.length>0;
+        if(hasText)addAminoToast(`diary:${uid}:${dateKey}:text`,"📔","Nhật ký mới",`${name} vừa đăng nhật ký ngày ${dateKey}.`,updatedAt);
+        if(hasImages)addAminoToast(`diary:${uid}:${dateKey}:image:${entry.images.length}`,"📸","Ảnh mới",`${name} vừa đăng ảnh trong nhật ký ngày ${dateKey}.`,updatedAt);
+      }
+    }
+  }
+}
+function syncMapAminoToasts(records){
+  const now=Date.now();
+  for(const [key,meeting] of Object.entries(records||{})){
+    if(!meeting)continue;
+    const startedAt=Number(meeting.startedAt)||0;
+    if(!startedAt||now-startedAt>=AMINO_TOAST_TTL)continue;
+    const a=meeting.nameA||"Một thành viên",b=meeting.nameB||"một thành viên khác";
+    const status=meeting.endedAt?"đã ở gần nhau":"đang ở gần nhau";
+    addAminoToast(`near:${key}:${startedAt}`,"❤️","Có người ở gần nhau",`${a} và ${b} ${status} trên bản đồ (trong phạm vi 100 m).`,startedAt);
+  }
+}
+
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderAminoToasts()});
+setInterval(renderAminoToasts,60*1000);
 
 /* ONLINE */
 function startPresence(){
@@ -1490,6 +1566,7 @@ function startDiary(){
 
   onValue(ref(db,"diary"),snapshot=>{
     publicDiaryData=snapshot.val()||{};
+    syncDiaryAminoToasts(publicDiaryData);
     diaryDataLoaded=true;
     refreshDiaryView();
   },error=>{
@@ -1855,11 +1932,13 @@ function startMapListeners(){
   },error=>console.warn("Không đọc được trạng thái online cho bản đồ:",error));
   onValue(ref(db,"mapMeetings/active"),snapshot=>{
     activeMapMeetings=snapshot.val()||{};
+    syncMapAminoToasts(activeMapMeetings);
     renderMapMeetingHistory();
     updateMapMarkers();
   },error=>console.warn("Không đọc được các cặp đang ở gần:",error));
   onValue(ref(db,"mapMeetings/history"),snapshot=>{
     mapMeetingHistoryData=snapshot.val()||{};
+    syncMapAminoToasts(mapMeetingHistoryData);
     renderMapMeetingHistory();
   },error=>console.warn("Không đọc được lịch sử gặp nhau:",error));
 }
@@ -2155,4 +2234,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-12
