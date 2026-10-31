@@ -2,6 +2,7 @@
 
 
 
+
 1
 
 
@@ -143,6 +144,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #diaryImageViewer img{max-width:100%;max-height:88vh;object-fit:contain;touch-action:pinch-zoom}
 #diaryImageViewerClose{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:50%;font-size:24px;padding:0}
 .diary-camera-actions{display:flex;align-items:center;gap:18px;flex-wrap:nowrap;justify-content:center;position:static;min-height:76px}
+#diaryCameraSaveStatus{position:relative;z-index:8;display:block;max-width:100%;padding:9px 12px;margin:0 auto 6px;border-radius:10px;background:#fff;color:#713d00;font-size:13px;font-weight:600;text-align:center;overflow-wrap:anywhere}
+#diaryCameraSaveStatus[hidden]{display:none!important}
+#diaryCameraSave:disabled{opacity:.65;cursor:wait}
 #diaryCameraCapture{width:72px;height:72px;flex:0 0 72px;border-radius:50%;border:5px solid #fff;background:#f7a8cf;padding:0;font-size:0;box-shadow:0 0 0 3px #f7a8cf55}
 #diaryCameraClose,#diaryCameraFlip{width:46px;height:46px;flex:0 0 46px;border-radius:50%;background:#ffffff24;color:#fff;border:1px solid #ffffff88;padding:0;font-size:22px;display:inline-flex;align-items:center;justify-content:center}
 #diaryCameraClose{position:absolute;top:calc(env(safe-area-inset-top, 0px) + 16px);left:16px;z-index:4}
@@ -355,6 +359,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <button id="diaryCameraRetake" type="button">Chụp lại</button>
       <button id="diaryCameraSave" type="button">Lưu ảnh</button>
     </div>
+    <small id="diaryCameraSaveStatus" role="status" aria-live="polite" hidden></small>
     <section id="diaryCommunityView" hidden aria-label="Dải ảnh của mọi người">
       <div class="diary-strip-top"><strong>📸 Ảnh của mọi người</strong><button id="diaryCommunityBack" type="button" aria-label="Về camera">✕</button></div>
       <div id="diaryCommunityFeed"></div><small class="diary-strip-hint">Vuốt sang phải để mở lịch ảnh</small>
@@ -1432,9 +1437,25 @@ function retakeDiaryPhoto(){
   $("diaryCameraHint").hidden=true;
 }
 async function saveCapturedDiaryPhoto(){
-  if(!diaryCapturedData||!diaryCapturedAt)return;
-  $("diaryCameraSave").disabled=true;
-  $("diarySaveStatus").textContent="Đang xử lý và lưu ảnh...";
+  const cameraStatus=$("diaryCameraSaveStatus");
+  const saveButton=$("diaryCameraSave");
+  const showCameraStatus=(message)=>{
+    if(cameraStatus){
+      cameraStatus.textContent=message;
+      cameraStatus.hidden=false;
+    }
+    $("diarySaveStatus").textContent=message;
+    if(!$("photoStatus").hidden)$("photoStatus").textContent=message;
+  };
+
+  if(!diaryCapturedData||!diaryCapturedAt){
+    showCameraStatus("Chưa nhận được ảnh vừa chụp. Hãy bấm Chụp lại rồi thử lưu.");
+    return;
+  }
+  if(saveButton.disabled)return;
+
+  saveButton.disabled=true;
+  showCameraStatus("Đang xử lý ảnh...");
   try{
     const image=await new Promise((resolve,reject)=>{
       const img=new Image();
@@ -1445,6 +1466,7 @@ async function saveCapturedDiaryPhoto(){
     const canvas=document.createElement("canvas");
     canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
     const ctx=canvas.getContext("2d");
+    if(!ctx)throw new Error("Trình duyệt không tạo được vùng xử lý ảnh.");
     ctx.drawImage(image,0,0);
     const now=diaryCapturedAt;
     const caption=$("diaryCameraCaption").value.trim();
@@ -1457,7 +1479,7 @@ async function saveCapturedDiaryPhoto(){
     ctx.strokeStyle="#000";ctx.fillStyle="#ff69b4";
     if(caption){
       const maxWidth=canvas.width*0.84;
-      const words=caption.split(/\\s+/);const lines=[];let line="";
+      const words=caption.split(/\s+/);const lines=[];let line="";
       for(const word of words){
         const test=line?line+" "+word:word;
         if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;}
@@ -1466,10 +1488,10 @@ async function saveCapturedDiaryPhoto(){
       if(line)lines.push(line);
       const lineHeight=fontSize*1.25;
       const startY=canvas.height/2-(lines.length-1)*lineHeight/2;
-      lines.forEach((text,index)=>{
+      lines.forEach((lineText,index)=>{
         const y=startY+index*lineHeight;
-        ctx.strokeText(text,canvas.width/2,y,maxWidth);
-        ctx.fillText(text,canvas.width/2,y,maxWidth);
+        ctx.strokeText(lineText,canvas.width/2,y,maxWidth);
+        ctx.fillText(lineText,canvas.width/2,y,maxWidth);
       });
     }
     ctx.textAlign="right";ctx.textBaseline="bottom";
@@ -1477,35 +1499,37 @@ async function saveCapturedDiaryPhoto(){
     ctx.lineWidth=4;
     ctx.strokeText(`${timeText} · ${dateText}`,canvas.width-24,canvas.height-24);
     ctx.fillText(`${timeText} · ${dateText}`,canvas.width-24,canvas.height-24);
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.9));
-    if(!blob)throw new Error("Không tạo được ảnh.");
+
+    const blob=await new Promise((resolve,reject)=>{
+      canvas.toBlob(result=>result?resolve(result):reject(new Error("Không tạo được ảnh JPEG.")),"image/jpeg",0.9);
+    });
     const file=new File([blob],`amino-${Date.now()}.jpg`,{type:"image/jpeg"});
+    showCameraStatus("Đang nén ảnh...");
     const compressed=await compressDiaryImage(file);
     const targetDate=diaryLocalKey(diaryCapturedAt);
-    $("diarySaveStatus").textContent="Đang tải ảnh lên Firebase...";
+
+    if(!user||!db)throw new Error("Chưa kết nối Firebase. Hãy tải lại phòng chat rồi thử lại.");
+    showCameraStatus("Đang tải ảnh lên Firebase...");
     const savedEntry=await saveCapturedPhotoToFirebase(targetDate,compressed);
+
     if(targetDate===diarySelectedDate){
       diaryDraftImages=(savedEntry.images||[]).slice();
       renderDiaryImagePreview();
       refreshDiaryView();
     }
-    const savedMessage=$("diarySaveStatus").textContent;
-    if(!$("photoPage").hidden){
-      $("photoStatus").textContent=savedMessage.includes("thất bại")?"Chưa lưu được ảnh: "+savedMessage:"Đã lưu ảnh vào Nhật ký ngày "+diaryDateLabel(targetDate)+" ✓";
-    }
-    // Lưu xong thì trở lại màn hình camera trực tiếp để chụp ảnh tiếp.
+
+    const successMessage="Đã lưu ảnh vào Nhật ký ngày "+diaryDateLabel(targetDate)+" ✓";
+    showCameraStatus(successMessage);
     retakeDiaryPhoto();
-    $("diarySaveStatus").textContent="Đã lưu ảnh vào Nhật ký ngày "+diaryDateLabel(targetDate)+" ✓";
-    if(!$("photoPage").hidden){
-      $("photoStatus").textContent=$("diarySaveStatus").textContent;
-    }
+    showCameraStatus(successMessage);
   }catch(error){
-    $("diarySaveStatus").textContent="Không lưu được ảnh: "+error.message;
-    if(!$("photoPage").hidden)$("photoStatus").textContent="Không lưu được ảnh: "+error.message;
+    console.error("Lưu ảnh nhật ký thất bại:",error);
+    showCameraStatus("Không lưu được ảnh: "+(error?.message||String(error)));
   }finally{
-    $("diaryCameraSave").disabled=false;
+    saveButton.disabled=false;
   }
 }
+
 
 function startDiary(){
   if(diaryStarted)return;
@@ -1575,7 +1599,7 @@ function startDiary(){
   $("diaryPhotoMonthPrev").addEventListener("click",()=>{diaryPhotoCalendarMonth=new Date(diaryPhotoCalendarMonth.getFullYear(),diaryPhotoCalendarMonth.getMonth()-1,1);renderDiaryPhotoCalendar()});
   $("diaryPhotoMonthNext").addEventListener("click",()=>{diaryPhotoCalendarMonth=new Date(diaryPhotoCalendarMonth.getFullYear(),diaryPhotoCalendarMonth.getMonth()+1,1);renderDiaryPhotoCalendar()});
   $("diaryCameraRetake").addEventListener("click",retakeDiaryPhoto);
-  $("diaryCameraSave").addEventListener("click",saveCapturedDiaryPhoto);
+  $("diaryCameraSave").addEventListener("click",event=>{event.preventDefault();saveCapturedDiaryPhoto();});
   $("diaryImageViewerClose").addEventListener("click",closeDiaryCamera);
   $("diaryImageViewer").addEventListener("click",event=>{
     if(event.target===$("diaryImageViewer"))closeDiaryCamera();
