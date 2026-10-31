@@ -1835,7 +1835,7 @@ function memberMarkerIcon(memberName,isHeart,isOnline){
   const symbol=isHeart?"❤️":"🍁";
   const symbolClass=isHeart?"amino-member-marker-heart":"amino-member-marker-pin";
   const onlineClass=isOnline?' is-online':'';
-  const html='<div class="amino-member-marker-inner"><span class="amino-member-marker-symbol-wrap'+onlineClass+'" title="'+(isOnline?'Đang hoạt động':'Ngoại tuyến')+'"><span class="'+symbolClass+'">'+symbol+'</span></span><span class="amino-member-marker-name" style="color:#fff!important;-webkit-text-fill-color:#fff!important;-webkit-text-stroke:1px #000;paint-order:stroke fill;background:transparent!important;text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000">'+safeName+'</span></div>';
+  const html='<div class="amino-member-marker-inner"><span class="amino-member-marker-symbol-wrap'+onlineClass+'" title="'+(isOnline?'Đang cập nhật vị trí GPS':'Không cập nhật vị trí GPS')+'"><span class="'+symbolClass+'">'+symbol+'</span></span><span class="amino-member-marker-name" style="color:#fff!important;-webkit-text-fill-color:#fff!important;-webkit-text-stroke:1px #000;paint-order:stroke fill;background:transparent!important;text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000">'+safeName+'</span></div>';
   return L.divIcon({className:"amino-member-marker",html,iconSize:[210,40],iconAnchor:[18,30],popupAnchor:[0,-28]});
 }
 
@@ -1978,7 +1978,7 @@ function updateMapMarkers(){
     const marker=mapMarkers[uid]||L.marker([lat,lng]).addTo(aminoMap);
     marker.setLatLng([lat,lng]);
     const memberName=location.name||presenceForMap?.[uid]?.name||"Thành viên Amino";
-    marker.setIcon(memberMarkerIcon(memberName,heartUids.has(uid),online));
+    marker.setIcon(memberMarkerIcon(memberName,heartUids.has(uid),online&&sharing));
     const popup=document.createElement("div");
     const name=document.createElement("div");name.className="map-popup-name";name.textContent=memberName;
     const status=document.createElement("div");
@@ -2326,7 +2326,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-
-
-
-123
