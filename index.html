@@ -1,4 +1,14 @@
 
+
+
+
+
+
+
+1
+
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -2059,7 +2069,7 @@ async function beginLocationSharing(){
       }catch(error){
         $("mapStatus").textContent="Không lưu được vị trí công khai: "+error.message+". Kiểm tra Firebase Rules.";
       }
-    },error=>{
+    },async error=>{
       const messages={1:"Bạn chưa cấp quyền truy cập vị trí.",2:"Không xác định được GPS. Hãy bật định vị.",3:"Lấy vị trí quá thời gian cho phép. Hãy thử mở lại bản đồ."};
       $("mapStatus").textContent=messages[error.code]||("Lỗi GPS: "+error.message);
       if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;}
@@ -2316,3 +2326,7 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+
+
+
+123
