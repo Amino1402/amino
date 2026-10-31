@@ -1,4 +1,14 @@
 
+
+
+
+
+
+
+1
+
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1508,10 +1518,9 @@ async function saveCapturedDiaryPhoto(){
       refreshDiaryView();
     }
 
-    const successMessage="Đã lưu ảnh vào Nhật ký ngày "+diaryDateLabel(targetDate)+" ✓";
-    showCameraStatus(successMessage);
+    // Lưu thành công thì chỉ trở về màn hình chụp, không hiện thông báo dư thừa.
+    if(cameraStatus){cameraStatus.textContent="";cameraStatus.hidden=true;}
     retakeDiaryPhoto();
-    showCameraStatus(successMessage);
   }catch(error){
     console.error("Lưu ảnh nhật ký thất bại:",error);
     showCameraStatus("Không lưu được ảnh: "+(error?.message||String(error)));
