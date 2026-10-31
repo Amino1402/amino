@@ -1266,7 +1266,7 @@ function openMapPage(){
 async function beginLocationSharing(){
   if(!user||!db||locationWatchId!==null)return;
   if(!navigator.geolocation){$("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";return;}
-  if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
+  if(!window.confirm("Bạn đồng ý truy cập GPS của mình trên bản đồ Amino chứ?")){
     $("mapStatus").textContent="Bạn chưa chia sẻ vị trí. Các thành viên khác sẽ không thấy vị trí của bạn.";
     return;
   }
