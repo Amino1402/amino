@@ -151,14 +151,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .map-meeting-live{color:#15803d;font-weight:bold}
 .map-meeting-muted{color:#777}
 .map-meeting-empty{font-size:12px;color:#777;text-align:center;padding:16px 8px}
-.map-popup-name{font-weight:bold;color:#6750a4;margin-bottom:4px}
+.map-popup-name{font-weight:bold;color:#000!important;-webkit-text-fill-color:#000!important;margin-bottom:4px}
 .amino-member-marker{background:transparent;border:0}
 .amino-member-marker-inner{display:flex;align-items:center;gap:6px;white-space:nowrap;transform:translateY(-2px)}
 .amino-member-marker-symbol-wrap{width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;border:2px solid transparent;border-radius:50%;box-sizing:border-box}
 .amino-member-marker-symbol-wrap.is-online{border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18),0 0 9px rgba(34,197,94,.55)}
 .amino-member-marker-pin{font-size:27px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
 .amino-member-marker-heart{font-size:29px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
-.amino-member-marker-name{font-size:12px;font-weight:700;color:#000;background:transparent;border:0;border-radius:0;padding:2px 0;box-shadow:none;text-shadow:0 1px 2px rgba(255,255,255,.95),1px 0 2px rgba(255,255,255,.85),-1px 0 2px rgba(255,255,255,.85);max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.amino-member-marker-name{font-size:12px;font-weight:700;color:#fff!important;-webkit-text-fill-color:#fff!important;-webkit-text-stroke:1px #000;paint-order:stroke fill;background:transparent!important;border:0;border-radius:0;padding:2px 0;box-shadow:none;text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 
 @media(max-width:700px){#mapPage{padding:12px}#mapWorkspace{grid-template-columns:1fr}#mapContainer{height:55vh;min-height:300px}#mapMeetingPanel{height:280px;min-height:220px;max-height:360px}}
 
@@ -1078,7 +1078,7 @@ function memberMarkerIcon(memberName,isHeart,isOnline){
   const symbol=isHeart?"❤️":"🍁";
   const symbolClass=isHeart?"amino-member-marker-heart":"amino-member-marker-pin";
   const onlineClass=isOnline?' is-online':'';
-  const html='<div class="amino-member-marker-inner"><span class="amino-member-marker-symbol-wrap'+onlineClass+'" title="'+(isOnline?'Đang hoạt động':'Ngoại tuyến')+'"><span class="'+symbolClass+'">'+symbol+'</span></span><span class="amino-member-marker-name">'+safeName+'</span></div>';
+  const html='<div class="amino-member-marker-inner"><span class="amino-member-marker-symbol-wrap'+onlineClass+'" title="'+(isOnline?'Đang hoạt động':'Ngoại tuyến')+'"><span class="'+symbolClass+'">'+symbol+'</span></span><span class="amino-member-marker-name" style="color:#fff!important;-webkit-text-fill-color:#fff!important;-webkit-text-stroke:1px #000;paint-order:stroke fill;background:transparent!important;text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000">'+safeName+'</span></div>';
   return L.divIcon({className:"amino-member-marker",html,iconSize:[210,40],iconAnchor:[18,30],popupAnchor:[0,-28]});
 }
 
