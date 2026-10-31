@@ -348,8 +348,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <div class="diary-strip-top"><strong>📸 Ảnh của mọi người</strong><button id="diaryCommunityBack" type="button" aria-label="Về camera">✕</button></div>
       <div id="diaryCommunityFeed"></div><small class="diary-strip-hint">Vuốt sang phải để mở lịch ảnh</small>
     </section>
-    <section id="diaryPhotoCalendarView" hidden aria-label="Lịch ảnh cộng đồng">
-      <div class="diary-strip-top"><button id="diaryCalendarBack" type="button">‹ Camera</button><strong>🗓️ Lịch ảnh</strong><button id="diaryPhotoCalendarClose" type="button" aria-label="Đóng">✕</button></div>
+    <section id="diaryPhotoCalendarView" hidden aria-label="Lịch ảnh của tôi">
+      <div class="diary-strip-top"><button id="diaryCalendarBack" type="button">‹ Camera</button><strong>🗓️ Lịch ảnh của tôi</strong><button id="diaryPhotoCalendarClose" type="button" aria-label="Đóng">✕</button></div>
       <div class="diary-photo-month"><button id="diaryPhotoMonthPrev" type="button">‹</button><strong id="diaryPhotoMonthTitle"></strong><button id="diaryPhotoMonthNext" type="button">›</button></div>
       <div class="diary-photo-weekdays"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
       <div id="diaryPhotoCalendarGrid"></div><div id="diaryPhotoDayTitle">Chọn một ngày để xem ảnh</div><div id="diaryPhotoDayImages"></div>
@@ -1125,7 +1125,8 @@ function renderDiaryCommunityFeed(){
   });
 }
 function renderDiaryPhotoCalendar(){
-  const photos=getAllDiaryPhotos(false);
+  // Lịch riêng của người đang đăng nhập; dải cộng đồng vẫn hiển thị ảnh của tất cả mọi người.
+  const photos=getAllDiaryPhotos(true);
   const dates=new Set(photos.map(p=>p.dateKey));
   const year=diaryPhotoCalendarMonth.getFullYear(),month=diaryPhotoCalendarMonth.getMonth();
   $("diaryPhotoMonthTitle").textContent=diaryPhotoCalendarMonth.toLocaleDateString("vi-VN",{month:"long",year:"numeric"});
@@ -1141,7 +1142,7 @@ function renderDiaryPhotoCalendar(){
 }
 function selectDiaryPhotoCalendarDay(key){diaryPhotoCalendarSelected=key;renderDiaryPhotoCalendar();}
 function renderDiaryPhotoDayImages(){
-  const photos=getAllDiaryPhotos(false).filter(p=>p.dateKey===diaryPhotoCalendarSelected);
+  const photos=getAllDiaryPhotos(true).filter(p=>p.dateKey===diaryPhotoCalendarSelected);
   $("diaryPhotoDayTitle").textContent=diaryPhotoCalendarSelected?diaryDateLabel(diaryPhotoCalendarSelected)+" · "+photos.length+" ảnh":"Chọn một ngày để xem ảnh";
   const wrap=$("diaryPhotoDayImages");wrap.replaceChildren();
   photos.forEach(item=>{const card=document.createElement("div");card.className="diary-photo-thumb";const img=document.createElement("img");img.src=item.src;img.alt="Ảnh của "+item.name;img.loading="lazy";img.title=item.name;img.addEventListener("click",()=>openDiaryImageViewer(item.src));const name=document.createElement("div");name.textContent=item.name;card.append(img,name);wrap.append(card)});
