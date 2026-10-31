@@ -2045,7 +2045,6 @@ async function beginLocationSharing(){
   if(!user||!db||locationWatchId!==null)return;
   if(!navigator.geolocation){$("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";return;}
   if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
-    try{await setMyLocationSharingStatus(false);}catch(error){console.warn("Không cập nhật được trạng thái GPS:",error);}
     $("mapStatus").textContent="Bạn chưa chia sẻ GPS. Bản đồ chỉ giữ vị trí chia sẻ gần nhất (nếu có).";
     updateMapMarkers();
     return;
@@ -2054,7 +2053,7 @@ async function beginLocationSharing(){
   try{
     const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
     // Tắt trạng thái chia sẻ cũ ngay khi bắt đầu xin quyền, tránh dùng tọa độ cũ như GPS trực tiếp.
-    await setMyLocationSharingStatus(false);
+  
     locationWatchId=navigator.geolocation.watchPosition(async position=>{
       const coords=position.coords;
       const payload={uid:user.uid,name:displayName,lat:coords.latitude,lng:coords.longitude,
