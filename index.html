@@ -188,7 +188,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <p id="welcome"></p>
   <div id="diaryToolbar">
     <button id="diaryToggle" type="button" aria-label="Mở trang nhật ký" title="Nhật ký công khai">📅</button>
-    <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">📍</button>
+    <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">🗺️</button>
   </div>
   <div id="chatLayout">
     <div id="chatMain">
@@ -270,7 +270,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <section id="mapPage" hidden>
   <button id="mapBack" type="button">← Quay lại phòng chat</button>
-  <h2>📍 Bản đồ Amino</h2>
+  <h2>🗺️ Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
   <div id="mapWorkspace">
     <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
@@ -870,7 +870,7 @@ function startDiary(){
       $("diarySaveStatus").textContent="Ngày này chưa có nhật ký của bạn.";
       return;
     }
-    if(!window.confirm("Mày có chắc muốn xóa nhật ký của mình trong ngày này không?"))return;
+    if(!window.confirm("Cậu có chắc muốn xóa nhật ký của mình trong ngày này không?"))return;
     $("diaryText").value="";
     await saveDiaryEntry(diarySelectedDate,"");
     refreshDiaryView();
@@ -1069,7 +1069,7 @@ function distanceBetweenMeters(a,b){
 
 function memberMarkerIcon(memberName,isHeart){
   const safeName=String(memberName||"Thành viên Amino").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
-  const symbol=isHeart?"❤️":"📍";
+  const symbol=isHeart?"❤️":"🍁";
   const symbolClass=isHeart?"amino-member-marker-heart":"amino-member-marker-pin";
   const html='<div class="amino-member-marker-inner"><span class="'+symbolClass+'">'+symbol+'</span><span class="amino-member-marker-name">'+safeName+'</span></div>';
   return L.divIcon({className:"amino-member-marker",html,iconSize:[150,34],iconAnchor:[14,30],popupAnchor:[0,-28]});
