@@ -157,6 +157,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .amino-member-marker-pin{font-size:27px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
 .amino-member-marker-heart{font-size:29px;line-height:30px;filter:drop-shadow(0 2px 2px #555)}
 .amino-member-marker-name{font-size:12px;font-weight:700;color:#222;background:rgba(255,255,255,.94);border:1px solid #888;border-radius:6px;padding:2px 5px;box-shadow:0 1px 4px #0005;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.amino-member-online-dot{display:inline-block;width:8px;height:8px;min-width:8px;border-radius:50%;background:#22c55e;border:1px solid #15803d;box-shadow:0 0 0 2px #fff,0 0 5px #16a34a;vertical-align:middle;margin-left:3px}
+.amino-member-offline-dot{display:none}
 @media(max-width:700px){#mapPage{padding:12px}#mapWorkspace{grid-template-columns:1fr}#mapContainer{height:55vh;min-height:300px}#mapMeetingPanel{height:280px;min-height:220px;max-height:360px}}
 
 @media(max-width:700px){
@@ -1070,12 +1072,13 @@ function distanceBetweenMeters(a,b){
   return 6371000*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
-function memberMarkerIcon(memberName,isHeart){
+function memberMarkerIcon(memberName,isHeart,isOnline){
   const safeName=String(memberName||"Thành viên Amino").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
   const symbol=isHeart?"❤️":"🍁";
   const symbolClass=isHeart?"amino-member-marker-heart":"amino-member-marker-pin";
-  const html='<div class="amino-member-marker-inner"><span class="'+symbolClass+'">'+symbol+'</span><span class="amino-member-marker-name">'+safeName+'</span></div>';
-  return L.divIcon({className:"amino-member-marker",html,iconSize:[150,34],iconAnchor:[14,30],popupAnchor:[0,-28]});
+  const onlineDot=isOnline?'<span class="amino-member-online-dot" title="Đang hoạt động"></span>':'';
+  const html='<div class="amino-member-marker-inner"><span class="'+symbolClass+'">'+symbol+'</span><span class="amino-member-marker-name">'+safeName+'</span>'+onlineDot+'</div>';
+  return L.divIcon({className:"amino-member-marker",html,iconSize:[165,34],iconAnchor:[14,30],popupAnchor:[0,-28]});
 }
 
 function pairKeyFor(a,b){return [a,b].sort().join("__");}
@@ -1215,7 +1218,7 @@ function updateMapMarkers(){
     const marker=mapMarkers[uid]||L.marker([lat,lng]).addTo(aminoMap);
     marker.setLatLng([lat,lng]);
     const memberName=location.name||presenceForMap?.[uid]?.name||"Thành viên Amino";
-    marker.setIcon(memberMarkerIcon(memberName,heartUids.has(uid)));
+    marker.setIcon(memberMarkerIcon(memberName,heartUids.has(uid),online));
     const popup=document.createElement("div");
     const name=document.createElement("div");name.className="map-popup-name";name.textContent=memberName;
     const status=document.createElement("div");status.textContent=online?"● Đang trực tuyến":"○ Ngoại tuyến - vị trí chia sẻ gần nhất";status.style.color=online?"#16a34a":"#777";
@@ -1266,7 +1269,7 @@ function openMapPage(){
 async function beginLocationSharing(){
   if(!user||!db||locationWatchId!==null)return;
   if(!navigator.geolocation){$("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";return;}
-  if(!window.confirm("Bạn đồng ý truy cập GPS của mình trên bản đồ Amino chứ?")){
+  if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
     $("mapStatus").textContent="Bạn chưa chia sẻ vị trí. Các thành viên khác sẽ không thấy vị trí của bạn.";
     return;
   }
