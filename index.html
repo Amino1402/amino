@@ -1,4 +1,10 @@
 
+
+
+1
+
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -91,11 +97,32 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #diaryText{width:100%;min-height:130px;resize:vertical;border:1px solid #ddd;border-radius:9px;padding:10px;font:inherit;line-height:1.5}
 #diaryCameraModal{position:fixed;inset:0;z-index:10000;background:#000;display:flex;align-items:center;justify-content:center;padding:0}
 #diaryCameraPanel{position:relative;width:100%;height:100%;max-width:520px;background:#000;border-radius:0;padding:12px;display:flex;flex-direction:column;justify-content:center;gap:12px;overflow:hidden}
-#diaryCameraVideo{width:100%;height:100%;max-height:calc(100dvh - 130px);aspect-ratio:3/4;object-fit:cover;background:#111;border-radius:12px;cursor:crosshair;touch-action:pan-x}
+#diaryCameraVideo{width:100%;height:100%;max-height:calc(100dvh - 130px);aspect-ratio:3/4;object-fit:cover;background:#111;border-radius:12px;cursor:crosshair;touch-action:none}
 #diaryFocusIndicator{position:absolute;width:42px;height:42px;border:2px solid #ff69b4;border-radius:7px;pointer-events:none;z-index:2;box-shadow:0 0 0 1px #0008;transform:translate(-50%,-50%);animation:diaryFocusPulse .7s ease-out}
 @keyframes diaryFocusPulse{0%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:.75;transform:translate(-50%,-50%) scale(1)}}
 #diaryCameraCaption{width:100%;font:inherit}
 #diaryCapturedPreview{width:100%;max-height:58vh;object-fit:contain;background:#111;border-radius:12px}
+#diaryCommunityView,#diaryPhotoCalendarView{position:absolute;inset:0;z-index:5;background:#080808;color:#fff;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 14px;gap:10px;overflow:hidden}
+#diaryCommunityView[hidden],#diaryPhotoCalendarView[hidden]{display:none!important}
+.diary-strip-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;color:#f7a8cf}
+.diary-strip-top button,.diary-photo-month button{border:1px solid #ffffff55;background:#ffffff18;color:#fff;border-radius:22px;padding:8px 12px}
+#diaryCommunityFeed{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;display:flex;flex-direction:column;gap:12px}
+.diary-community-card{min-height:100%;flex:0 0 100%;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px}
+.diary-community-card img{width:100%;height:calc(100% - 48px);object-fit:contain;background:#111;border-radius:10px}
+.diary-community-meta{font-size:13px;color:#f7c6df;text-align:center}
+.diary-strip-hint{color:#bbb;text-align:center;font-size:11px}
+.diary-photo-month{display:flex;align-items:center;justify-content:space-between;color:#fff}
+.diary-photo-weekdays,#diaryPhotoCalendarGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
+.diary-photo-weekdays{font-size:11px;color:#bbb}
+.diary-photo-day{aspect-ratio:1;border-radius:50%;background:#242424;color:#fff;border:1px solid transparent;padding:0;position:relative}
+.diary-photo-day.has-photos{border:2px solid #facc15;color:#fff}
+.diary-photo-day.selected{background:#facc15;color:#171717;font-weight:bold}
+.diary-photo-day.empty{visibility:hidden}
+#diaryPhotoDayTitle{font-size:13px;color:#f7c6df;text-align:center}
+#diaryPhotoDayImages{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:7px}
+#diaryPhotoDayImages img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:7px;background:#222}
+.diary-photo-thumb{min-width:0;text-align:center;color:#f7c6df;font-size:10px;overflow-wrap:anywhere}
+.diary-photo-thumb img{display:block}
 #diaryCameraGallery{position:absolute;inset:0;z-index:5;background:#080808;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px;color:#fff}
 #diaryCameraGallery[hidden]{display:none!important}
 #diaryCameraGalleryImage{max-width:100%;max-height:76%;object-fit:contain;touch-action:none}
@@ -317,15 +344,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <button id="diaryCameraRetake" type="button">Chụp lại</button>
       <button id="diaryCameraSave" type="button">Lưu ảnh</button>
     </div>
-    <div id="diaryCameraGallery" hidden>
-      <div id="diaryCameraGalleryTop">
-        <strong>📸 Ảnh đã chụp</strong>
-        <button id="diaryCameraGalleryClose" type="button">Quay lại camera</button>
-      </div>
-      <img id="diaryCameraGalleryImage" alt="Ảnh đã chụp trong nhật ký">
-      <div id="diaryCameraGalleryDate"></div>
-      <small>Vuốt lên/xuống để chuyển ảnh · Vuốt xuống từ camera để xem ảnh của mọi người</small>
-    </div>
+    <section id="diaryCommunityView" hidden aria-label="Dải ảnh của mọi người">
+      <div class="diary-strip-top"><strong>📸 Ảnh của mọi người</strong><button id="diaryCommunityBack" type="button" aria-label="Về camera">✕</button></div>
+      <div id="diaryCommunityFeed"></div><small class="diary-strip-hint">Vuốt sang phải để mở lịch ảnh</small>
+    </section>
+    <section id="diaryPhotoCalendarView" hidden aria-label="Lịch ảnh cộng đồng">
+      <div class="diary-strip-top"><button id="diaryCalendarBack" type="button">‹ Camera</button><strong>🗓️ Lịch ảnh</strong><button id="diaryPhotoCalendarClose" type="button" aria-label="Đóng">✕</button></div>
+      <div class="diary-photo-month"><button id="diaryPhotoMonthPrev" type="button">‹</button><strong id="diaryPhotoMonthTitle"></strong><button id="diaryPhotoMonthNext" type="button">›</button></div>
+      <div class="diary-photo-weekdays"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
+      <div id="diaryPhotoCalendarGrid"></div><div id="diaryPhotoDayTitle">Chọn một ngày để xem ảnh</div><div id="diaryPhotoDayImages"></div>
+    </section>
+    <div id="diaryCameraGallery" hidden></div>
     <small class="hint" id="diaryCameraHint" hidden></small>
   </div>
 </div>
@@ -556,6 +585,9 @@ let diaryCameraGalleryItems=[];
 let diaryCameraGalleryIndex=0;
 let diaryCameraGalleryTouchY=null;
 let diaryCameraSwipeSuppressFocusUntil=0;
+let diaryPhotoCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+let diaryPhotoCalendarSelected="";
+let diaryGestureStart=null;
 let diaryStarted=false;
 let diaryRequestVersion=0;
 let activeDiaryVisitRef=null;
@@ -1062,22 +1094,86 @@ function handleDiaryGalleryTouchEnd(event){
   diaryCameraGalleryTouchY=null;
   if(Math.abs(delta)>45)moveDiaryCameraGallery(delta>0?1:-1);
 }
+function showDiaryCommunity(){
+  renderDiaryCommunityFeed();
+  $("diaryCommunityView").hidden=false;
+  $("diaryPhotoCalendarView").hidden=true;
+  $("diaryCameraGallery").hidden=true;
+}
+function showDiaryCamera(){
+  $("diaryCommunityView").hidden=true;
+  $("diaryPhotoCalendarView").hidden=true;
+  $("diaryCameraGallery").hidden=true;
+}
+function renderDiaryCommunityFeed(){
+  const feed=$("diaryCommunityFeed");
+  feed.replaceChildren();
+  const photos=getAllDiaryPhotos(false);
+  if(!photos.length){
+    const empty=document.createElement("p");
+    empty.textContent="Chưa có ai đăng ảnh.";
+    empty.style.cssText="text-align:center;color:#bbb;margin:auto";
+    feed.append(empty);return;
+  }
+  photos.forEach(item=>{
+    const card=document.createElement("article");card.className="diary-community-card";
+    const img=document.createElement("img");img.src=item.src;img.alt="Ảnh của "+item.name;img.loading="lazy";
+    img.addEventListener("click",()=>openDiaryImageViewer(item.src));
+    const meta=document.createElement("div");meta.className="diary-community-meta";
+    meta.textContent=item.name+" · "+diaryDateLabel(item.dateKey);
+    card.append(img,meta);feed.append(card);
+  });
+}
+function renderDiaryPhotoCalendar(){
+  const photos=getAllDiaryPhotos(false);
+  const dates=new Set(photos.map(p=>p.dateKey));
+  const year=diaryPhotoCalendarMonth.getFullYear(),month=diaryPhotoCalendarMonth.getMonth();
+  $("diaryPhotoMonthTitle").textContent=diaryPhotoCalendarMonth.toLocaleDateString("vi-VN",{month:"long",year:"numeric"});
+  const grid=$("diaryPhotoCalendarGrid");grid.replaceChildren();
+  const first=new Date(year,month,1);const offset=(first.getDay()+6)%7;const count=new Date(year,month+1,0).getDate();
+  for(let i=0;i<offset;i++){const blank=document.createElement("span");blank.className="diary-photo-day empty";grid.append(blank)}
+  for(let day=1;day<=count;day++){
+    const key=diaryLocalKey(new Date(year,month,day));const btn=document.createElement("button");btn.type="button";btn.className="diary-photo-day";btn.textContent=String(day);
+    if(dates.has(key))btn.classList.add("has-photos");if(key===diaryPhotoCalendarSelected)btn.classList.add("selected");
+    btn.addEventListener("click",()=>selectDiaryPhotoCalendarDay(key));grid.append(btn);
+  }
+  renderDiaryPhotoDayImages();
+}
+function selectDiaryPhotoCalendarDay(key){diaryPhotoCalendarSelected=key;renderDiaryPhotoCalendar();}
+function renderDiaryPhotoDayImages(){
+  const photos=getAllDiaryPhotos(false).filter(p=>p.dateKey===diaryPhotoCalendarSelected);
+  $("diaryPhotoDayTitle").textContent=diaryPhotoCalendarSelected?diaryDateLabel(diaryPhotoCalendarSelected)+" · "+photos.length+" ảnh":"Chọn một ngày để xem ảnh";
+  const wrap=$("diaryPhotoDayImages");wrap.replaceChildren();
+  photos.forEach(item=>{const card=document.createElement("div");card.className="diary-photo-thumb";const img=document.createElement("img");img.src=item.src;img.alt="Ảnh của "+item.name;img.loading="lazy";img.title=item.name;img.addEventListener("click",()=>openDiaryImageViewer(item.src));const name=document.createElement("div");name.textContent=item.name;card.append(img,name);wrap.append(card)});
+}
+function showDiaryPhotoCalendar(){
+  diaryPhotoCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+  diaryPhotoCalendarSelected="";renderDiaryPhotoCalendar();
+  $("diaryCommunityView").hidden=true;$("diaryPhotoCalendarView").hidden=false;
+}
 function handleDiaryCameraSwipeStart(event){
-  diaryCameraGalleryTouchY=event.touches?.[0]?.clientY??null;
+  const t=event.touches?.[0];if(t)diaryGestureStart={x:t.clientX,y:t.clientY,view:"camera"};
 }
 function handleDiaryCameraSwipeEnd(event){
-  if(diaryCameraGalleryTouchY===null)return;
-  const endY=event.changedTouches?.[0]?.clientY;
-  const delta=diaryCameraGalleryTouchY-(endY??diaryCameraGalleryTouchY);
-  diaryCameraGalleryTouchY=null;
-  if(Math.abs(delta)>55){
-    diaryCameraSwipeSuppressFocusUntil=Date.now()+700;
-    openDiaryCameraGallery(delta<0);
-  }
+  if(!diaryGestureStart)return;const t=event.changedTouches?.[0];if(!t){diaryGestureStart=null;return}
+  const dx=t.clientX-diaryGestureStart.x,dy=t.clientY-diaryGestureStart.y;diaryGestureStart=null;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<55)return;
+  diaryCameraSwipeSuppressFocusUntil=Date.now()+700;
+  if(Math.abs(dx)>Math.abs(dy)&&dx>55)showDiaryPhotoCalendar();
+  else if(Math.abs(dy)>Math.abs(dx)&&dy< -55)showDiaryCommunity();
+}
+function handleDiaryCommunityTouchStart(event){
+  const t=event.touches?.[0];if(t)diaryGestureStart={x:t.clientX,y:t.clientY,view:"community"};
+}
+function handleDiaryCommunityTouchEnd(event){
+  if(!diaryGestureStart)return;const t=event.changedTouches?.[0];if(!t){diaryGestureStart=null;return}
+  const dx=t.clientX-diaryGestureStart.x,dy=t.clientY-diaryGestureStart.y;diaryGestureStart=null;
+  if(Math.abs(dx)>65&&dx>0)showDiaryPhotoCalendar();
+  else if(Math.abs(dy)>65&&dy>0&&$("diaryCommunityFeed").scrollTop<=2)showDiaryCamera();
 }
 
 async function openDiaryCamera(){
-  $("diaryCameraGallery").hidden=true;
+  showDiaryCamera();
   if(!diaryCameraSaveDate)diaryCameraSaveDate=diarySelectedDate;
   if(!navigator.mediaDevices?.getUserMedia){
     const message="Trình duyệt không hỗ trợ camera. Hãy mở trang bằng HTTPS.";
@@ -1109,6 +1205,7 @@ function stopDiaryCameraStream(){
 }
 function closeDiaryCamera(){
   closeDiaryCameraGallery();
+  showDiaryCamera();
   stopDiaryCameraStream();
   $("diaryCameraModal").hidden=true;
   diaryCapturedData=null;diaryCapturedAt=null;
@@ -1313,15 +1410,13 @@ function startDiary(){
   });
   $("diaryCameraVideo").addEventListener("touchstart",handleDiaryCameraSwipeStart,{passive:true});
   $("diaryCameraVideo").addEventListener("touchend",handleDiaryCameraSwipeEnd,{passive:true});
-  $("diaryCameraGalleryClose").addEventListener("click",closeDiaryCameraGallery);
-  $("diaryCameraGalleryImage").addEventListener("touchstart",handleDiaryGalleryTouchStart,{passive:true});
-  $("diaryCameraGalleryImage").addEventListener("touchend",handleDiaryGalleryTouchEnd,{passive:true});
-  $("diaryCameraGallery").addEventListener("touchstart",event=>{
-    if(event.target!==$("diaryCameraGalleryImage"))handleDiaryGalleryTouchStart(event);
-  },{passive:true});
-  $("diaryCameraGallery").addEventListener("touchend",event=>{
-    if(event.target!==$("diaryCameraGalleryImage"))handleDiaryGalleryTouchEnd(event);
-  },{passive:true});
+  $("diaryCommunityView").addEventListener("touchstart",handleDiaryCommunityTouchStart,{passive:true});
+  $("diaryCommunityView").addEventListener("touchend",handleDiaryCommunityTouchEnd,{passive:true});
+  $("diaryCommunityBack").addEventListener("click",showDiaryCamera);
+  $("diaryCalendarBack").addEventListener("click",showDiaryCamera);
+  $("diaryPhotoCalendarClose").addEventListener("click",showDiaryCamera);
+  $("diaryPhotoMonthPrev").addEventListener("click",()=>{diaryPhotoCalendarMonth=new Date(diaryPhotoCalendarMonth.getFullYear(),diaryPhotoCalendarMonth.getMonth()-1,1);renderDiaryPhotoCalendar()});
+  $("diaryPhotoMonthNext").addEventListener("click",()=>{diaryPhotoCalendarMonth=new Date(diaryPhotoCalendarMonth.getFullYear(),diaryPhotoCalendarMonth.getMonth()+1,1);renderDiaryPhotoCalendar()});
   $("diaryCameraRetake").addEventListener("click",retakeDiaryPhoto);
   $("diaryCameraSave").addEventListener("click",saveCapturedDiaryPhoto);
   $("diaryImageViewerClose").addEventListener("click",closeDiaryImageViewer);
