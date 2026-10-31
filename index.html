@@ -3,6 +3,7 @@
 
 
 
+
 1
 
 
@@ -892,7 +893,6 @@ async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
         const previous=current&&typeof current==="object"?current:{};
         return {
           uid:user.uid,name:displayName,text:value,images:safeImages,
-          createdAt:Number(previous.createdAt)||Number(previous.updatedAt)||now,
           updatedAt:now
         };
       });
@@ -935,7 +935,6 @@ async function saveCapturedPhotoToFirebase(dateKey,imageData){
       uid:user.uid,name:displayName,
       text:typeof previous.text==="string"?previous.text:"",
       images:[...oldImages,imageData],
-      createdAt:Number(previous.createdAt)||Number(previous.updatedAt)||now,
       updatedAt:now
     };
   },{applyLocally:false});
