@@ -1958,7 +1958,7 @@ function updateMapMarkers(){
   for(let i=0;i<valid.length;i++){
     for(let j=i+1;j<valid.length;j++){
       const a=valid[i],b=valid[j];
-      if(a.online&&a.sharing&&b.online&&b.sharing&&distanceBetweenMeters(a,b)<=100){
+      if(a.sharing&&b.sharing&&distanceBetweenMeters(a,b)<=100){
         heartUids.add(a.uid);heartUids.add(b.uid);
         const ordered=[a,b].sort((x,y)=>x.uid.localeCompare(y.uid));
         const first=ordered[0],second=ordered[1],key=pairKeyFor(first.uid,second.uid);
