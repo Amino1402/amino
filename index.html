@@ -2032,13 +2032,17 @@ async function setMyLocationSharingStatus(isSharing){
 }
 
 async function beginLocationSharing(){
-  if(!user||!db||locationWatchId!==null)return;
-  if(!navigator.geolocation){$("mapStatus").textContent="Trình duyệt này không hỗ trợ GPS.";return;}
-  if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
-    $("mapStatus").textContent="Bạn chưa chia sẻ GPS. Bản đồ chỉ giữ vị trí chia sẻ gần nhất (nếu có).";
-    updateMapMarkers();
-    return;
+ if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
+  try{
+    await setMyLocationSharingStatus(false);
+  }catch(error){
+    console.warn("Không cập nhật được trạng thái GPS:",error);
   }
+
+  $("mapStatus").textContent="Bạn chưa chia sẻ GPS. Bản đồ chỉ giữ vị trí chia sẻ gần nhất (nếu có).";
+  updateMapMarkers();
+  return;
+}
   $("mapStatus").textContent="Đang xin quyền GPS và bắt đầu chia sẻ vị trí...";
   try{
     const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
@@ -2113,6 +2117,7 @@ $("enter").addEventListener("click",async()=>{
     }
     const result=await signInAnonymously(auth);
     user=result.user;
+    await setMyLocationSharingStatus(false);
     $("login").hidden=true;
     $("chat").hidden=false;
     $("welcome").textContent="Xin chào, "+displayName+" 💜";
