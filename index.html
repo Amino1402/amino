@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -138,7 +139,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #mapActions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 #mapActions button{flex:1 1 130px}
 #stopSharing{background:#b42318}
-#mapStatus{font-size:13px;line-height:1.5;color:#6750a4;margin:8px 0}
+#mapStatus{font-size:13px;line-height:1.5;color:#6750a4;margin:8px 0}\n#mapDistance{font-size:14px;line-height:1.55;overflow-wrap:anywhere}
 #mapWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:stretch}
 #mapContainer{height:65vh;min-height:340px;max-height:650px;border-radius:12px;border:1px solid #ddd;z-index:1;min-width:0}
 #mapMeetingPanel{height:65vh;min-height:340px;max-height:650px;display:flex;flex-direction:column;border:1px solid #e1dced;border-radius:12px;background:#fcfbff;overflow:hidden;min-width:0}
@@ -272,6 +273,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <button id="mapBack" type="button">← Quay lại phòng chat</button>
   <h2>🗺️ Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
+  <div id="mapDistance" role="status" aria-live="polite" style="margin:8px 0 12px;padding:12px;border:1px solid #ded2fa;border-radius:10px;background:#faf8ff;color:#6750a4;font-weight:bold">📍 Khoảng cách sẽ hiện khi cả hai cùng online và bật chia sẻ vị trí.</div>
   <div id="mapWorkspace">
     <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
     <aside id="mapMeetingPanel" aria-label="Lịch sử gặp nhau gần 100 mét">
@@ -1009,6 +1011,7 @@ function startMusicSync(){
 /* BẢN ĐỒ GPS - CÁC THÀNH VIÊN ĐỒNG Ý SẼ HIỂN THỊ CÔNG KHAI */
 let aminoMap=null;
 let mapMarkers={};
+let mapDistanceLine=null;
 let sharedLocationsData={};
 let presenceForMap={};
 let mapListenersStarted=false;
@@ -1155,6 +1158,40 @@ function updateMapMarkers(){
     valid.push({uid,location,lat,lng,online:memberIsOnline(uid)});
   }
   const heartUids=new Set(),eligiblePairs={};
+
+  // HIỂN THỊ KHOẢNG CÁCH GIỮA HAI THÀNH VIÊN ĐANG ONLINE
+  // Chỉ tính khi cả hai đã chủ động chia sẻ GPS.
+  const onlineMembers=valid.filter(item=>item.online);
+  const distanceBox=$("mapDistance");
+  if(onlineMembers.length>=2){
+    const first=onlineMembers[0],second=onlineMembers[1];
+    const meters=distanceBetweenMeters(first,second);
+    const distanceText=meters<1000
+      ?`${Math.round(meters)} mét`
+      :`${(meters/1000).toFixed(2)} km`;
+    const accuracyA=Number(first.location.accuracy);
+    const accuracyB=Number(second.location.accuracy);
+    const accuracyNote=Number.isFinite(accuracyA)&&Number.isFinite(accuracyB)
+      ?` (sai số GPS khoảng ±${Math.round(accuracyA)} m và ±${Math.round(accuracyB)} m)`
+      :"";
+    distanceBox.textContent=`📍 ${first.location.name||"Người thứ nhất"} ↔ ${second.location.name||"Người thứ hai"}: ${distanceText}${accuracyNote}`;
+    if(!mapDistanceLine){
+      mapDistanceLine=L.polyline([[first.lat,first.lng],[second.lat,second.lng]],{
+        color:"#e91e63",weight:4,opacity:.8,dashArray:"8 8"
+      }).addTo(aminoMap);
+    }else{
+      mapDistanceLine.setLatLngs([[first.lat,first.lng],[second.lat,second.lng]]);
+    }
+  }else{
+    distanceBox.textContent=onlineMembers.length===1
+      ?"📍 Mới có một người online đã chia sẻ GPS. Đang chờ người còn lại bật chia sẻ vị trí."
+      :"📍 Khoảng cách sẽ hiện khi cả hai cùng online và bật chia sẻ vị trí.";
+    if(mapDistanceLine){
+      aminoMap.removeLayer(mapDistanceLine);
+      mapDistanceLine=null;
+    }
+  }
+
   for(let i=0;i<valid.length;i++){
     for(let j=i+1;j<valid.length;j++){
       const a=valid[i],b=valid[j];
