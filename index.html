@@ -336,8 +336,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div id="diaryFocusIndicator" hidden aria-hidden="true"></div>
     <img id="diaryCapturedPreview" hidden alt="Ảnh vừa chụp">
     <input id="diaryCameraCaption" type="text" maxlength="120" placeholder="Viết caption lên ảnh..." hidden>
+    <button id="diaryCameraClose" type="button" aria-label="Đóng" title="Đóng">✕</button>
     <div class="diary-camera-actions" id="diaryLiveActions">
-      <button id="diaryCameraClose" type="button" aria-label="Đóng" title="Đóng">✕</button>
       <button id="diaryCameraCapture" type="button" aria-label="Chụp ảnh" title="Chụp ảnh"></button>
       <button id="diaryCameraFlip" type="button" aria-label="Đổi camera" title="Đổi camera">🔄</button>
     </div>
@@ -1206,23 +1206,46 @@ function stopDiaryCameraStream(){
   $("diaryCameraVideo").srcObject=null;
 }
 function closeDiaryCamera(){
-  // Đóng toàn bộ lớp giao diện camera/lịch/dải ảnh và dừng camera trước khi quay về chat.
-  closeDiaryCameraGallery();
-  $("diaryCommunityView").hidden=true;
-  $("diaryPhotoCalendarView").hidden=true;
-  $("diaryCameraGallery").hidden=true;
-  $("diaryImageViewer").hidden=true;
-  $("diaryImageViewerImage").removeAttribute("src");
-  stopDiaryCameraStream();
-  $("diaryCameraModal").hidden=true;
-  $("diaryPage").hidden=true;
-  $("mapPage").hidden=true;
-  $("photoPage").hidden=true;
-  $("chat").hidden=false;
+  // Tất cả nút X trong khu vực chụp ảnh đều thoát thẳng về phòng chat.
+  const hide=(id)=>{
+    const element=$(id);
+    if(element)element.hidden=true;
+  };
+  [
+    "diaryImageViewer",
+    "diaryCommunityView",
+    "diaryPhotoCalendarView",
+    "diaryCameraGallery",
+    "diaryCameraModal",
+    "diaryPage",
+    "mapPage",
+    "photoPage"
+  ].forEach(hide);
+
+  const viewerImage=$("diaryImageViewerImage");
+  if(viewerImage)viewerImage.removeAttribute("src");
+  const galleryImage=$("diaryCameraGalleryImage");
+  if(galleryImage)galleryImage.removeAttribute("src");
+
+  try{
+    if(diaryCameraStream){
+      diaryCameraStream.getTracks().forEach(track=>track.stop());
+      diaryCameraStream=null;
+    }
+  }catch(error){
+    console.warn("Không thể dừng camera:",error);
+  }
+  const video=$("diaryCameraVideo");
+  if(video)video.srcObject=null;
+
   diaryCapturedData=null;
   diaryCapturedAt=null;
   diaryCameraSaveDate=null;
   diaryGestureStart=null;
+  diaryCameraGalleryTouchY=null;
+
+  const chat=$("chat");
+  if(chat)chat.hidden=false;
   window.scrollTo({top:0,behavior:"auto"});
 }
 async function flipDiaryCamera(){
@@ -1352,7 +1375,12 @@ async function saveCapturedDiaryPhoto(){
     if(!$("photoPage").hidden){
       $("photoStatus").textContent=savedMessage.includes("thất bại")?"Chưa lưu được ảnh: "+savedMessage:"Đã lưu ảnh vào Nhật ký ngày "+diaryDateLabel(targetDate)+" ✓";
     }
-    closeDiaryCamera();
+    // Lưu xong thì trở lại màn hình camera trực tiếp để chụp ảnh tiếp.
+    retakeDiaryPhoto();
+    $("diarySaveStatus").textContent="Đã lưu ảnh vào Nhật ký ngày "+diaryDateLabel(targetDate)+" ✓";
+    if(!$("photoPage").hidden){
+      $("photoStatus").textContent=$("diarySaveStatus").textContent;
+    }
   }catch(error){
     $("diarySaveStatus").textContent="Không lưu được ảnh: "+error.message;
     if(!$("photoPage").hidden)$("photoStatus").textContent="Không lưu được ảnh: "+error.message;
@@ -1423,21 +1451,22 @@ function startDiary(){
   $("diaryCameraVideo").addEventListener("touchend",handleDiaryCameraSwipeEnd,{passive:true});
   $("diaryCommunityView").addEventListener("touchstart",handleDiaryCommunityTouchStart,{passive:true});
   $("diaryCommunityView").addEventListener("touchend",handleDiaryCommunityTouchEnd,{passive:true});
-  $("diaryCommunityBack").addEventListener("click",showDiaryCamera);
+  $("diaryCommunityBack").addEventListener("click",closeDiaryCamera);
   $("diaryCalendarBack").addEventListener("click",showDiaryCamera);
-  $("diaryPhotoCalendarClose").addEventListener("click",showDiaryCamera);
+  $("diaryPhotoCalendarClose").addEventListener("click",closeDiaryCamera);
   $("diaryPhotoMonthPrev").addEventListener("click",()=>{diaryPhotoCalendarMonth=new Date(diaryPhotoCalendarMonth.getFullYear(),diaryPhotoCalendarMonth.getMonth()-1,1);renderDiaryPhotoCalendar()});
   $("diaryPhotoMonthNext").addEventListener("click",()=>{diaryPhotoCalendarMonth=new Date(diaryPhotoCalendarMonth.getFullYear(),diaryPhotoCalendarMonth.getMonth()+1,1);renderDiaryPhotoCalendar()});
   $("diaryCameraRetake").addEventListener("click",retakeDiaryPhoto);
   $("diaryCameraSave").addEventListener("click",saveCapturedDiaryPhoto);
-  $("diaryImageViewerClose").addEventListener("click",closeDiaryImageViewer);
+  $("diaryImageViewerClose").addEventListener("click",closeDiaryCamera);
   $("diaryImageViewer").addEventListener("click",event=>{
-    if(event.target===$("diaryImageViewer"))closeDiaryImageViewer();
+    if(event.target===$("diaryImageViewer"))closeDiaryCamera();
   });
   document.addEventListener("keydown",event=>{
     if(event.key==="Escape"){
-      if(!$("diaryImageViewer").hidden)closeDiaryImageViewer();
-      else if(!$("diaryCameraModal").hidden)closeDiaryCamera();
+      const cameraOpen=!$("diaryCameraModal").hidden;
+      const viewerOpen=!$("diaryImageViewer").hidden;
+      if(cameraOpen||viewerOpen)closeDiaryCamera();
     }
   });
 
@@ -2126,3 +2155,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+12
