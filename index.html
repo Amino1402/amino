@@ -1,4 +1,3 @@
-1
 
 
 
@@ -2139,7 +2138,7 @@ function updateMapMarkers(){
   }
   const count=valid.length;
   const liveCount=valid.filter(item=>item.online&&item.sharing).length;
-  $("mapStatus").textContent=count?`Đang hiển thị ${count} vị trí đã chia sẻ trước đây · ${liveCount} người đang online và chia sẻ GPS${heartUids.size?" · Có cặp cùng online ở gần nhau ❤️":""}.`:"Chưa có thành viên nào chia sẻ vị trí. Hãy mở bản đồ và đồng ý chia sẻ để xuất hiện.";
+  $("mapStatus").textContent="";
 }
 
 function startMapListeners(){
