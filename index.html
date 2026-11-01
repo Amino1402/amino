@@ -1,3 +1,4 @@
+1
 
 
 <!DOCTYPE html>
@@ -2114,10 +2115,12 @@ function openMapPage(){
 async function setMyLocationSharingStatus(isSharing){
   if(!user||!db)return;
   const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
-  const previous=sharedLocationsData?.[user.uid]||{};
-  // Giữ tọa độ cũ để người khác biết vị trí chia sẻ gần nhất, nhưng đánh dấu rõ không còn chia sẻ trực tiếp.
-  await set(ownLocationRef,{...previous,uid:user.uid,name:displayName||previous.name||"Thành viên Amino",
-    sharing:isSharing,sharingStatusUpdatedAt:Date.now()});
+  // Chỉ cập nhật trạng thái chia sẻ, tuyệt đối không set đè cả node.
+  // Như vậy lat/lng/updatedAt đã lưu vẫn còn nguyên khi đăng nhập lại hoặc offline.
+  await update(ownLocationRef,{
+    sharing:!!isSharing,
+    sharingStatusUpdatedAt:Date.now()
+  });
 }
 
 async function beginLocationSharing(){
