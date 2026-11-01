@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -148,7 +149,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .diary-image-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .diary-image-remove{position:absolute;top:3px;right:3px;width:24px;height:24px;padding:0;border-radius:50%;background:#b42318;color:#fff;font-size:15px;line-height:24px}
 .entry-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.entry-images img{width:calc((100% - 30px)/7);aspect-ratio:1/1;height:auto;max-height:none;object-fit:cover;border-radius:8px;border:1px solid #e7def7;cursor:zoom-in;flex:0 0 calc((100% - 30px)/7)}
+.entry-image-item{position:relative;width:calc((100% - 30px)/7);flex:0 0 calc((100% - 30px)/7);aspect-ratio:1/1}
+.entry-image-item img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid #e7def7;cursor:zoom-in;display:block}
+.entry-image-delete{position:absolute;top:3px;right:3px;width:25px;height:25px;padding:0;border-radius:50%;background:#b42318;color:#fff;font-size:17px;line-height:25px;z-index:2;box-shadow:0 1px 4px #0005}
+.entry-image-delete:hover{background:#8f1d15}
+.entry-image-delete:disabled{opacity:.55;cursor:wait}
+@media(max-width:700px){.entry-image-item{width:calc((100% - 16px)/3);flex-basis:calc((100% - 16px)/3)}}
 #diarySaveStatus{color:#777;font-size:12px;display:block;margin-top:7px}
 #diaryDelete{background:#b42318;font-size:12px;padding:9px 12px;margin-top:10px}
 #diaryGate{max-width:430px;margin:35px auto;padding:20px;border:1px solid #e7def7;border-radius:14px;background:#faf8ff;text-align:center}
@@ -405,7 +411,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
-  getDatabase,ref,push,set,onValue,query,orderByChild,
+  getDatabase,ref,push,set,onValue,get,remove,query,orderByChild,endAt,
   limitToLast,onDisconnect,serverTimestamp,update,runTransaction
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
@@ -523,6 +529,43 @@ function syncMapAminoToasts(records){
 
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderAminoToasts()});
 setInterval(renderAminoToasts,60*1000);
+
+/* TỰ XÓA THÔNG BÁO VÀO / RỜI PHÒNG SAU 10 GIỜ */
+const SYSTEM_MESSAGE_TTL = 10 * 60 * 60 * 1000;
+let systemMessageCleanupTimer = null;
+
+async function cleanupExpiredSystemMessages(){
+  if(!user || !db)return;
+  const cutoff = Date.now() - SYSTEM_MESSAGE_TTL;
+  try{
+    const oldMessagesQuery = query(
+      ref(db,"publicChat/messages"),
+      orderByChild("createdAt"),
+      endAt(cutoff)
+    );
+    const snapshot = await get(oldMessagesQuery);
+    const deletions = [];
+    snapshot.forEach(item=>{
+      const data = item.val() || {};
+      // Chỉ xóa thông báo hệ thống vào/rời phòng, không đụng tới tin nhắn chat.
+      if(data.name === "Thông báo hệ thống" &&
+         Number(data.createdAt) > 0 &&
+         Number(data.createdAt) <= cutoff){
+        deletions.push(remove(ref(db,`publicChat/messages/${item.key}`)));
+      }
+    });
+    if(deletions.length)await Promise.allSettled(deletions);
+  }catch(error){
+    console.warn("Không thể dọn thông báo hệ thống hết hạn:",error);
+  }
+}
+
+function startSystemMessageCleanup(){
+  cleanupExpiredSystemMessages();
+  if(systemMessageCleanupTimer)clearInterval(systemMessageCleanupTimer);
+  // Kiểm tra mỗi phút; thông báo hết hạn sẽ được dọn khi có người đang ở trong phòng.
+  systemMessageCleanupTimer = setInterval(cleanupExpiredSystemMessages,60*1000);
+}
 
 /* ONLINE */
 function startPresence(){
@@ -740,17 +783,100 @@ function renderPublicEntries(){
     if(entry.images.length){
       const imageRow=document.createElement("div");
       imageRow.className="entry-images";
-      for(const imageData of entry.images){
+      entry.images.forEach((imageData,index)=>{
+        const imageItem=document.createElement("div");
+        imageItem.className="entry-image-item";
         const image=document.createElement("img");
         image.src=imageData;
         image.alt="Ảnh trong nhật ký của "+entry.name;
         image.loading="lazy";
         image.addEventListener("click",()=>openDiaryImageViewer(imageData));
-        imageRow.append(image);
-      }
+        imageItem.append(image);
+
+        // Chỉ chủ nhật ký mới nhìn thấy và sử dụng được nút xóa ảnh.
+        if(own){
+          const remove=document.createElement("button");
+          remove.type="button";
+          remove.className="entry-image-delete";
+          remove.textContent="×";
+          remove.title="Xóa ảnh này";
+          remove.setAttribute("aria-label","Xóa ảnh "+(index+1));
+          remove.addEventListener("click",async()=>{
+            if(remove.disabled)return;
+            remove.disabled=true;
+            remove.textContent="…";
+            await deleteDiaryImage(diarySelectedDate,imageData);
+            if(remove.isConnected){remove.disabled=false;remove.textContent="×";}
+          });
+          imageItem.append(remove);
+        }
+        imageRow.append(imageItem);
+      });
       card.append(imageRow);
     }
     container.append(card);
+  }
+}
+
+async function deleteDiaryImage(dateKey,imageData){
+  if(!user||!db)return false;
+  if(!window.confirm("Cậu có chắc muốn xóa riêng ảnh này khỏi nhật ký không?"))return false;
+
+  const uid=user.uid;
+  const monthKey=dateKey.slice(0,7);
+  const entryRef=ref(db,`diary/${uid}/${monthKey}/${dateKey}`);
+  $("diarySaveStatus").textContent="Đang xóa ảnh...";
+
+  try{
+    const result=await runTransaction(entryRef,current=>{
+      // Không cho phép xóa nếu bản ghi không còn thuộc tài khoản hiện tại.
+      if(!current||typeof current!=="object"||current.uid!==uid)return;
+
+      let images=[];
+      if(Array.isArray(current.images)){
+        images=current.images.slice();
+      }else if(current.images&&typeof current.images==="object"){
+        images=Object.keys(current.images)
+          .sort((a,b)=>Number(a)-Number(b))
+          .map(key=>current.images[key]);
+      }
+
+      const imageIndex=images.findIndex(value=>value===imageData);
+      if(imageIndex<0)return;
+      images.splice(imageIndex,1);
+      images=images.filter(value=>typeof value==="string"&&value.startsWith("data:image/"));
+
+      const updated={...current,updatedAt:Date.now()};
+      if(images.length)updated.images=images;
+      else delete updated.images;
+
+      // Nếu ảnh cuối cùng bị xóa và phần chữ trống, xóa luôn bản ghi rỗng.
+      if(!String(updated.text||"").trim()&&!images.length)return null;
+      return updated;
+    },{applyLocally:false});
+
+    if(!result.committed){
+      $("diarySaveStatus").textContent="Không tìm thấy ảnh để xóa hoặc nhật ký đã thay đổi.";
+      return false;
+    }
+
+    publicDiaryData[uid]??={};
+    publicDiaryData[uid][monthKey]??={};
+    const saved=result.snapshot.val();
+    if(saved)publicDiaryData[uid][monthKey][dateKey]=saved;
+    else delete publicDiaryData[uid][monthKey][dateKey];
+
+    if(dateKey===diarySelectedDate){
+      diaryDraftImages=Array.isArray(saved?.images)?saved.images.slice():[];
+      renderDiaryImagePreview();
+    }
+    refreshDiaryView();
+    $("diarySaveStatus").textContent="Đã xóa ảnh khỏi nhật ký ✓";
+    return true;
+  }catch(error){
+    console.error("Xóa ảnh nhật ký thất bại:",error);
+    $("diarySaveStatus").textContent="Không xóa được ảnh: "+(error?.message||String(error));
+    return false;
   }
 }
 
@@ -2025,10 +2151,12 @@ function openMapPage(){
 async function setMyLocationSharingStatus(isSharing){
   if(!user||!db)return;
   const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
-  const previous=sharedLocationsData?.[user.uid]||{};
-  // Giữ tọa độ cũ để người khác biết vị trí chia sẻ gần nhất, nhưng đánh dấu rõ không còn chia sẻ trực tiếp.
-  await set(ownLocationRef,{...previous,uid:user.uid,name:displayName||previous.name||"Thành viên Amino",
-    sharing:isSharing,sharingStatusUpdatedAt:Date.now()});
+  // Chỉ cập nhật trạng thái chia sẻ, tuyệt đối không set đè cả node.
+  // Như vậy lat/lng/updatedAt đã lưu vẫn còn nguyên khi đăng nhập lại hoặc offline.
+  await update(ownLocationRef,{
+    sharing:!!isSharing,
+    sharingStatusUpdatedAt:Date.now()
+  });
 }
 
 async function beginLocationSharing(){
@@ -2123,6 +2251,7 @@ $("enter").addEventListener("click",async()=>{
     $("welcome").textContent="Xin chào, "+displayName+" 💜";
     if(window.YT?.Player)createPlayer();
     startPresence();
+    startSystemMessageCleanup();
     setupMapControls();
     startMapListeners();
     startTypingSync();
@@ -2320,3 +2449,5 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+
+123
