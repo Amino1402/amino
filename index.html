@@ -1,4 +1,3 @@
-1
 
 
 
@@ -467,14 +466,34 @@ function floatHearts(){
 }
 
 
-/* THÔNG BÁO NHẬT KÝ / GẶP NHAU — TỰ BIẾN MẤT SAU 2 GIÂY */
+/* THÔNG BÁO NHẬT KÝ / GẶP NHAU — HIỆN KHI VÀO PHÒNG NẾU CHƯA XEM, TỰ TẮT SAU 2 GIÂY */
 const AMINO_TOAST_TTL=2000;
 const aminoToastItems=new Map();
+let aminoSeenNotifications=null;
+let aminoSeenOwner=null;
+function getAminoSeenNotifications(){
+  const owner=user?.uid||"guest";
+  if(aminoSeenOwner!==owner){
+    aminoSeenOwner=owner;
+    try{
+      const saved=JSON.parse(localStorage.getItem("aminoSeenNotifications:"+owner)||"[]");
+      aminoSeenNotifications=new Set(Array.isArray(saved)?saved:[]);
+    }catch(error){aminoSeenNotifications=new Set();}
+  }
+  return aminoSeenNotifications;
+}
+function markAminoNotificationSeen(key){
+  const seen=getAminoSeenNotifications();
+  seen.add(key);
+  try{
+    localStorage.setItem("aminoSeenNotifications:"+(user?.uid||"guest"),JSON.stringify([...seen]));
+  }catch(error){console.warn("Không lưu được trạng thái đã xem thông báo:",error);}
+}
 function addAminoToast(key,icon,title,message,createdAt){
+  if(getAminoSeenNotifications().has(key)||aminoToastItems.has(key))return;
   const time=Number(createdAt)||Date.now();
-  const age=Date.now()-time;
-  if(age<0||age>=AMINO_TOAST_TTL||aminoToastItems.has(key))return;
-  // Bắt đầu đếm 2 giây ngay khi thông báo thực sự xuất hiện trên màn hình.
+  // Đánh dấu đã xem ngay khi thông báo được đưa lên màn hình để không hiện lại lần sau.
+  markAminoNotificationSeen(key);
   const item={key,icon,title,message,createdAt:time,expiresAt:Date.now()+AMINO_TOAST_TTL};
   aminoToastItems.set(key,item);
   renderAminoToasts();
@@ -507,14 +526,13 @@ function renderAminoToasts(){
   }
 }
 function syncDiaryAminoToasts(diary){
-  const now=Date.now();
   for(const [uid,months] of Object.entries(diary||{})){
     if(uid===user?.uid)continue;
     for(const [monthKey,entries] of Object.entries(months||{})){
       for(const [dateKey,entry] of Object.entries(entries||{})){
         if(!entry||typeof entry!=="object")continue;
         const postedAt=Number(entry.createdAt)||Number(entry.updatedAt)||0;
-        if(!postedAt||now-postedAt>=AMINO_TOAST_TTL)continue;
+        if(!postedAt)continue;
         const name=typeof entry.name==="string"&&entry.name.trim()?entry.name:"Một thành viên";
         const hasText=typeof entry.text==="string"&&entry.text.trim().length>0;
         const hasImages=Array.isArray(entry.images)&&entry.images.length>0;
@@ -525,11 +543,10 @@ function syncDiaryAminoToasts(diary){
   }
 }
 function syncMapAminoToasts(records){
-  const now=Date.now();
   for(const [key,meeting] of Object.entries(records||{})){
     if(!meeting)continue;
     const startedAt=Number(meeting.startedAt)||0;
-    if(!startedAt||now-startedAt>=AMINO_TOAST_TTL)continue;
+    if(!startedAt)continue;
     const a=meeting.nameA||"Một thành viên",b=meeting.nameB||"một thành viên khác";
     const status=meeting.endedAt?"đã ở gần nhau":"đang ở gần nhau";
     addAminoToast(`near:${key}:${startedAt}`,"❤️","Có người ở gần nhau",`${a} và ${b} ${status} trên bản đồ (trong phạm vi 100 m).`,startedAt);
