@@ -1,3 +1,5 @@
+1
+
 
 
 <!DOCTYPE html>
@@ -465,16 +467,23 @@ function floatHearts(){
 }
 
 
-/* THÔNG BÁO MỜ TRONG KHUNG CHAT — TỰ HẾT HẠN SAU 12 GIỜ */
-const AMINO_TOAST_TTL=12*60*60*1000;
+/* THÔNG BÁO NHẬT KÝ / GẶP NHAU — TỰ BIẾN MẤT SAU 2 GIÂY */
+const AMINO_TOAST_TTL=2000;
 const aminoToastItems=new Map();
 function addAminoToast(key,icon,title,message,createdAt){
   const time=Number(createdAt)||Date.now();
   const age=Date.now()-time;
   if(age<0||age>=AMINO_TOAST_TTL||aminoToastItems.has(key))return;
-  const item={key,icon,title,message,createdAt:time,expiresAt:time+AMINO_TOAST_TTL};
+  // Bắt đầu đếm 2 giây ngay khi thông báo thực sự xuất hiện trên màn hình.
+  const item={key,icon,title,message,createdAt:time,expiresAt:Date.now()+AMINO_TOAST_TTL};
   aminoToastItems.set(key,item);
   renderAminoToasts();
+  setTimeout(()=>{
+    if(aminoToastItems.get(key)===item){
+      aminoToastItems.delete(key);
+      renderAminoToasts();
+    }
+  },AMINO_TOAST_TTL);
 }
 function renderAminoToasts(){
   const stack=$("aminoToastStack");
@@ -528,7 +537,6 @@ function syncMapAminoToasts(records){
 }
 
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderAminoToasts()});
-setInterval(renderAminoToasts,60*1000);
 
 /* TỰ XÓA THÔNG BÁO VÀO / RỜI PHÒNG SAU 10 GIỜ */
 const SYSTEM_MESSAGE_TTL = 10 * 60 * 60 * 1000;
