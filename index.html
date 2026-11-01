@@ -2143,8 +2143,16 @@ function openMapPage(){
   $("mapPage").hidden=false;
   ensureAminoMap();
   startMapListeners();
+  // Listener có thể đã tải sharedLocations trước khi bản đồ được khởi tạo.
+  // Vẽ lại ngay từ dữ liệu đang lưu trong bộ nhớ khi mở trang bản đồ.
+  updateMapMarkers();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(aminoMap){
+      aminoMap.invalidateSize();
+      updateMapMarkers();
+    }
+  }));
   beginLocationSharing();
-  requestAnimationFrame(()=>requestAnimationFrame(()=>aminoMap&&aminoMap.invalidateSize()));
   window.scrollTo({top:0,behavior:"auto"});
 }
 
@@ -2449,5 +2457,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-
-123
