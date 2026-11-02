@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -333,7 +334,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <textarea id="diaryText" maxlength="10000" placeholder="Chia sẻ hôm nay của cậu thế nào nhé 💜"></textarea>
     <small id="diarySaveStatus" aria-live="polite">Nhật ký tự động lưu.</small>
     <button id="diaryDelete" type="button">Xóa nhật ký của tôi trong ngày này</button>
-    <p class="hint">Chỉ bạn mới sửa hoặc xóa được nhật ký của chính mình.</p>
+    <p class="hint">Chỉ bạn mới sửa hoặc xóa được nhật ký của chính mình. Nhật ký sẽ tự khóa chỉnh sửa lúc 01:00 sáng hôm sau (giờ Việt Nam); sau đó mọi người vẫn xem được.</p>
 
     <!-- ĐÃ CHUYỂN XUỐNG CUỐI TRANG -->
     <section id="diaryViews">
@@ -746,6 +747,22 @@ function diaryLocalKey(date){
   return `${y}-${m}-${d}`;
 }
 
+// Nhật ký của ngày D được chỉnh sửa đến 01:00 sáng ngày D+1
+// theo múi giờ Việt Nam (Asia/Ho_Chi_Minh, UTC+7).
+function diaryEditDeadline(dateKey){
+  const [year,month,day]=dateKey.split("-").map(Number);
+  const nextDay=new Date(Date.UTC(year,month-1,day+1));
+  const nextKey=nextDay.toISOString().slice(0,10);
+  return new Date(`${nextKey}T01:00:00+07:00`).getTime();
+}
+function isDiaryEditable(dateKey,now=Date.now()){
+  return !!dateKey && now < diaryEditDeadline(dateKey);
+}
+function diaryLockMessage(dateKey){
+  const deadline=diaryEditDeadline(dateKey);
+  return "Đã khóa chỉnh sửa nhật ký này từ 01:00 sáng "+new Date(deadline).toLocaleDateString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"})+". Cậu vẫn có thể xem nhật ký.";
+}
+
 function diaryDateLabel(key){
   const [y,m,d]=key.split("-").map(Number);
   return new Date(y,m-1,d).toLocaleDateString("vi-VN",{
@@ -819,7 +836,7 @@ function renderPublicEntries(){
         imageItem.append(image);
 
         // Chỉ chủ nhật ký mới nhìn thấy và sử dụng được nút xóa ảnh.
-        if(own){
+        if(own&&isDiaryEditable(diarySelectedDate)){
           const remove=document.createElement("button");
           remove.type="button";
           remove.className="entry-image-delete";
@@ -845,6 +862,10 @@ function renderPublicEntries(){
 
 async function deleteDiaryImage(dateKey,imageData){
   if(!user||!db)return false;
+  if(!isDiaryEditable(dateKey)){
+    $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+    return false;
+  }
   if(!window.confirm("Cậu có chắc muốn xóa riêng ảnh này khỏi nhật ký không?"))return false;
 
   const uid=user.uid;
@@ -854,6 +875,7 @@ async function deleteDiaryImage(dateKey,imageData){
 
   try{
     const result=await runTransaction(entryRef,current=>{
+      if(!isDiaryEditable(dateKey))return;
       // Không cho phép xóa nếu bản ghi không còn thuộc tài khoản hiện tại.
       if(!current||typeof current!=="object"||current.uid!==uid)return;
 
@@ -966,8 +988,14 @@ function renderDiaryImagePreview(){
     remove.type="button";
     remove.className="diary-image-remove";
     remove.textContent="×";
+    remove.disabled=!isDiaryEditable(diarySelectedDate);
     remove.setAttribute("aria-label","Xóa ảnh "+(index+1));
     remove.addEventListener("click",async()=>{
+      if(!isDiaryEditable(diarySelectedDate)){
+        $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+        refreshDiaryView();
+        return;
+      }
       diaryDraftImages.splice(index,1);
       renderDiaryImagePreview();
       await saveDiaryEntry(diarySelectedDate,$("diaryText").value,diaryDraftImages);
@@ -1008,12 +1036,26 @@ function refreshDiaryView(){
   if(document.activeElement!==$("diaryText")){
     $("diaryText").value=getOwnEntry(diarySelectedDate)?.text||"";
   }
+  const editable=isDiaryEditable(diarySelectedDate);
+  $("diaryText").disabled=!editable;
+  $("diaryDelete").disabled=!editable||!getOwnEntry(diarySelectedDate);
+  $("diaryText").placeholder=editable
+    ?"Chia sẻ hôm nay của cậu thế nào nhé 💜"
+    :"Đã qua 01:00 sáng hôm sau — nhật ký chỉ còn chế độ xem.";
+  if(!editable){
+    $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+  }
   renderPublicEntries();
   renderDiaryViews();
 }
 
 async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
-  if(!user||!db)return;
+  if(!user||!db)return false;
+  if(!isDiaryEditable(dateKey)){
+    $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+    if(dateKey===diarySelectedDate)refreshDiaryView();
+    return false;
+  }
   const requestVersion=++diaryRequestVersion;
   const text=value.trim();
   const safeImages=Array.isArray(images)?images:[];
@@ -1022,18 +1064,27 @@ async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
   try{
     if(text||safeImages.length){
       const now=Date.now();
-      await runTransaction(entryRef,current=>{
+      const result=await runTransaction(entryRef,current=>{
+        if(!isDiaryEditable(dateKey))return;
         const previous=current&&typeof current==="object"?current:{};
         return {
           uid:user.uid,name:displayName,text:value,images:safeImages,
           updatedAt:now
         };
-      });
+      },{applyLocally:false});
+      if(!result.committed){
+        $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+        return false;
+      }
       if(requestVersion===diaryRequestVersion){
         $("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
       }
       return true;
     }else{
+      if(!isDiaryEditable(dateKey)){
+        $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+        return false;
+      }
       await set(entryRef,null);
       if(requestVersion===diaryRequestVersion){
         $("diarySaveStatus").textContent="Đã xóa nhật ký của bạn ✓";
@@ -1051,9 +1102,11 @@ async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
 
 async function saveCapturedPhotoToFirebase(dateKey,imageData){
   if(!user||!db)throw new Error("Chưa kết nối Firebase. Hãy tải lại phòng chat rồi thử lại.");
+  if(!isDiaryEditable(dateKey))throw new Error(diaryLockMessage(dateKey));
   const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
   const now=Date.now();
   const result=await runTransaction(entryRef,current=>{
+    if(!isDiaryEditable(dateKey))return;
     const previous=current&&typeof current==="object"?current:{};
     let oldImages=[];
     if(Array.isArray(previous.images)){
@@ -1071,7 +1124,10 @@ async function saveCapturedPhotoToFirebase(dateKey,imageData){
       updatedAt:now
     };
   },{applyLocally:false});
-  if(!result.committed)throw new Error("Firebase không xác nhận giao dịch lưu ảnh.");
+  if(!result.committed){
+    if(!isDiaryEditable(dateKey))throw new Error(diaryLockMessage(dateKey));
+    throw new Error("Firebase không xác nhận giao dịch lưu ảnh.");
+  }
   const saved=result.snapshot.val();
   if(!saved||!Array.isArray(saved.images)||!saved.images.includes(imageData)){
     throw new Error("Firebase phản hồi nhưng không tìm thấy ảnh vừa lưu.");
@@ -1084,6 +1140,11 @@ async function saveCapturedPhotoToFirebase(dateKey,imageData){
 
 function scheduleDiarySave(){
   clearTimeout(diarySaveTimer);
+  if(!isDiaryEditable(diarySelectedDate)){
+    $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+    refreshDiaryView();
+    return;
+  }
   const key=diarySelectedDate;
   const value=$("diaryText").value;
   $("diarySaveStatus").textContent="Đang chờ lưu...";
@@ -1092,6 +1153,11 @@ function scheduleDiarySave(){
 
 async function savePendingDiary(){
   clearTimeout(diarySaveTimer);
+  if(!isDiaryEditable(diarySelectedDate)){
+    $("diaryText").value=getOwnEntry(diarySelectedDate)?.text||"";
+    $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+    return false;
+  }
   const value=$("diaryText").value;
   const saved=getOwnEntry(diarySelectedDate)?.text||"";
   if(value!==saved)await saveDiaryEntry(diarySelectedDate,value);
@@ -1652,6 +1718,7 @@ async function saveCapturedDiaryPhoto(){
     showCameraStatus("Đang nén ảnh...");
     const compressed=await compressDiaryImage(file);
     const targetDate=diaryLocalKey(diaryCapturedAt);
+    if(!isDiaryEditable(targetDate))throw new Error(diaryLockMessage(targetDate));
 
     if(!user||!db)throw new Error("Chưa kết nối Firebase. Hãy tải lại phòng chat rồi thử lại.");
     showCameraStatus("Đang tải ảnh lên Firebase...");
@@ -1767,6 +1834,11 @@ function startDiary(){
 
   $("diaryDelete").addEventListener("click",async()=>{
     clearTimeout(diarySaveTimer);
+    if(!isDiaryEditable(diarySelectedDate)){
+      $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+      refreshDiaryView();
+      return;
+    }
     if(!getOwnEntry(diarySelectedDate)){
       $("diarySaveStatus").textContent="Ngày này chưa có nhật ký của bạn.";
       return;
