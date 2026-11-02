@@ -201,6 +201,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .diary-view-live{color:#16a34a;font-weight:bold}
 
 /* BẢN ĐỒ GPS */
+#routeToolbar{margin:10px 0;padding:11px;border:1px solid #ded2fa;border-radius:12px;background:#faf8ff}
+#routeHint{font-size:13px;line-height:1.5;color:#59418d;margin-bottom:8px}
+#routeButtons{display:flex;flex-wrap:wrap;gap:8px}
+#routeButtons button{flex:1 1 135px;min-height:40px}
+#routePickBtn{background:#7652b5}
+#routeGoBtn{background:#15803d;font-weight:800}
+#routeStopBtn{background:#b42318}
+#routeClearBtn{background:#64748b}
+.route-destination-marker{font-size:30px;line-height:34px;text-shadow:0 2px 4px #fff}
 #mapToolbar{display:flex;justify-content:flex-end;gap:8px;margin:4px 0 8px}
 #mapToggle{width:38px;height:38px;padding:0;font-size:19px;border-radius:50%;display:grid;place-items:center;background:#e8f4ff;color:#1769aa;border:1px solid #c8e3fa}
 #mapPage{margin-top:10px}
@@ -510,6 +519,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <h2>🗺️ Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
   <div id="mapDistance" role="status" aria-live="polite" style="margin:8px 0 12px;padding:12px;border:1px solid #ded2fa;border-radius:10px;background:#faf8ff;color:#6750a4;font-weight:bold">📍 Khoảng cách sẽ hiện khi cả hai cùng online và bật chia sẻ vị trí.</div>
+  <div id="routeToolbar" aria-label="Dẫn đường">
+    <div id="routeHint">📍 Chạm nút ghim rồi chọn điểm đến trên bản đồ.</div>
+    <div id="routeButtons">
+      <button id="routePickBtn" type="button">📌 Ghim điểm đến</button>
+      <button id="routeGoBtn" type="button" hidden>▶ GO</button>
+      <button id="routeStopBtn" type="button" hidden>■ Dừng dẫn đường</button>
+      <button id="routeClearBtn" type="button" hidden>✕ Xóa lộ trình</button>
+    </div>
+  </div>
   <div id="mapWorkspace">
     <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
     <aside id="mapMeetingPanel" aria-label="Danh sách người dùng đã chia sẻ vị trí">
@@ -2157,6 +2175,10 @@ let activeMapMeetings={};
 let mapMeetingHistoryData={};
 let meetingSyncRunning=false;
 let meetingSyncQueued=false;
+// Dẫn đường xe máy: dùng tuyến đường ô tô OSM làm tuyến tham khảo.
+let routePicking=false,routeDestination=null,routeDestinationMarker=null,routeLine=null;
+let activeRoute=null,navigationWatchId=null,navigationStarted=false;
+let announcedRouteSteps=new Set(),lastNavigationPosition=null;
 
 function ensureAminoMap(){
   if(aminoMap)return;
@@ -2189,7 +2211,158 @@ function ensureAminoMap(){
   showTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
     maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   });
+  aminoMap.on("click",event=>{
+    if(!routePicking)return;
+    setRouteDestination(event.latlng);
+  });
   setTimeout(()=>aminoMap&&aminoMap.invalidateSize(),250);
+}
+
+function routeHint(message){
+  const el=$("routeHint");if(el)el.textContent=message;
+}
+function setRouteButtons(){
+  $("routeGoBtn").hidden=!activeRoute||navigationStarted;
+  $("routeStopBtn").hidden=!navigationStarted;
+  $("routeClearBtn").hidden=!activeRoute&&!routeDestination;
+  $("routePickBtn").textContent=routePicking?"Chạm bản đồ để chọn điểm":"📌 Ghim điểm đến";
+}
+function setRouteDestination(latlng){
+  routePicking=false;
+  routeDestination={lat:Number(latlng.lat),lng:Number(latlng.lng)};
+  if(routeDestinationMarker)aminoMap.removeLayer(routeDestinationMarker);
+  routeDestinationMarker=L.marker([routeDestination.lat,routeDestination.lng],{
+    icon:L.divIcon({className:"",html:'<div class="route-destination-marker">📍</div>',iconSize:[34,38],iconAnchor:[17,35]})
+  }).addTo(aminoMap).bindPopup("Điểm đến của bạn").openPopup();
+  if(routeLine){aminoMap.removeLayer(routeLine);routeLine=null;}
+  activeRoute=null;
+  setRouteButtons();
+  calculateMotorbikeRoute();
+}
+function formatRouteDistance(m){
+  return m>=1000?(m/1000).toFixed(1)+" km":Math.round(m)+" m";
+}
+function maneuverText(step){
+  const m=step.maneuver||{},type=m.type||"",modifier=m.modifier||"";
+  if(type==="arrive")return "Bạn đã đến nơi";
+  if(type==="roundabout"||type==="rotary")return "Đi vào vòng xuyến"+(m.exit?`, ra lối thứ ${m.exit}`:"");
+  if(type==="depart")return "Bắt đầu di chuyển";
+  if(type==="turn"||type==="continue"||type==="new name"||type==="merge"||type==="fork"||type==="on ramp"||type==="off ramp"){
+    const map={left:"rẽ trái",right:"rẽ phải","slight left":"chếch trái","slight right":"chếch phải","sharp left":"rẽ trái gấp","sharp right":"rẽ phải gấp",straight:"đi thẳng",uturn:"quay đầu"};
+    return map[modifier]||"tiếp tục đi";
+  }
+  if(type==="end of road")return modifier==="left"?"đến cuối đường, rẽ trái":"đến cuối đường, rẽ phải";
+  return "tiếp tục theo đường";
+}
+async function calculateMotorbikeRoute(){
+  if(!routeDestination||!navigator.geolocation){
+    routeHint("Trình duyệt không hỗ trợ GPS hoặc chưa chọn điểm đến.");return;
+  }
+  routeHint("Đang lấy vị trí GPS để tính đường đi xe máy...");
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const start=pos.coords;
+    const url=`https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${routeDestination.lng},${routeDestination.lat}?overview=full&geometries=geojson&steps=true`;
+    try{
+      const response=await fetch(url);
+      if(!response.ok)throw new Error("Máy chủ tìm đường đang bận.");
+      const data=await response.json();
+      if(data.code!=="Ok"||!data.routes?.length)throw new Error("Không tìm thấy đường phù hợp tới điểm đã ghim.");
+      const route=data.routes[0];
+      activeRoute={geometry:route.geometry,steps:route.legs?.flatMap(leg=>leg.steps||[])||[],distance:route.distance,duration:route.duration};
+      if(routeLine)aminoMap.removeLayer(routeLine);
+      routeLine=L.geoJSON(route.geometry,{style:{color:"#7c3aed",weight:6,opacity:.88}}).addTo(aminoMap);
+      const bounds=routeLine.getBounds();
+      if(routeDestinationMarker)bounds.extend(routeDestinationMarker.getLatLng());
+      aminoMap.fitBounds(bounds,{padding:[35,35]});
+      routeHint(`🛵 Tuyến tham khảo: ${formatRouteDistance(route.distance)} · khoảng ${Math.max(1,Math.round(route.duration/60))} phút. Bấm GO để bắt đầu chỉ đường bằng giọng nói.`);
+      setRouteButtons();
+    }catch(error){
+      activeRoute=null;setRouteButtons();
+      routeHint("Không tính được lộ trình: "+error.message+" Hãy thử ghim lại điểm đến hoặc kiểm tra mạng.");
+    }
+  },error=>{
+    const msg=error.code===1?"Bạn cần cấp quyền GPS để tính đường.":error.code===2?"Không lấy được vị trí GPS.":"Lấy GPS quá lâu, hãy thử lại.";
+    routeHint(msg);
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:5000});
+}
+function speakRouteInstruction(message){
+  if(!("speechSynthesis" in window))return;
+  window.speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance(message);
+  utterance.lang="vi-VN";utterance.rate=1;utterance.pitch=1;
+  window.speechSynthesis.speak(utterance);
+}
+function updateNavigationPosition(position){
+  if(!navigationStarted||!activeRoute)return;
+  const here={lat:position.coords.latitude,lng:position.coords.longitude};
+  lastNavigationPosition=here;
+  if(!window._aminoNavMarker){
+    window._aminoNavMarker=L.circleMarker([here.lat,here.lng],{radius:8,color:"#fff",weight:3,fillColor:"#2563eb",fillOpacity:1}).addTo(aminoMap);
+  }else window._aminoNavMarker.setLatLng([here.lat,here.lng]);
+  const steps=activeRoute.steps||[];
+  let nearestIndex=-1,nearestDistance=Infinity;
+  for(let i=0;i<steps.length;i++){
+    const loc=steps[i]?.maneuver?.location;
+    if(!loc)continue;
+    const d=distanceBetweenMeters(here,{lat:loc[1],lng:loc[0]});
+    if(d<nearestDistance){nearestDistance=d;nearestIndex=i;}
+  }
+  if(nearestIndex>=0){
+    // Chỉ đọc mỗi chỉ dẫn một lần, khi còn cách điểm rẽ khoảng 70 mét.
+    const nextIndex=Math.min(nearestIndex+1,steps.length-1);
+    const next=steps[nextIndex],loc=next?.maneuver?.location;
+    if(loc){
+      const d=distanceBetweenMeters(here,{lat:loc[1],lng:loc[0]});
+      if(d<85&&!announcedRouteSteps.has(nextIndex)){
+        announcedRouteSteps.add(nextIndex);
+        const instruction=maneuverText(next);
+        routeHint("🛵 "+instruction+(d>15?` · còn ${Math.round(d)} m`:""));
+        speakRouteInstruction(instruction);
+      }
+    }
+  }
+  const remaining=distanceBetweenMeters(here,routeDestination);
+  if(remaining<35){
+    routeHint("🏁 Bạn đã đến gần điểm ghim!");
+    speakRouteInstruction("Bạn đã đến nơi.");
+    stopMotorbikeNavigation(false);
+  }
+}
+function startMotorbikeNavigation(){
+  if(!activeRoute||!navigator.geolocation)return;
+  if(!window.isSecureContext){
+    routeHint("Dẫn đường GPS cần mở Amino Chat bằng HTTPS.");return;
+  }
+  navigationStarted=true;announcedRouteSteps=new Set();setRouteButtons();
+  routeHint("🛵 Đang dẫn đường. Hãy bật âm lượng và giữ trang web mở.");
+  speakRouteInstruction("Bắt đầu dẫn đường. Hãy chú ý quan sát và tuân thủ luật giao thông.");
+  navigationWatchId=navigator.geolocation.watchPosition(updateNavigationPosition,error=>{
+    routeHint(error.code===1?"Bạn đã chặn quyền GPS.": "Mất tín hiệu GPS, đang chờ tín hiệu trở lại.");
+  },{enableHighAccuracy:true,maximumAge:1000,timeout:20000});
+}
+function stopMotorbikeNavigation(clearRoute=true){
+  navigationStarted=false;
+  if(navigationWatchId!==null){navigator.geolocation.clearWatch(navigationWatchId);navigationWatchId=null;}
+  if(window.speechSynthesis)window.speechSynthesis.cancel();
+  if(window._aminoNavMarker&&aminoMap){aminoMap.removeLayer(window._aminoNavMarker);window._aminoNavMarker=null;}
+  if(clearRoute){
+    activeRoute=null;routeDestination=null;
+    if(routeLine&&aminoMap){aminoMap.removeLayer(routeLine);routeLine=null;}
+    if(routeDestinationMarker&&aminoMap){aminoMap.removeLayer(routeDestinationMarker);routeDestinationMarker=null;}
+    routeHint("📍 Chạm nút ghim rồi chọn điểm đến trên bản đồ.");
+  }
+  setRouteButtons();
+}
+function setupMotorbikeRouteControls(){
+  $("routePickBtn")?.addEventListener("click",()=>{
+    if(navigationStarted)stopMotorbikeNavigation(false);
+    routePicking=!routePicking;
+    routeHint(routePicking?"👆 Chạm vào vị trí muốn đến trên bản đồ.":"Đã hủy chọn điểm đến.");
+    setRouteButtons();
+  });
+  $("routeGoBtn")?.addEventListener("click",startMotorbikeNavigation);
+  $("routeStopBtn")?.addEventListener("click",()=>stopMotorbikeNavigation(false));
+  $("routeClearBtn")?.addEventListener("click",()=>stopMotorbikeNavigation(true));
 }
 
 function memberIsOnline(uid){
@@ -2505,6 +2678,7 @@ async function beginLocationSharing(){
 
 
 function setupMapControls(){
+  setupMotorbikeRouteControls();
   const mapToggle=$("mapToggle");
   const mapBack=$("mapBack");
 
