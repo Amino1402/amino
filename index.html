@@ -333,8 +333,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <p class="entry-label">✍️ Nhật ký của bạn trong ngày này</p>
     <textarea id="diaryText" maxlength="10000" placeholder="Chia sẻ hôm nay của cậu thế nào nhé 💜"></textarea>
     <small id="diarySaveStatus" aria-live="polite">Nhật ký tự động lưu.</small>
-    <button id="diaryDelete" type="button">Xóa nhật ký của tôi trong ngày này</button>
-    <p class="hint">Chỉ bạn mới sửa hoặc xóa được nhật ký của chính mình. Nhật ký sẽ tự khóa chỉnh sửa lúc 01:00 sáng hôm sau (giờ Việt Nam); sau đó mọi người vẫn xem được.</p>
+    <button id="diaryDelete" type="button" hidden>Xóa nhật ký</button>
 
     <!-- ĐÃ CHUYỂN XUỐNG CUỐI TRANG -->
     <section id="diaryViews">
@@ -759,8 +758,7 @@ function isDiaryEditable(dateKey,now=Date.now()){
   return !!dateKey && now < diaryEditDeadline(dateKey);
 }
 function diaryLockMessage(dateKey){
-  const deadline=diaryEditDeadline(dateKey);
-  return "Đã khóa chỉnh sửa nhật ký này từ 01:00 sáng "+new Date(deadline).toLocaleDateString("vi-VN",{timeZone:"Asia/Ho_Chi_Minh"})+". Cậu vẫn có thể xem nhật ký.";
+  return "Nhật ký này đã bị khóa chỉnh sửa.";
 }
 
 function diaryDateLabel(key){
@@ -863,7 +861,7 @@ function renderPublicEntries(){
 async function deleteDiaryImage(dateKey,imageData){
   if(!user||!db)return false;
   if(!isDiaryEditable(dateKey)){
-    $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+    $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
     return false;
   }
   if(!window.confirm("Cậu có chắc muốn xóa riêng ảnh này khỏi nhật ký không?"))return false;
@@ -992,7 +990,7 @@ function renderDiaryImagePreview(){
     remove.setAttribute("aria-label","Xóa ảnh "+(index+1));
     remove.addEventListener("click",async()=>{
       if(!isDiaryEditable(diarySelectedDate)){
-        $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+        $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
         refreshDiaryView();
         return;
       }
@@ -1038,13 +1036,7 @@ function refreshDiaryView(){
   }
   const editable=isDiaryEditable(diarySelectedDate);
   $("diaryText").disabled=!editable;
-  $("diaryDelete").disabled=!editable||!getOwnEntry(diarySelectedDate);
-  $("diaryText").placeholder=editable
-    ?"Chia sẻ hôm nay của cậu thế nào nhé 💜"
-    :"Đã qua 01:00 sáng hôm sau — nhật ký chỉ còn chế độ xem.";
-  if(!editable){
-    $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
-  }
+  $("diaryText").placeholder="Chia sẻ hôm nay của cậu thế nào nhé 💜";
   renderPublicEntries();
   renderDiaryViews();
 }
@@ -1052,7 +1044,7 @@ function refreshDiaryView(){
 async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
   if(!user||!db)return false;
   if(!isDiaryEditable(dateKey)){
-    $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+    $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
     if(dateKey===diarySelectedDate)refreshDiaryView();
     return false;
   }
@@ -1073,7 +1065,7 @@ async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
         };
       },{applyLocally:false});
       if(!result.committed){
-        $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+        $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
         return false;
       }
       if(requestVersion===diaryRequestVersion){
@@ -1082,7 +1074,7 @@ async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
       return true;
     }else{
       if(!isDiaryEditable(dateKey)){
-        $("diarySaveStatus").textContent=diaryLockMessage(dateKey);
+        $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
         return false;
       }
       await set(entryRef,null);
@@ -1141,7 +1133,7 @@ async function saveCapturedPhotoToFirebase(dateKey,imageData){
 function scheduleDiarySave(){
   clearTimeout(diarySaveTimer);
   if(!isDiaryEditable(diarySelectedDate)){
-    $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+    $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
     refreshDiaryView();
     return;
   }
@@ -1155,7 +1147,7 @@ async function savePendingDiary(){
   clearTimeout(diarySaveTimer);
   if(!isDiaryEditable(diarySelectedDate)){
     $("diaryText").value=getOwnEntry(diarySelectedDate)?.text||"";
-    $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+    $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
     return false;
   }
   const value=$("diaryText").value;
@@ -1835,7 +1827,7 @@ function startDiary(){
   $("diaryDelete").addEventListener("click",async()=>{
     clearTimeout(diarySaveTimer);
     if(!isDiaryEditable(diarySelectedDate)){
-      $("diarySaveStatus").textContent=diaryLockMessage(diarySelectedDate);
+      $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
       refreshDiaryView();
       return;
     }
