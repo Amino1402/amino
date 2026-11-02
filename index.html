@@ -311,7 +311,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @keyframes petHeart{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.22) rotate(12deg)}}
 @keyframes petZzz{0%{opacity:0;transform:translate(0,7px) scale(.8)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-9px) scale(1.12)}}
 @media(max-width:600px){#aminoPet{width:88px;height:88px}}
-@media(prefers-reduced-motion:reduce){#aminoPet,#aminoPet:after,#petEmoji,#petEmoji *{animation:none!important}#aminoPet{transition:none}}
+/* Pet animations stay enabled on desktop and mobile, regardless of OS reduced-motion preference. */
 #petBubble{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;white-space:normal;text-align:center;pointer-events:none;z-index:2}
 #petBubble:not([hidden]){display:block}
 #petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
@@ -323,7 +323,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @keyframes petSleep{0%,100%{transform:translateY(2px) rotate(5deg) scale(1,.94)}50%{transform:translateY(4px) rotate(8deg) scale(1,.91)}}
 @keyframes petHeart{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.22) rotate(12deg)}}
 @keyframes petZzz{0%{opacity:0;transform:translate(0,7px) scale(.8)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-9px) scale(1.12)}}
-@media(prefers-reduced-motion:reduce){#aminoPet,#aminoPet:after,#petEmoji{animation:none!important}#aminoPet{transition:none}}
+
 #petPanel{position:fixed;inset:0;z-index:10020;background:#1c132955;display:flex;align-items:center;justify-content:center;padding:16px}
 #petCard{width:min(360px,100%);max-height:90dvh;overflow:auto;background:#fff8fc;border:1px solid #ffd0e3;border-radius:22px;padding:20px;color:#633d54;box-shadow:0 15px 50px #0003;text-align:center}
 #petCard h2{margin:4px 0 10px;color:#c34e87}
