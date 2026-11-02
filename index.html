@@ -248,7 +248,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #petStage{position:fixed;inset:0;z-index:8500;pointer-events:none;overflow:hidden}
 #petDim{position:absolute;inset:0;background:rgba(24,18,35,.34);opacity:0;transition:opacity .35s;pointer-events:none}
 #petStage.pet-hungry #petDim{opacity:1}
-#aminoPet{position:absolute;left:12px;bottom:90px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 2.8s linear,bottom 2.8s linear;cursor:pointer}
+#aminoPet{position:absolute;left:12px;bottom:90px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 8s linear,bottom 8s linear;cursor:pointer}
 #aminoPet:after{content:'♡';position:absolute;right:-4px;top:-12px;font-size:18px;color:#f06ca9}
 #petBubble{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);width:max-content;max-width:190px;padding:7px 10px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0002;font-size:11px;font-weight:bold;line-height:1.35;white-space:normal;text-align:center;pointer-events:none}
 #petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
@@ -261,6 +261,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #petProgress{height:10px;border-radius:99px;background:#f3dce7;overflow:hidden;margin:10px 0}
 #petProgressFill{height:100%;width:0;background:linear-gradient(90deg,#f28ab8,#c34e87);transition:width .2s}
 #petFeed,#petClose,#petAddressSave{width:100%;margin-top:9px}
+#petChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.pet-choice{border:1px solid #efc5d8!important;border-radius:13px!important;background:#fff!important;color:#75405b!important;padding:9px 6px!important;font-size:13px!important}
+.pet-choice.active{border:2px solid #d94f91!important;background:#ffe5f0!important;box-shadow:0 0 0 2px #f8c5dc55}
+.pet-choice span{display:block;font-size:25px;margin-bottom:3px}
 #petFeed{background:#e85c9b}
 #petAddress{width:100%;min-height:75px;margin-top:10px;border:1px solid #ecc5d7;border-radius:10px;padding:10px;font:inherit}
 #petAddressBox{margin-top:14px;padding-top:12px;border-top:1px solid #f0d5e1;text-align:left}
@@ -441,7 +445,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div id="petHungerText">Đang no bụng 💗</div>
     <div id="petPoints">0 / 1403 điểm</div>
     <div id="petProgress"><div id="petProgressFill"></div></div>
-    <div class="pet-small" id="petOnlineInfo">Mỗi phút online +1 điểm · Cho ăn +1 điểm</div>
+    <div class="pet-small" id="petOnlineInfo">Mỗi 10 phút online +1 điểm · Cho ăn khi đói +1 điểm</div>
+    <strong>🐾 Chọn người bạn đồng hành</strong>
+    <div id="petChoices">
+      <button type="button" class="pet-choice" data-pet="🐱"><span>🐱</span>Chikawa</button>
+      <button type="button" class="pet-choice" data-pet="🐰"><span>🐰</span>Usagi</button>
+      <button type="button" class="pet-choice" data-pet="🐶"><span>🐶</span>Mập</button>
+      <button type="button" class="pet-choice" data-pet="🦭"><span>🦭</span>Luna</button>
+      <button type="button" class="pet-choice" data-pet="🐹"><span>🐹</span>Hamster</button>
+    </div>
     <button id="petFeed" type="button">🍖 Cho pet ăn (+1 điểm)</button>
     <div id="petAddressBox" hidden>
       <strong>💌 Phần quà đã mở khóa!</strong>
@@ -2384,8 +2396,8 @@ function setupMapControls(){
 /* ĐĂNG NHẬP */
 
 /* ================= EVENT NUOI PET 20/10 ================= */
-const PET_TARGET=1403, PET_HUNGER_MS=10*60*1000, PET_DIALOGUE_MS=2*60*1000;
-const PET_TYPES=[{emoji:'🐱',name:'Mèo con'},{emoji:'🐰',name:'Thỏ con'},{emoji:'🐶',name:'Cún con'},{emoji:'🐹',name:'Hamster'}];
+const PET_TARGET=1403, PET_HUNGER_MS=10*60*1000, PET_ONLINE_REWARD_MS=10*60*1000, PET_DIALOGUE_MS=2*60*1000;
+const PET_TYPES=[{emoji:'🐱',name:'Chikawa'},{emoji:'🐰',name:'Usagi'},{emoji:'🐶',name:'Mập'},{emoji:'🐹',name:'Hamster'},{emoji:'🦭',name:'Luna'}];
 const PET_LINES=['Chủ ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Có cậu chăm sóc, tớ vui lắm!','Cho tớ ở cạnh cậu thêm chút nha'];
 let petData=null,petTimer=null,petMoveTimer=null,petDialogueTimer=null,petRewardShown=false;
 function petRef(){return ref(db,`pets/${user.uid}`)}
@@ -2393,7 +2405,8 @@ function petIsHungry(data=petData){return !!data && Date.now()-Number(data.lastF
 function petRender(){
   if(!petData||!user)return;
   const type=PET_TYPES.find(x=>x.emoji===petData.petType)||PET_TYPES[0];
-  $('petEmoji').textContent=type.emoji;$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name+' của bạn';
+  $('petEmoji').textContent=type.emoji;$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
+  document.querySelectorAll('.pet-choice').forEach(btn=>btn.classList.toggle('active',btn.dataset.pet===type.emoji));
   const points=Math.max(0,Number(petData.points)||0),hungry=petIsHungry();
   $('petPoints').textContent=points+' / '+PET_TARGET+' điểm';
   $('petProgressFill').style.width=Math.min(100,points/PET_TARGET*100)+'%';
@@ -2409,7 +2422,7 @@ async function initPet(){
   const r=petRef();
   await runTransaction(r,current=>{
     if(current)return current;
-    const chosen=PET_TYPES[Math.floor(Math.random()*PET_TYPES.length)];
+    const chosen=PET_TYPES[0];
     const now=Date.now();
     return {uid:user.uid,petType:chosen.emoji,points:0,lastFedAt:now,lastOnlineRewardAt:now,unlocked:false,addressNote:'',addressNoteUpdatedAt:0,createdAt:now};
   });
@@ -2418,7 +2431,7 @@ async function initPet(){
   if(petTimer)clearInterval(petTimer);
   petTimer=setInterval(async()=>{await petAwardOnlineTime();petRender();},15000);
   if(petMoveTimer)clearInterval(petMoveTimer);
-  petMoveTimer=setInterval(petMove,4200);
+  petMoveTimer=setInterval(petMove,12000);
   if(petDialogueTimer)clearInterval(petDialogueTimer);
   petDialogueTimer=setInterval(petSpeak,PET_DIALOGUE_MS);
   setTimeout(petSpeak,2500);
@@ -2429,10 +2442,10 @@ async function petAwardOnlineTime(){
     await runTransaction(petRef(),current=>{
       if(!current)return current;
       const now=Date.now(),last=Number(current.lastOnlineRewardAt)||now;
-      const minutes=Math.floor(Math.max(0,now-last)/60000);
-      if(minutes<1)return current;
-      current.points=Math.min(PET_TARGET,(Number(current.points)||0)+minutes);
-      current.lastOnlineRewardAt=last+minutes*60000;
+      const intervals=Math.floor(Math.max(0,now-last)/PET_ONLINE_REWARD_MS);
+      if(intervals<1)return current;
+      current.points=Math.min(PET_TARGET,(Number(current.points)||0)+intervals);
+      current.lastOnlineRewardAt=last+intervals*PET_ONLINE_REWARD_MS;
       if(current.points>=PET_TARGET)current.unlocked=true;
       return current;
     });
@@ -2467,6 +2480,14 @@ function petSpeak(){
 $('aminoPet').addEventListener('click',()=>{$('petPanel').hidden=false;petRender();});
 $('petClose').addEventListener('click',()=>{$('petPanel').hidden=true;});
 $('petFeed').addEventListener('click',petFeed);
+document.querySelectorAll('.pet-choice').forEach(btn=>btn.addEventListener('click',async()=>{
+  if(!user||!petData)return;
+  const selected=PET_TYPES.find(x=>x.emoji===btn.dataset.pet);if(!selected)return;
+  btn.disabled=true;
+  try{await update(petRef(),{petType:selected.emoji});petData.petType=selected.emoji;petRender();}
+  catch(e){$('petHungerText').textContent='Không đổi được pet: '+e.message;}
+  finally{btn.disabled=false;}
+}));
 $('petRewardContinue').addEventListener('click',()=>{$('petReward').hidden=true;$('petPanel').hidden=false;petRender();});
 $('petAddressSave').addEventListener('click',async()=>{
   const note=$('petAddress').value.trim();
@@ -2702,3 +2723,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+1409
