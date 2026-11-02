@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -242,6 +243,36 @@ button:disabled{opacity:.5;cursor:not-allowed}
  #diaryPage{padding:12px}
 }
 @media(prefers-reduced-motion:reduce){.floating-heart{animation:none}}
+
+/* EVENT NUOI PET 20/10 */
+#petStage{position:fixed;inset:0;z-index:8500;pointer-events:none;overflow:hidden}
+#petDim{position:absolute;inset:0;background:rgba(24,18,35,.34);opacity:0;transition:opacity .35s;pointer-events:none}
+#petStage.pet-hungry #petDim{opacity:1}
+#aminoPet{position:absolute;left:12px;bottom:90px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 2.8s linear,bottom 2.8s linear;cursor:pointer}
+#aminoPet:after{content:'♡';position:absolute;right:-4px;top:-12px;font-size:18px;color:#f06ca9}
+#petBubble{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);width:max-content;max-width:190px;padding:7px 10px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0002;font-size:11px;font-weight:bold;line-height:1.35;white-space:normal;text-align:center;pointer-events:none}
+#petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
+@keyframes petBob{0%,100%{margin-bottom:0}50%{margin-bottom:7px}}
+#petPanel{position:fixed;inset:0;z-index:10020;background:#1c132955;display:flex;align-items:center;justify-content:center;padding:16px}
+#petCard{width:min(360px,100%);max-height:90dvh;overflow:auto;background:#fff8fc;border:1px solid #ffd0e3;border-radius:22px;padding:20px;color:#633d54;box-shadow:0 15px 50px #0003;text-align:center}
+#petCard h2{margin:4px 0 10px;color:#c34e87}
+#petFace{font-size:64px;margin:6px}
+#petPoints{font-size:25px;font-weight:bold;color:#c34e87;margin:8px}
+#petProgress{height:10px;border-radius:99px;background:#f3dce7;overflow:hidden;margin:10px 0}
+#petProgressFill{height:100%;width:0;background:linear-gradient(90deg,#f28ab8,#c34e87);transition:width .2s}
+#petFeed,#petClose,#petAddressSave{width:100%;margin-top:9px}
+#petFeed{background:#e85c9b}
+#petAddress{width:100%;min-height:75px;margin-top:10px;border:1px solid #ecc5d7;border-radius:10px;padding:10px;font:inherit}
+#petAddressBox{margin-top:14px;padding-top:12px;border-top:1px solid #f0d5e1;text-align:left}
+#petAddressBox p{font-size:12px;line-height:1.45}
+#petReward{position:fixed;inset:0;z-index:10030;background:#24142caa;display:flex;align-items:center;justify-content:center;padding:16px}
+#petRewardCard{width:min(360px,100%);background:#fff3f8;border-radius:22px;padding:22px;text-align:center;color:#75405b}
+#petRewardCard h2{color:#c33e80}
+#petRewardCard input{width:100%;margin-top:10px}
+#petRewardCard button{width:100%;margin-top:10px;background:#d94f91}
+.pet-small{font-size:12px;color:#94768a;line-height:1.45}
+@media(max-width:600px){#aminoPet{width:58px;height:58px;font-size:42px}#petCard{padding:16px}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -397,6 +428,40 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </aside>
   </div>
 </section>
+
+
+<!-- Event nuoi pet 20/10 -->
+<div id="petStage" hidden aria-label="Thú cưng Amino">
+  <div id="petDim"></div>
+  <button id="aminoPet" type="button" aria-label="Mở chăm sóc thú cưng"><span id="petBubble" hidden></span><span id="petEmoji">🐱</span></button>
+</div>
+<div id="petPanel" hidden>
+  <section id="petCard" role="dialog" aria-modal="true" aria-labelledby="petTitle">
+    <div id="petFace">🐱</div><h2 id="petTitle">Bé pet của bạn</h2>
+    <div id="petHungerText">Đang no bụng 💗</div>
+    <div id="petPoints">0 / 1403 điểm</div>
+    <div id="petProgress"><div id="petProgressFill"></div></div>
+    <div class="pet-small" id="petOnlineInfo">Mỗi phút online +1 điểm · Cho ăn +1 điểm</div>
+    <button id="petFeed" type="button">🍖 Cho pet ăn (+1 điểm)</button>
+    <div id="petAddressBox" hidden>
+      <strong>💌 Phần quà đã mở khóa!</strong>
+      <p>Bạn có thể nhập địa chỉ nhận quà nếu sự kiện có tổ chức giao quà thật. Thông tin này chỉ lưu trong hồ sơ UID của bạn; không hiển thị công khai.</p>
+      <textarea id="petAddress" maxlength="300" placeholder="Nhập địa chỉ nhận quà (không bắt buộc)..."></textarea>
+      <button id="petAddressSave" type="button">Lưu lời nhắn</button>
+      <div class="pet-small" id="petAddressStatus"></div>
+    </div>
+    <button id="petClose" type="button">Đóng</button>
+  </section>
+</div>
+<div id="petReward" hidden>
+  <section id="petRewardCard" role="dialog" aria-modal="true">
+    <div style="font-size:52px">💌</div>
+    <h2>Cảm ơn bạn đã chăm sóc tớ!</h2>
+    <p>Pet đã đạt 1403 điểm. Vui lòng nhập địa chỉ của bạn nếu sự kiện có tổ chức giao quà nhé! 🥰</p>
+    <p class="pet-small">Thông tin chỉ được lưu trong hồ sơ UID của bạn và không hiển thị công khai. Việc nhập địa chỉ không bảo đảm có giao quà thực tế.</p>
+    <button id="petRewardContinue" type="button">Tiếp tục</button>
+  </section>
+</div>
 
 </main>
 
@@ -2317,6 +2382,100 @@ function setupMapControls(){
 
 
 /* ĐĂNG NHẬP */
+
+/* ================= EVENT NUOI PET 20/10 ================= */
+const PET_TARGET=1403, PET_HUNGER_MS=10*60*1000, PET_DIALOGUE_MS=2*60*1000;
+const PET_TYPES=[{emoji:'🐱',name:'Mèo con'},{emoji:'🐰',name:'Thỏ con'},{emoji:'🐶',name:'Cún con'},{emoji:'🐹',name:'Hamster'}];
+const PET_LINES=['Chủ ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Có cậu chăm sóc, tớ vui lắm!','Cho tớ ở cạnh cậu thêm chút nha'];
+let petData=null,petTimer=null,petMoveTimer=null,petDialogueTimer=null,petRewardShown=false;
+function petRef(){return ref(db,`pets/${user.uid}`)}
+function petIsHungry(data=petData){return !!data && Date.now()-Number(data.lastFedAt||Date.now())>=PET_HUNGER_MS}
+function petRender(){
+  if(!petData||!user)return;
+  const type=PET_TYPES.find(x=>x.emoji===petData.petType)||PET_TYPES[0];
+  $('petEmoji').textContent=type.emoji;$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name+' của bạn';
+  const points=Math.max(0,Number(petData.points)||0),hungry=petIsHungry();
+  $('petPoints').textContent=points+' / '+PET_TARGET+' điểm';
+  $('petProgressFill').style.width=Math.min(100,points/PET_TARGET*100)+'%';
+  $('petHungerText').textContent=hungry?'Đang đói rồi, cho tớ ăn nhé 🥺':'Đang no bụng 💗';
+  $('petFeed').disabled=!hungry||points>=PET_TARGET;
+  $('petFeed').textContent=hungry?'🍖 Cho pet ăn (+1 điểm)':'💗 Pet chưa đói, quay lại sau nhé';
+  $('petStage').classList.toggle('pet-hungry',hungry);
+  $('petAddressBox').hidden=points<PET_TARGET;
+  if(points>=PET_TARGET&&!petData.unlocked){petData.unlocked=true;}
+  if(points>=PET_TARGET&&!petRewardShown){petRewardShown=true;$('petReward').hidden=false;}
+}
+async function initPet(){
+  const r=petRef();
+  await runTransaction(r,current=>{
+    if(current)return current;
+    const chosen=PET_TYPES[Math.floor(Math.random()*PET_TYPES.length)];
+    const now=Date.now();
+    return {uid:user.uid,petType:chosen.emoji,points:0,lastFedAt:now,lastOnlineRewardAt:now,unlocked:false,addressNote:'',addressNoteUpdatedAt:0,createdAt:now};
+  });
+  onValue(r,snap=>{petData=snap.val();if(!petData)return;$('petStage').hidden=false;petRender();});
+  await petAwardOnlineTime();
+  if(petTimer)clearInterval(petTimer);
+  petTimer=setInterval(async()=>{await petAwardOnlineTime();petRender();},15000);
+  if(petMoveTimer)clearInterval(petMoveTimer);
+  petMoveTimer=setInterval(petMove,4200);
+  if(petDialogueTimer)clearInterval(petDialogueTimer);
+  petDialogueTimer=setInterval(petSpeak,PET_DIALOGUE_MS);
+  setTimeout(petSpeak,2500);
+}
+async function petAwardOnlineTime(){
+  if(!user||!petData)return;
+  try{
+    await runTransaction(petRef(),current=>{
+      if(!current)return current;
+      const now=Date.now(),last=Number(current.lastOnlineRewardAt)||now;
+      const minutes=Math.floor(Math.max(0,now-last)/60000);
+      if(minutes<1)return current;
+      current.points=Math.min(PET_TARGET,(Number(current.points)||0)+minutes);
+      current.lastOnlineRewardAt=last+minutes*60000;
+      if(current.points>=PET_TARGET)current.unlocked=true;
+      return current;
+    });
+  }catch(e){console.warn('Pet online points:',e)}
+}
+async function petFeed(){
+  if(!user||!petData)return;
+  const btn=$('petFeed');btn.disabled=true;
+  try{
+    const result=await runTransaction(petRef(),current=>{
+      if(!current||Date.now()-Number(current.lastFedAt||Date.now())<PET_HUNGER_MS||Number(current.points)>=PET_TARGET)return;
+      current.lastFedAt=Date.now();current.points=Math.min(PET_TARGET,(Number(current.points)||0)+1);
+      if(current.points>=PET_TARGET)current.unlocked=true;
+      return current;
+    });
+    if(result.committed){petData=result.snapshot.val();petRender();$('petHungerText').textContent='Ăn ngon quá, cảm ơn chủ! 💗';}
+    else $('petHungerText').textContent='Pet chưa đói hoặc đã đủ điểm nhé 💕';
+  }catch(e){$('petHungerText').textContent='Không thể cho ăn: '+e.message;}
+  finally{petRender();}
+}
+function petMove(){
+  if($('petStage').hidden)return;
+  const pet=$('aminoPet'),maxX=Math.max(0,window.innerWidth-75),maxY=Math.max(70,window.innerHeight-150);
+  const x=12+Math.random()*Math.max(0,maxX-12),y=65+Math.random()*Math.max(0,maxY-65);
+  pet.style.left=x+'px';pet.style.bottom=Math.max(70,window.innerHeight-y-64)+'px';
+}
+function petSpeak(){
+  if($('petStage').hidden)return;
+  const bubble=$('petBubble');bubble.textContent=petIsHungry()?'Chủ ơi, tớ đói bụng mất rồi 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)];
+  bubble.hidden=false;clearTimeout(petSpeak.hideTimer);petSpeak.hideTimer=setTimeout(()=>bubble.hidden=true,6500);
+}
+$('aminoPet').addEventListener('click',()=>{$('petPanel').hidden=false;petRender();});
+$('petClose').addEventListener('click',()=>{$('petPanel').hidden=true;});
+$('petFeed').addEventListener('click',petFeed);
+$('petRewardContinue').addEventListener('click',()=>{$('petReward').hidden=true;$('petPanel').hidden=false;petRender();});
+$('petAddressSave').addEventListener('click',async()=>{
+  const note=$('petAddress').value.trim();
+  if(note.length>300)return;
+  try{await update(petRef(),{addressNote:note,addressNoteUpdatedAt:Date.now()});$('petAddressStatus').textContent='Đã lưu lời nhắn riêng tư trong hồ sơ của bạn.';}
+  catch(e){$('petAddressStatus').textContent='Không lưu được: '+e.message;}
+});
+/* ================= END EVENT NUOI PET 20/10 ================= */
+
 $("enter").addEventListener("click",async()=>{
   $("passwordError").textContent="";
   if($("chatPassword").value!=="1409"){
@@ -2350,6 +2509,7 @@ $("enter").addEventListener("click",async()=>{
     startTypingSync();
     startMusicSync();
     startDiary();
+    await initPet();
 
     const recent=query(
       ref(db,"publicChat/messages"),
