@@ -1,4 +1,3 @@
-1
 
 
 <!DOCTYPE html>
@@ -272,25 +271,47 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #aminoPet.pet-sleeping:after{content:'Zzz';right:-13px;top:-17px;font-size:13px;font-weight:900;color:#8b78c7;animation:petZzz 1.8s ease-in-out infinite}
 
 
-/* PIXEL ART PET: sprite SVG dang pixel, chi ap dung cho tho va hai cau */
-#petEmoji{width:64px;height:64px;display:inline-flex;align-items:center;justify-content:center;transform-origin:50% 85%;image-rendering:pixelated}
-#petEmoji .pet-pixel-svg{width:64px;height:64px;overflow:visible;shape-rendering:crispEdges;image-rendering:pixelated}
-#petEmoji .pixel-eye{transform-box:fill-box;transform-origin:center;animation:pixelBlink 4.2s steps(1,end) infinite}
-#petEmoji .rabbit-ear-left{transform-box:fill-box;transform-origin:bottom center;animation:rabbitEar 2.4s steps(2,end) infinite}
-#petEmoji .rabbit-ear-right{transform-box:fill-box;transform-origin:bottom center;animation:rabbitEar 2.4s steps(2,end) infinite reverse}
-#petEmoji .pixel-leg-left,#petEmoji .pixel-leg-right,#petEmoji .seal-flipper-left,#petEmoji .seal-flipper-right{transform-box:fill-box;transform-origin:top center}
-#aminoPet.pet-walking #petEmoji .rabbit-ear-left{animation:rabbitEar .28s steps(2,end) infinite}
-#aminoPet.pet-walking #petEmoji .rabbit-ear-right{animation:rabbitEar .28s steps(2,end) infinite reverse}
-#aminoPet.pet-walking #petEmoji .pixel-leg-left,#aminoPet.pet-walking #petEmoji .seal-flipper-left{animation:pixelStep .24s steps(2,end) infinite}
-#aminoPet.pet-walking #petEmoji .pixel-leg-right,#aminoPet.pet-walking #petEmoji .seal-flipper-right{animation:pixelStep .24s steps(2,end) infinite reverse}
-#aminoPet.pet-jumping #petEmoji .rabbit-ear-left,#aminoPet.pet-jumping #petEmoji .rabbit-ear-right{animation:rabbitEar .35s steps(2,end) infinite}
-#aminoPet.pet-happy #petEmoji .pixel-leg-left,#aminoPet.pet-happy #petEmoji .pixel-leg-right{animation:pixelStep .18s steps(2,end) infinite}
-#aminoPet.pet-sleeping #petEmoji .pixel-eye{transform:scaleY(.15)}
-#aminoPet.pet-sleeping #petEmoji .rabbit-ear-left,#aminoPet.pet-sleeping #petEmoji .rabbit-ear-right{animation:none;transform:rotate(22deg)}
-@keyframes pixelBlink{0%,94%,100%{transform:scaleY(1)}96%,98%{transform:scaleY(.12)}}
-@keyframes rabbitEar{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(8deg)}}
-@keyframes pixelStep{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-
+/* 3D PET: nhan vat bo tron, gradient va hoat anh muot */
+#aminoPet{position:absolute;left:12px;top:80px;width:104px;height:104px;border:0;border-radius:0;padding:0;background:transparent;filter:drop-shadow(0 9px 7px #17102b55);pointer-events:auto;touch-action:manipulation;transition:left 6.8s cubic-bezier(.42,0,.22,1),top 6.8s cubic-bezier(.42,0,.22,1);cursor:pointer;will-change:left,top}
+#aminoPet:before{content:'';position:absolute;width:62%;height:13px;left:19%;bottom:5px;border-radius:50%;background:radial-gradient(ellipse,#20133c55 0%,#20133c00 72%);animation:petShadow 2.2s ease-in-out infinite;}
+#aminoPet:after{content:'♡';position:absolute;right:0;top:2px;font-size:20px;color:#f06ca9;transform-origin:bottom center;animation:petHeart 1.8s ease-in-out infinite}
+#petEmoji{position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform-origin:50% 85%;animation:pet3DIdle 2.8s ease-in-out infinite;}
+#petEmoji .pet-3d-svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 3px 2px #46315c22)}
+#petEmoji .pet-body{transform-box:fill-box;transform-origin:center bottom;animation:petBreath 2.4s ease-in-out infinite}
+#petEmoji .pet-ear-left{transform-box:fill-box;transform-origin:bottom center;animation:earSoft 2.8s ease-in-out infinite}
+#petEmoji .pet-ear-right{transform-box:fill-box;transform-origin:bottom center;animation:earSoft 2.8s ease-in-out infinite reverse}
+#petEmoji .pet-eye{transform-box:fill-box;transform-origin:center;animation:petBlink 4.5s ease-in-out infinite}
+#petEmoji .pet-limb-left,#petEmoji .pet-limb-right{transform-box:fill-box;transform-origin:top center}
+#petEmoji .pet-flipper{transform-box:fill-box;transform-origin:top center;animation:flipperFloat 2.1s ease-in-out infinite}
+#aminoPet.pet-walking #petEmoji{animation:petWalk3D .52s ease-in-out infinite}
+#aminoPet.pet-walking #petEmoji .pet-leg-left{animation:legWalk .34s ease-in-out infinite}
+#aminoPet.pet-walking #petEmoji .pet-leg-right{animation:legWalk .34s ease-in-out infinite reverse}
+#aminoPet.pet-walking #petEmoji .pet-ear-left{animation:earWalk .5s ease-in-out infinite}
+#aminoPet.pet-walking #petEmoji .pet-ear-right{animation:earWalk .5s ease-in-out infinite reverse}
+#aminoPet.pet-jumping #petEmoji{animation:petJump3D .82s cubic-bezier(.2,.75,.25,1) both}
+#aminoPet.pet-happy #petEmoji{animation:petHappy3D .65s ease-in-out 3}
+#aminoPet.pet-sleeping #petEmoji{animation:petSleep3D 3.2s ease-in-out infinite}
+#aminoPet.pet-sleeping #petEmoji .pet-eye{transform:scaleY(.12)}
+#aminoPet.pet-sleeping:after{content:'Zzz';right:-8px;top:-4px;font-size:15px;font-weight:900;color:#8b78c7;animation:petZzz 1.8s ease-in-out infinite}
+@keyframes pet3DIdle{0%,100%{transform:translateY(0) rotateZ(-1deg) rotateY(-4deg)}50%{transform:translateY(-4px) rotateZ(1deg) rotateY(4deg)}}
+@keyframes petBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.985)}}
+@keyframes petBlink{0%,91%,100%{transform:scaleY(1)}94%,97%{transform:scaleY(.08)}}
+@keyframes earSoft{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(7deg)}}
+@keyframes earWalk{0%,100%{transform:rotate(-13deg)}50%{transform:rotate(13deg)}}
+@keyframes legWalk{0%,100%{transform:rotate(-18deg) translateY(0)}50%{transform:rotate(18deg) translateY(-2px)}}
+@keyframes flipperFloat{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}
+@keyframes petWalk3D{0%,100%{transform:translateY(1px) rotateZ(-4deg) rotateY(-8deg) scaleX(.98)}50%{transform:translateY(-5px) rotateZ(4deg) rotateY(8deg) scaleX(1.02)}}
+@keyframes petJump3D{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-24px) scale(1.04,1.08) rotateZ(-5deg)}65%{transform:translateY(-27px) scale(.98,1.03) rotateZ(5deg)}100%{transform:translateY(0) scale(1)}}
+@keyframes petHappy3D{0%,100%{transform:rotateZ(0) scale(1)}25%{transform:rotateZ(-10deg) scale(1.08)}50%{transform:rotateZ(10deg) scale(1.1)}75%{transform:rotateZ(-5deg) scale(1.04)}}
+@keyframes petSleep3D{0%,100%{transform:translateY(3px) rotateZ(4deg) scale(1,.97)}50%{transform:translateY(5px) rotateZ(6deg) scale(1,.94)}}
+@keyframes petShadow{0%,100%{transform:scaleX(1);opacity:.7}50%{transform:scaleX(.78);opacity:.42}}
+#petBubble{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;white-space:normal;text-align:center;pointer-events:none;z-index:3}
+#petBubble:not([hidden]){display:block}
+#petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
+@keyframes petHeart{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.22) rotate(12deg)}}
+@keyframes petZzz{0%{opacity:0;transform:translate(0,7px) scale(.8)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-9px) scale(1.12)}}
+@media(max-width:600px){#aminoPet{width:88px;height:88px}}
+@media(prefers-reduced-motion:reduce){#aminoPet,#aminoPet:after,#petEmoji,#petEmoji *{animation:none!important}#aminoPet{transition:none}}
 #petBubble{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;white-space:normal;text-align:center;pointer-events:none;z-index:2}
 #petBubble:not([hidden]){display:block}
 #petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
@@ -2454,22 +2475,36 @@ let petData=null,petTimer=null,petMoveTimer=null,petDialogueTimer=null,petReward
 function petRef(){return ref(db,`pets/${user.uid}`)}
 
 function petPixelMarkup(emoji){
-  if(emoji==='🐰')return `<svg class="pet-pixel-svg pet-rabbit-svg" viewBox="0 0 64 64" aria-label="Thỏ pixel art" role="img">
-    <g class="rabbit-ear-left"><rect x="15" y="3" width="10" height="25" fill="#fff"/><rect x="18" y="7" width="4" height="16" fill="#f5a8c4"/></g>
-    <g class="rabbit-ear-right"><rect x="37" y="1" width="10" height="27" fill="#fff"/><rect x="40" y="6" width="4" height="17" fill="#f5a8c4"/></g>
-    <rect x="13" y="22" width="38" height="31" fill="#fff"/><rect x="9" y="29" width="46" height="19" fill="#fff"/><rect x="17" y="18" width="30" height="8" fill="#fff"/>
-    <rect x="18" y="31" width="5" height="6" fill="#453746" class="pixel-eye"/><rect x="41" y="31" width="5" height="6" fill="#453746" class="pixel-eye"/><rect x="29" y="38" width="6" height="4" fill="#f28eae"/><rect x="27" y="43" width="10" height="2" fill="#9d6475"/>
-    <rect x="8" y="36" width="5" height="9" fill="#f7c7d8"/><rect x="51" y="36" width="5" height="9" fill="#f7c7d8"/>
-    <g class="pixel-leg-left"><rect x="17" y="49" width="11" height="9" fill="#fff"/><rect x="14" y="55" width="14" height="5" fill="#f5b4ca"/></g><g class="pixel-leg-right"><rect x="37" y="49" width="11" height="9" fill="#fff"/><rect x="36" y="55" width="14" height="5" fill="#f5b4ca"/></g>
-    <rect x="27" y="48" width="10" height="7" fill="#fff"/><rect x="27" y="50" width="10" height="4" fill="#f5b4ca"/>
+  if(emoji==='🐰')return `<svg class="pet-3d-svg pet-rabbit-3d" viewBox="0 0 120 120" role="img" aria-label="Thỏ 3D hoạt hình">
+    <defs>
+      <radialGradient id="bunnyFur" cx="34%" cy="22%" r="78%"><stop stop-color="#fff"/><stop offset=".62" stop-color="#fff0f7"/><stop offset="1" stop-color="#d9c4e8"/></radialGradient>
+      <linearGradient id="bunnyEar" x2=".8" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#dfc9eb"/></linearGradient>
+      <radialGradient id="bunnyPink"><stop stop-color="#ffb5d0"/><stop offset="1" stop-color="#ec82ae"/></radialGradient>
+      <radialGradient id="bunnyEye" cx="30%" cy="25%"><stop stop-color="#756078"/><stop offset=".45" stop-color="#33263f"/><stop offset="1" stop-color="#171322"/></radialGradient>
+    </defs>
+    <ellipse cx="60" cy="108" rx="35" ry="7" fill="#302044" opacity=".16"/>
+    <g class="pet-ear-left"><ellipse cx="42" cy="28" rx="13" ry="28" fill="url(#bunnyEar)" transform="rotate(-13 42 28)"/><ellipse cx="42" cy="28" rx="6.5" ry="20" fill="url(#bunnyPink)" transform="rotate(-13 42 28)" opacity=".8"/></g>
+    <g class="pet-ear-right"><ellipse cx="75" cy="25" rx="13" ry="30" fill="url(#bunnyEar)" transform="rotate(12 75 25)"/><ellipse cx="75" cy="25" rx="6.5" ry="22" fill="url(#bunnyPink)" transform="rotate(12 75 25)" opacity=".8"/></g>
+    <g class="pet-body"><ellipse cx="60" cy="82" rx="33" ry="25" fill="url(#bunnyFur)"/><ellipse cx="60" cy="57" rx="31" ry="30" fill="url(#bunnyFur)"/><ellipse cx="35" cy="88" rx="12" ry="9" fill="#f8e7f2"/><ellipse cx="85" cy="88" rx="12" ry="9" fill="#e9d9ee"/>
+      <ellipse cx="48" cy="58" rx="4.7" ry="6.4" fill="url(#bunnyEye)" class="pet-eye"/><ellipse cx="72" cy="58" rx="4.7" ry="6.4" fill="url(#bunnyEye)" class="pet-eye"/><circle cx="46.5" cy="55.5" r="1.7" fill="white"/><circle cx="70.5" cy="55.5" r="1.7" fill="white"/>
+      <ellipse cx="37" cy="69" rx="8" ry="4.5" fill="#f5a9c7" opacity=".8"/><ellipse cx="83" cy="69" rx="8" ry="4.5" fill="#f5a9c7" opacity=".8"/><path d="M56 68 Q60 64 64 68 Q62 73 60 73 Q58 73 56 68" fill="#e985aa"/><path d="M60 73 Q56 78 52 74 M60 73 Q64 78 68 74" fill="none" stroke="#916d87" stroke-width="1.8" stroke-linecap="round"/>
+      <ellipse cx="42" cy="99" rx="13" ry="7" fill="url(#bunnyFur)"/><ellipse cx="77" cy="99" rx="13" ry="7" fill="url(#bunnyFur)"/>
+      <path d="M32 77 Q24 70 25 64" fill="none" stroke="#e7d4e9" stroke-width="8" stroke-linecap="round"/>
+    </g><ellipse cx="87" cy="83" rx="8" ry="8" fill="#fff" opacity=".65"/><circle cx="87" cy="83" r="5" fill="#fff"/>
   </svg>`;
-  if(emoji==='🦭')return `<svg class="pet-pixel-svg pet-seal-svg" viewBox="0 0 64 64" aria-label="Hải cẩu pixel art" role="img">
-    <rect x="8" y="35" width="8" height="10" fill="#9eafc7"/><rect x="48" y="35" width="8" height="10" fill="#9eafc7"/>
-    <rect x="13" y="23" width="38" height="26" fill="#c6d4e7"/><rect x="18" y="17" width="28" height="29" fill="#dce6f2"/><rect x="23" y="13" width="18" height="8" fill="#dce6f2"/>
-    <rect x="18" y="31" width="5" height="5" fill="#354257" class="pixel-eye"/><rect x="41" y="31" width="5" height="5" fill="#354257" class="pixel-eye"/><rect x="29" y="37" width="7" height="5" fill="#53647d"/><rect x="27" y="42" width="11" height="2" fill="#53647d"/>
-    <rect x="9" y="39" width="8" height="12" fill="#aebfd5"/><rect x="47" y="39" width="8" height="12" fill="#aebfd5"/>
-    <g class="seal-flipper-left"><rect x="7" y="44" width="13" height="7" fill="#9eafc7"/><rect x="5" y="49" width="13" height="5" fill="#879bb7"/></g><g class="seal-flipper-right"><rect x="44" y="44" width="13" height="7" fill="#9eafc7"/><rect x="46" y="49" width="13" height="5" fill="#879bb7"/></g>
-    <rect x="22" y="48" width="20" height="8" fill="#c6d4e7"/><rect x="18" y="54" width="12" height="5" fill="#aebfd5"/><rect x="35" y="54" width="12" height="5" fill="#aebfd5"/><rect x="27" y="24" width="10" height="3" fill="#fff"/>
+  if(emoji==='🦭')return `<svg class="pet-3d-svg pet-seal-3d" viewBox="0 0 120 120" role="img" aria-label="Hải cẩu 3D hoạt hình">
+    <defs>
+      <radialGradient id="sealFur" cx="32%" cy="18%" r="82%"><stop stop-color="#fff"/><stop offset=".48" stop-color="#e9f0ff"/><stop offset="1" stop-color="#9eafd0"/></radialGradient>
+      <radialGradient id="sealBelly" cx="45%" cy="20%"><stop stop-color="#fff"/><stop offset="1" stop-color="#dce5f3"/></radialGradient>
+      <radialGradient id="sealEye" cx="30%" cy="25%"><stop stop-color="#66758c"/><stop offset=".5" stop-color="#263449"/><stop offset="1" stop-color="#121b2b"/></radialGradient>
+    </defs>
+    <ellipse cx="60" cy="108" rx="39" ry="7" fill="#302044" opacity=".16"/>
+    <g class="pet-body"><ellipse cx="60" cy="78" rx="43" ry="29" fill="url(#sealFur)"/><ellipse cx="60" cy="63" rx="34" ry="31" fill="url(#sealFur)"/><ellipse cx="60" cy="87" rx="29" ry="15" fill="url(#sealBelly)"/><ellipse cx="27" cy="91" rx="13" ry="8" fill="#aab9d2"/><ellipse cx="94" cy="91" rx="13" ry="8" fill="#9eafc9"/>
+      <ellipse cx="47" cy="63" rx="4.5" ry="6" fill="url(#sealEye)" class="pet-eye"/><ellipse cx="73" cy="63" rx="4.5" ry="6" fill="url(#sealEye)" class="pet-eye"/><circle cx="45.5" cy="60.5" r="1.6" fill="white"/><circle cx="71.5" cy="60.5" r="1.6" fill="white"/>
+      <ellipse cx="37" cy="75" rx="7" ry="4" fill="#f4a8bd" opacity=".8"/><ellipse cx="83" cy="75" rx="7" ry="4" fill="#f4a8bd" opacity=".8"/><ellipse cx="60" cy="72" rx="5" ry="3.5" fill="#554b61"/><path d="M60 75 Q55 81 50 77 M60 75 Q65 81 70 77" fill="none" stroke="#62586d" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M29 79 Q13 83 15 98 Q27 104 39 91" fill="url(#sealFur)" class="pet-flipper"/><path d="M91 79 Q107 83 105 98 Q93 104 81 91" fill="url(#sealFur)" class="pet-flipper"/>
+      <ellipse cx="42" cy="101" rx="13" ry="6" fill="#b8c6dc"/><ellipse cx="78" cy="101" rx="13" ry="6" fill="#aabbd4"/>
+    </g><ellipse cx="42" cy="42" rx="12" ry="6" fill="white" opacity=".42"/>
   </svg>`;
   return emoji;
 }
@@ -2509,7 +2544,7 @@ async function initPet(){
   if(petTimer)clearInterval(petTimer);
   petTimer=setInterval(async()=>{await petAwardOnlineTime();petRender();},15000);
   if(petMoveTimer)clearInterval(petMoveTimer);
-  petMoveTimer=setInterval(petMove,12000);
+  petMoveTimer=setInterval(petMove,15000);
   if(petDialogueTimer)clearInterval(petDialogueTimer);
   petDialogueTimer=setInterval(petSpeak,PET_DIALOGUE_MS);
   setTimeout(petSpeak,2500);
@@ -2570,7 +2605,7 @@ function petMove(){
     pet.classList.add(action);
     clearTimeout(petMove.finishTimer);
     petMove.finishTimer=setTimeout(()=>pet.classList.remove(action),action==='pet-sleeping'?5000:2200);
-  },8000);
+  },6800);
 }
 window.addEventListener('resize',()=>{
   if($('petStage').hidden)return;
