@@ -212,6 +212,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #mapWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:stretch}
 #mapContainer{height:65vh;min-height:340px;max-height:650px;border-radius:12px;border:1px solid #ddd;z-index:1;min-width:0}
 #mapMeetingPanel{height:65vh;min-height:340px;max-height:650px;display:flex;flex-direction:column;border:1px solid #e1dced;border-radius:12px;background:#fcfbff;overflow:hidden;min-width:0}
+#mapMembersSummary{font-size:12px;color:#666;padding:8px 12px;border-bottom:1px solid #eee}
+#mapMembersList{padding:9px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-height:0;display:flex;flex-direction:column;gap:7px}
+.map-member-button{display:flex;align-items:center;gap:9px;width:100%;padding:10px;border:1px solid #e8def7;border-radius:10px;background:#fff;color:#333;text-align:left;cursor:pointer}
+.map-member-button:active{background:#f3edff}
+.map-member-dot{width:10px;height:10px;flex:0 0 10px;border-radius:50%;background:#9ca3af}
+.map-member-dot.online{background:#22c55e;box-shadow:0 0 0 3px #22c55e22}
+.map-member-name{font-weight:700;font-size:13px}
+.map-member-status{font-size:11px;color:#777;margin-top:2px}
+#mapMeetingHistorySection{margin-top:16px;border:1px solid #e1dced;border-radius:12px;background:#fcfbff;overflow:hidden}
+#mapMeetingHistorySection h3{font-size:16px;color:#6750a4;margin:0;padding:12px;border-bottom:1px solid #e8e1f2}
+#mapMeetingHistorySection #mapMeetingList{max-height:260px}
 #mapMeetingPanel h3{font-size:16px;color:#6750a4;margin:0;padding:12px;border-bottom:1px solid #e8e1f2}
 #mapMeetingSummary{font-size:12px;color:#666;padding:8px 12px;border-bottom:1px solid #eee}
 #mapMeetingList{padding:9px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
@@ -501,12 +512,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div id="mapDistance" role="status" aria-live="polite" style="margin:8px 0 12px;padding:12px;border:1px solid #ded2fa;border-radius:10px;background:#faf8ff;color:#6750a4;font-weight:bold">📍 Khoảng cách sẽ hiện khi cả hai cùng online và bật chia sẻ vị trí.</div>
   <div id="mapWorkspace">
     <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
-    <aside id="mapMeetingPanel" aria-label="Lịch sử gặp nhau gần 100 mét">
-      <h3>❤️ Lịch sử gặp nhau</h3>
-      <div id="mapMeetingSummary">Đang tải lịch sử...</div>
-      <div id="mapMeetingList"><div class="map-meeting-empty">Chưa có lần gặp nào được ghi nhận.</div></div>
+    <aside id="mapMeetingPanel" aria-label="Danh sách người dùng đã chia sẻ vị trí">
+      <h3>👥 Người dùng trên bản đồ</h3>
+      <div id="mapMembersSummary">Đang tải danh sách...</div>
+      <div id="mapMembersList"><div class="map-meeting-empty">Chưa có người dùng nào chia sẻ vị trí.</div></div>
     </aside>
   </div>
+  <section id="mapMeetingHistorySection" aria-label="Lịch sử gặp nhau gần 100 mét">
+    <h3>❤️ Lịch sử gặp nhau</h3>
+    <div id="mapMeetingSummary">Đang tải lịch sử...</div>
+    <div id="mapMeetingList"><div class="map-meeting-empty">Chưa có lần gặp nào được ghi nhận.</div></div>
+  </section>
 </section>
 
 
@@ -2207,6 +2223,45 @@ function formatMeetingDuration(start,end){
   return `${secs} giây`;
 }
 
+function renderMapMembersList(){
+  const list=$("mapMembersList"),summary=$("mapMembersSummary");
+  if(!list||!summary)return;
+  const members=[];
+  for(const [uid,location] of Object.entries(sharedLocationsData||{})){
+    if(!location||!Number.isFinite(Number(location.lat))||!Number.isFinite(Number(location.lng)))continue;
+    const lat=Number(location.lat),lng=Number(location.lng);
+    if(lat < -90 || lat > 90 || lng < -180 || lng > 180)continue;
+    members.push({uid,location,online:memberIsOnline(uid)});
+  }
+  members.sort((a,b)=>Number(b.online)-Number(a.online)||String(a.location.name||"").localeCompare(String(b.location.name||""),"vi"));
+  const live=members.filter(m=>m.online&&m.location.sharing===true).length;
+  summary.textContent=`${members.length} người có vị trí · ${live} người đang online và chia sẻ GPS`;
+  list.replaceChildren();
+  if(!members.length){
+    const empty=document.createElement("div");empty.className="map-meeting-empty";
+    empty.textContent="Chưa có người dùng nào chia sẻ vị trí trên bản đồ.";list.append(empty);return;
+  }
+  for(const member of members){
+    const {uid,location,online}=member;
+    const button=document.createElement("button");button.type="button";button.className="map-member-button";
+    const dot=document.createElement("span");dot.className="map-member-dot"+(online&&location.sharing===true?" online":"");
+    const textWrap=document.createElement("span");textWrap.style.minWidth="0";
+    const name=document.createElement("div");name.className="map-member-name";name.textContent=location.name||presenceForMap?.[uid]?.name||"Thành viên Amino";
+    const status=document.createElement("div");status.className="map-member-status";
+    status.textContent=online?(location.sharing===true?"● Đang online · đang chia sẻ GPS":"● Đang online · vị trí đã lưu"):("○ Ngoại tuyến · vị trí gần nhất đã chia sẻ");
+    textWrap.append(name,status);button.append(dot,textWrap);
+    button.addEventListener("click",()=>{
+      const marker=mapMarkers[uid];
+      if(!marker||!aminoMap)return;
+      const point=marker.getLatLng();
+      aminoMap.setView(point,Math.max(aminoMap.getZoom(),16),{animate:true,duration:0.8});
+      marker.openPopup();
+      setTimeout(()=>aminoMap&&aminoMap.invalidateSize(),250);
+    });
+    list.append(button);
+  }
+}
+
 function renderMapMeetingHistory(){
   const list=$("mapMeetingList"),summary=$("mapMeetingSummary");
   if(!list||!summary)return;
@@ -2349,6 +2404,7 @@ function updateMapMarkers(){
   for(const [uid,marker] of Object.entries(mapMarkers)){
     if(!keep.has(uid)){aminoMap.removeLayer(marker);delete mapMarkers[uid];}
   }
+  renderMapMembersList();
   const count=valid.length;
   const liveCount=valid.filter(item=>item.online&&item.sharing).length;
   $("mapStatus").textContent="";
