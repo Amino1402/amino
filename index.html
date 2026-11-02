@@ -1,4 +1,4 @@
-1
+
 
 
 
@@ -250,7 +250,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #petStage.pet-hungry #petDim{opacity:1}
 #aminoPet{position:absolute;left:12px;bottom:90px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 8s linear,bottom 8s linear;cursor:pointer}
 #aminoPet:after{content:'♡';position:absolute;right:-4px;top:-12px;font-size:18px;color:#f06ca9}
-#petBubble{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);width:max-content;max-width:190px;padding:7px 10px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0002;font-size:11px;font-weight:bold;line-height:1.35;white-space:normal;text-align:center;pointer-events:none}
+#petBubble{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;white-space:normal;text-align:center;pointer-events:none;z-index:2}
+#petBubble:not([hidden]){display:block}
 #petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
 @keyframes petBob{0%,100%{margin-bottom:0}50%{margin-bottom:7px}}
 #petPanel{position:fixed;inset:0;z-index:10020;background:#1c132955;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -749,7 +750,7 @@ async function publishTypingDraft(){
       try{await set(ownRef,null)}catch(error){console.warn(error)}
       lastTypingText="";
     }
-  },8000);
+  },12000);
 }
 
 function startTypingSync(){
@@ -2398,7 +2399,7 @@ function setupMapControls(){
 /* ================= EVENT NUOI PET 20/10 ================= */
 const PET_TARGET=1403, PET_HUNGER_MS=10*60*1000, PET_ONLINE_REWARD_MS=10*60*1000, PET_DIALOGUE_MS=2*60*1000;
 const PET_TYPES=[{emoji:'🐱',name:'Chikawa'},{emoji:'🐰',name:'Usagi'},{emoji:'🐶',name:'Mập'},{emoji:'🐹',name:'Hamster'},{emoji:'🦭',name:'Luna'}];
-const PET_LINES=['Chủ ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Có cậu chăm sóc, tớ vui lắm!','Cho tớ ở cạnh cậu thêm chút nha'];
+const PET_LINES=['Chủ ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Có cậu chăm sóc, tớ vui lắm!','Cho tớ ở cạnh cậu thêm chút nha','Chủ đang làm gì đó? Kể tớ nghe với!','Hôm nay mình cùng cố gắng nhé! ✨','Tớ thích được ở bên chủ lắm 💞','Chủ có nhớ tớ không nè?'];
 let petData=null,petTimer=null,petMoveTimer=null,petDialogueTimer=null,petRewardShown=false;
 function petRef(){return ref(db,`pets/${user.uid}`)}
 function petIsHungry(data=petData){return !!data && Date.now()-Number(data.lastFedAt||Date.now())>=PET_HUNGER_MS}
@@ -2406,7 +2407,11 @@ function petRender(){
   if(!petData||!user)return;
   const type=PET_TYPES.find(x=>x.emoji===petData.petType)||PET_TYPES[0];
   $('petEmoji').textContent=type.emoji;$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
-  document.querySelectorAll('.pet-choice').forEach(btn=>btn.classList.toggle('active',btn.dataset.pet===type.emoji));
+  document.querySelectorAll('.pet-choice').forEach(btn=>{btn.classList.toggle('active',btn.dataset.pet===type.emoji);btn.disabled=!!petData.petChosen;});
+  $('petChoices').hidden=!!petData.petChosen;
+  $('petFeed').hidden=!petData.petChosen;
+  $('petClose').hidden=!petData.petChosen;
+  if(!petData.petChosen){$('petHungerText').textContent='Hãy chọn một người bạn đồng hành nhé! Chọn xong sẽ không thể đổi pet.';}
   const points=Math.max(0,Number(petData.points)||0),hungry=petIsHungry();
   $('petPoints').textContent=points+' / '+PET_TARGET+' điểm';
   $('petProgressFill').style.width=Math.min(100,points/PET_TARGET*100)+'%';
@@ -2420,18 +2425,19 @@ function petRender(){
 }
 async function initPet(){
   const r=petRef();
-  await runTransaction(r,current=>{
-    if(current)return current;
-    const chosen=PET_TYPES[0];
+  const initResult=await runTransaction(r,current=>{
     const now=Date.now();
-    return {uid:user.uid,petType:chosen.emoji,points:0,lastFedAt:now,lastOnlineRewardAt:now,unlocked:false,addressNote:'',addressNoteUpdatedAt:0,createdAt:now};
+    if(current){if(typeof current.petChosen!=='boolean')current.petChosen=false;return current;}
+    return {uid:user.uid,petType:'',petChosen:false,points:0,lastFedAt:now,lastOnlineRewardAt:now,unlocked:false,addressNote:'',addressNoteUpdatedAt:0,createdAt:now};
   });
-  onValue(r,snap=>{petData=snap.val();if(!petData)return;$('petStage').hidden=false;petRender();});
+  petData=initResult.snapshot.val();
+  onValue(r,snap=>{petData=snap.val();if(!petData)return;$('petStage').hidden=false;petRender();if(!petData.petChosen)$('petPanel').hidden=false;});
+  if(!petData.petChosen)$('petPanel').hidden=false;
   await petAwardOnlineTime();
   if(petTimer)clearInterval(petTimer);
   petTimer=setInterval(async()=>{await petAwardOnlineTime();petRender();},15000);
   if(petMoveTimer)clearInterval(petMoveTimer);
-  petMoveTimer=setInterval(petMove,8000);
+  petMoveTimer=setInterval(petMove,12000);
   if(petDialogueTimer)clearInterval(petDialogueTimer);
   petDialogueTimer=setInterval(petSpeak,PET_DIALOGUE_MS);
   setTimeout(petSpeak,2500);
@@ -2452,7 +2458,7 @@ async function petAwardOnlineTime(){
   }catch(e){console.warn('Pet online points:',e)}
 }
 async function petFeed(){
-  if(!user||!petData)return;
+  if(!user||!petData||!petData.petChosen)return;
   const btn=$('petFeed');btn.disabled=true;
   try{
     const result=await runTransaction(petRef(),current=>{
@@ -2472,21 +2478,37 @@ function petMove(){
   const x=12+Math.random()*Math.max(0,maxX-12),y=65+Math.random()*Math.max(0,maxY-65);
   pet.style.left=x+'px';pet.style.bottom=Math.max(70,window.innerHeight-y-64)+'px';
 }
-function petSpeak(){
+function petSpeak(customLine){
   if($('petStage').hidden)return;
-  const bubble=$('petBubble');bubble.textContent=petIsHungry()?'Chủ ơi, tớ đói bụng mất rồi 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)];
-  bubble.hidden=false;clearTimeout(petSpeak.hideTimer);petSpeak.hideTimer=setTimeout(()=>bubble.hidden=true,6500);
+  const bubble=$('petBubble');
+  bubble.textContent=customLine||(petIsHungry()?'Chủ ơi, tớ đói bụng mất rồi 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
+  bubble.hidden=false;
+  clearTimeout(petSpeak.hideTimer);
+  petSpeak.hideTimer=setTimeout(()=>{bubble.hidden=true;},10000);
 }
-$('aminoPet').addEventListener('click',()=>{$('petPanel').hidden=false;petRender();});
+$('aminoPet').addEventListener('click',()=>{
+  petSpeak(petIsHungry()?'Chủ ơi, tớ đói rồi... cho tớ ăn nhé 🥺':'Chủ ơi! Cậu bấm vào tớ rồi nè, hôm nay cậu thế nào? 💗');
+  $('petPanel').hidden=false;
+  petRender();
+});
 $('petClose').addEventListener('click',()=>{$('petPanel').hidden=true;});
 $('petFeed').addEventListener('click',petFeed);
 document.querySelectorAll('.pet-choice').forEach(btn=>btn.addEventListener('click',async()=>{
-  if(!user||!petData)return;
+  if(!user||!petData||petData.petChosen)return;
   const selected=PET_TYPES.find(x=>x.emoji===btn.dataset.pet);if(!selected)return;
-  btn.disabled=true;
-  try{await update(petRef(),{petType:selected.emoji});petData.petType=selected.emoji;petRender();}
-  catch(e){$('petHungerText').textContent='Không đổi được pet: '+e.message;}
-  finally{btn.disabled=false;}
+  document.querySelectorAll('.pet-choice').forEach(choice=>choice.disabled=true);
+  try{
+    const result=await runTransaction(petRef(),current=>{
+      if(!current||current.petChosen)return;
+      current.petType=selected.emoji;
+      current.petChosen=true;
+      current.lastFedAt=Date.now();
+      return current;
+    });
+    if(result.committed){petData=result.snapshot.val();$('petPanel').hidden=true;petRender();petSpeak('Yay! Từ giờ chúng mình là đôi bạn thân nhé! Tớ là '+selected.name+' 💗');}
+    else $('petHungerText').textContent='Bạn đã chọn pet rồi nhé!';
+  }catch(e){$('petHungerText').textContent='Không chọn được pet: '+e.message;}
+  finally{petRender();}
 }));
 $('petRewardContinue').addEventListener('click',()=>{$('petReward').hidden=true;$('petPanel').hidden=false;petRender();});
 $('petAddressSave').addEventListener('click',async()=>{
@@ -2723,4 +2745,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-1409
