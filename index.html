@@ -2477,13 +2477,13 @@ function petMove(){
 function petSpeak(customLine){
   if($('petStage').hidden)return;
   const bubble=$('petBubble');
-  bubble.textContent=customLine||(petIsHungry()?'Chủ ơi, tớ đói bụng mất rồi 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
+  bubble.textContent=customLine||(petIsHungry()?'Cậu ơi, tớ đói bụng mất rồi 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
   bubble.hidden=false;
   clearTimeout(petSpeak.hideTimer);
   petSpeak.hideTimer=setTimeout(()=>{bubble.hidden=true;},10000);
 }
 $('aminoPet').addEventListener('click',()=>{
-  petSpeak(petIsHungry()?'Chủ ơi, tớ đói rồi... cho tớ ăn nhé 🥺':'Chủ ơi! Cậu bấm vào tớ rồi nè, hôm nay cậu thế nào? 💗');
+  petSpeak(petIsHungry()?'Cậu ơi, tớ đói rồi... cho tớ ăn nhé 🥺':'Cậu ơi! Cậu bấm vào tớ rồi nè, hôm nay cậu thế nào? 💗');
   $('petPanel').hidden=false;
   petRender();
 });
