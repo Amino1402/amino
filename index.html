@@ -1,4 +1,4 @@
-
+1
 
 
 
@@ -749,7 +749,7 @@ async function publishTypingDraft(){
       try{await set(ownRef,null)}catch(error){console.warn(error)}
       lastTypingText="";
     }
-  },12000);
+  },8000);
 }
 
 function startTypingSync(){
@@ -2431,7 +2431,7 @@ async function initPet(){
   if(petTimer)clearInterval(petTimer);
   petTimer=setInterval(async()=>{await petAwardOnlineTime();petRender();},15000);
   if(petMoveTimer)clearInterval(petMoveTimer);
-  petMoveTimer=setInterval(petMove,12000);
+  petMoveTimer=setInterval(petMove,8000);
   if(petDialogueTimer)clearInterval(petDialogueTimer);
   petDialogueTimer=setInterval(petSpeak,PET_DIALOGUE_MS);
   setTimeout(petSpeak,2500);
