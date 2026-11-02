@@ -1,3 +1,5 @@
+1
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -260,12 +262,47 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){
   #petStage.pet-hungry #petDim{animation:none}
 }
-#aminoPet{position:absolute;left:12px;top:80px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 8s linear,top 8s linear;cursor:pointer}
-#aminoPet:after{content:'♡';position:absolute;right:-4px;top:-12px;font-size:18px;color:#f06ca9}
+#aminoPet{position:absolute;left:12px;top:80px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 8s linear,top 8s linear;cursor:pointer;will-change:left,top,transform}
+#aminoPet:after{content:'♡';position:absolute;right:-4px;top:-12px;font-size:18px;color:#f06ca9;transform-origin:bottom center;animation:petHeart 1.8s ease-in-out infinite}
+#petEmoji{display:inline-block;transform-origin:50% 85%;animation:petIdle 2.1s ease-in-out infinite}
+#aminoPet.pet-walking #petEmoji{animation:petWalk .34s ease-in-out infinite}
+#aminoPet.pet-jumping #petEmoji{animation:petJump .72s cubic-bezier(.25,.7,.35,1) both}
+#aminoPet.pet-happy #petEmoji{animation:petHappy .55s ease-in-out 3}
+#aminoPet.pet-sleeping #petEmoji{animation:petSleep 2.8s ease-in-out infinite}
+#aminoPet.pet-sleeping:after{content:'Zzz';right:-13px;top:-17px;font-size:13px;font-weight:900;color:#8b78c7;animation:petZzz 1.8s ease-in-out infinite}
+
+
+/* PIXEL ART PET: sprite SVG dang pixel, chi ap dung cho tho va hai cau */
+#petEmoji{width:64px;height:64px;display:inline-flex;align-items:center;justify-content:center;transform-origin:50% 85%;image-rendering:pixelated}
+#petEmoji .pet-pixel-svg{width:64px;height:64px;overflow:visible;shape-rendering:crispEdges;image-rendering:pixelated}
+#petEmoji .pixel-eye{transform-box:fill-box;transform-origin:center;animation:pixelBlink 4.2s steps(1,end) infinite}
+#petEmoji .rabbit-ear-left{transform-box:fill-box;transform-origin:bottom center;animation:rabbitEar 2.4s steps(2,end) infinite}
+#petEmoji .rabbit-ear-right{transform-box:fill-box;transform-origin:bottom center;animation:rabbitEar 2.4s steps(2,end) infinite reverse}
+#petEmoji .pixel-leg-left,#petEmoji .pixel-leg-right,#petEmoji .seal-flipper-left,#petEmoji .seal-flipper-right{transform-box:fill-box;transform-origin:top center}
+#aminoPet.pet-walking #petEmoji .rabbit-ear-left{animation:rabbitEar .28s steps(2,end) infinite}
+#aminoPet.pet-walking #petEmoji .rabbit-ear-right{animation:rabbitEar .28s steps(2,end) infinite reverse}
+#aminoPet.pet-walking #petEmoji .pixel-leg-left,#aminoPet.pet-walking #petEmoji .seal-flipper-left{animation:pixelStep .24s steps(2,end) infinite}
+#aminoPet.pet-walking #petEmoji .pixel-leg-right,#aminoPet.pet-walking #petEmoji .seal-flipper-right{animation:pixelStep .24s steps(2,end) infinite reverse}
+#aminoPet.pet-jumping #petEmoji .rabbit-ear-left,#aminoPet.pet-jumping #petEmoji .rabbit-ear-right{animation:rabbitEar .35s steps(2,end) infinite}
+#aminoPet.pet-happy #petEmoji .pixel-leg-left,#aminoPet.pet-happy #petEmoji .pixel-leg-right{animation:pixelStep .18s steps(2,end) infinite}
+#aminoPet.pet-sleeping #petEmoji .pixel-eye{transform:scaleY(.15)}
+#aminoPet.pet-sleeping #petEmoji .rabbit-ear-left,#aminoPet.pet-sleeping #petEmoji .rabbit-ear-right{animation:none;transform:rotate(22deg)}
+@keyframes pixelBlink{0%,94%,100%{transform:scaleY(1)}96%,98%{transform:scaleY(.12)}}
+@keyframes rabbitEar{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(8deg)}}
+@keyframes pixelStep{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
 #petBubble{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;white-space:normal;text-align:center;pointer-events:none;z-index:2}
 #petBubble:not([hidden]){display:block}
 #petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
-@keyframes petBob{0%,100%{margin-bottom:0}50%{margin-bottom:7px}}
+@keyframes petBob{0%,100%{margin-bottom:0}50%{margin-bottom:5px}}
+@keyframes petIdle{0%,100%{transform:translateY(0) rotate(0) scale(1)}35%{transform:translateY(-2px) rotate(-4deg) scale(1.025)}70%{transform:translateY(0) rotate(4deg) scale(1)}}
+@keyframes petWalk{0%,100%{transform:translateY(1px) rotate(-9deg) scaleX(.96)}50%{transform:translateY(-5px) rotate(9deg) scaleX(1.04)}}
+@keyframes petJump{0%{transform:translateY(0) scale(1,1)}35%{transform:translateY(-22px) scale(.94,1.08)}65%{transform:translateY(-25px) scale(1.05,.96)}100%{transform:translateY(0) scale(1,1)}}
+@keyframes petHappy{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-14deg) scale(1.12)}50%{transform:rotate(14deg) scale(1.12)}75%{transform:rotate(-8deg) scale(1.06)}}
+@keyframes petSleep{0%,100%{transform:translateY(2px) rotate(5deg) scale(1,.94)}50%{transform:translateY(4px) rotate(8deg) scale(1,.91)}}
+@keyframes petHeart{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.22) rotate(12deg)}}
+@keyframes petZzz{0%{opacity:0;transform:translate(0,7px) scale(.8)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-9px) scale(1.12)}}
+@media(prefers-reduced-motion:reduce){#aminoPet,#aminoPet:after,#petEmoji{animation:none!important}#aminoPet{transition:none}}
 #petPanel{position:fixed;inset:0;z-index:10020;background:#1c132955;display:flex;align-items:center;justify-content:center;padding:16px}
 #petCard{width:min(360px,100%);max-height:90dvh;overflow:auto;background:#fff8fc;border:1px solid #ffd0e3;border-radius:22px;padding:20px;color:#633d54;box-shadow:0 15px 50px #0003;text-align:center}
 #petCard h2{margin:4px 0 10px;color:#c34e87}
@@ -471,9 +508,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <button id="petFeed" type="button">🍖 Cho pet ăn (+1 điểm)</button>
     <div id="petAddressBox" hidden>
       <strong>💌 Phần quà đã mở khóa!</strong>
-      <p>Cảm ơn cậu thời gian qua đã gắn bó cùng mình, mink sẽ trở thành 1 phiên bản thực thể hóa đến bên bạn. Bạn có thể nhập địa chỉ ô phía dưới để mình đến bên bạn</p>
+      <p>Bạn có thể nhập địa chỉ nhận quà nếu sự kiện có tổ chức giao quà thật. Thông tin này chỉ lưu trong hồ sơ UID của bạn; không hiển thị công khai.</p>
       <textarea id="petAddress" maxlength="300" placeholder="Nhập địa chỉ nhận quà (không bắt buộc)..."></textarea>
-      <button id="petAddressSave" type="button">Lưu thông tin</button>
+      <button id="petAddressSave" type="button">Lưu lời nhắn</button>
       <div class="pet-small" id="petAddressStatus"></div>
     </div>
     <button id="petClose" type="button">Đóng</button>
@@ -483,8 +520,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <section id="petRewardCard" role="dialog" aria-modal="true">
     <div style="font-size:52px">💌</div>
     <h2>Cảm ơn bạn đã chăm sóc tớ!</h2>
-    <p>Pet đã đạt 1403 điểm! 🥰</p>
-    <p class="pet-small">Thông tin chỉ được lưu trong hồ sơ UID của bạn và không hiển thị công khai.</p>
+    <p>Pet đã đạt 1403 điểm. Vui lòng nhập địa chỉ của bạn nếu sự kiện có tổ chức giao quà nhé! 🥰</p>
+    <p class="pet-small">Thông tin chỉ được lưu trong hồ sơ UID của bạn và không hiển thị công khai. Việc nhập địa chỉ không bảo đảm có giao quà thực tế.</p>
     <button id="petRewardContinue" type="button">Tiếp tục</button>
   </section>
 </div>
@@ -2415,11 +2452,33 @@ const PET_TYPES=[{emoji:'🐱',name:'Chikawa'},{emoji:'🐰',name:'Usagi'},{emoj
 const PET_LINES=['Cậu ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Có cậu chăm sóc, tớ vui lắm!','Cho tớ ở cạnh cậu thêm chút nha','Cậu đang làm gì đó? Kể tớ nghe với!','Hôm nay mình cùng cố gắng nhé! ✨','Tớ thích được ở bên Cậu lắm 💞','Cậu có nhớ tớ không nè?'];
 let petData=null,petTimer=null,petMoveTimer=null,petDialogueTimer=null,petRewardShown=false;
 function petRef(){return ref(db,`pets/${user.uid}`)}
+
+function petPixelMarkup(emoji){
+  if(emoji==='🐰')return `<svg class="pet-pixel-svg pet-rabbit-svg" viewBox="0 0 64 64" aria-label="Thỏ pixel art" role="img">
+    <g class="rabbit-ear-left"><rect x="15" y="3" width="10" height="25" fill="#fff"/><rect x="18" y="7" width="4" height="16" fill="#f5a8c4"/></g>
+    <g class="rabbit-ear-right"><rect x="37" y="1" width="10" height="27" fill="#fff"/><rect x="40" y="6" width="4" height="17" fill="#f5a8c4"/></g>
+    <rect x="13" y="22" width="38" height="31" fill="#fff"/><rect x="9" y="29" width="46" height="19" fill="#fff"/><rect x="17" y="18" width="30" height="8" fill="#fff"/>
+    <rect x="18" y="31" width="5" height="6" fill="#453746" class="pixel-eye"/><rect x="41" y="31" width="5" height="6" fill="#453746" class="pixel-eye"/><rect x="29" y="38" width="6" height="4" fill="#f28eae"/><rect x="27" y="43" width="10" height="2" fill="#9d6475"/>
+    <rect x="8" y="36" width="5" height="9" fill="#f7c7d8"/><rect x="51" y="36" width="5" height="9" fill="#f7c7d8"/>
+    <g class="pixel-leg-left"><rect x="17" y="49" width="11" height="9" fill="#fff"/><rect x="14" y="55" width="14" height="5" fill="#f5b4ca"/></g><g class="pixel-leg-right"><rect x="37" y="49" width="11" height="9" fill="#fff"/><rect x="36" y="55" width="14" height="5" fill="#f5b4ca"/></g>
+    <rect x="27" y="48" width="10" height="7" fill="#fff"/><rect x="27" y="50" width="10" height="4" fill="#f5b4ca"/>
+  </svg>`;
+  if(emoji==='🦭')return `<svg class="pet-pixel-svg pet-seal-svg" viewBox="0 0 64 64" aria-label="Hải cẩu pixel art" role="img">
+    <rect x="8" y="35" width="8" height="10" fill="#9eafc7"/><rect x="48" y="35" width="8" height="10" fill="#9eafc7"/>
+    <rect x="13" y="23" width="38" height="26" fill="#c6d4e7"/><rect x="18" y="17" width="28" height="29" fill="#dce6f2"/><rect x="23" y="13" width="18" height="8" fill="#dce6f2"/>
+    <rect x="18" y="31" width="5" height="5" fill="#354257" class="pixel-eye"/><rect x="41" y="31" width="5" height="5" fill="#354257" class="pixel-eye"/><rect x="29" y="37" width="7" height="5" fill="#53647d"/><rect x="27" y="42" width="11" height="2" fill="#53647d"/>
+    <rect x="9" y="39" width="8" height="12" fill="#aebfd5"/><rect x="47" y="39" width="8" height="12" fill="#aebfd5"/>
+    <g class="seal-flipper-left"><rect x="7" y="44" width="13" height="7" fill="#9eafc7"/><rect x="5" y="49" width="13" height="5" fill="#879bb7"/></g><g class="seal-flipper-right"><rect x="44" y="44" width="13" height="7" fill="#9eafc7"/><rect x="46" y="49" width="13" height="5" fill="#879bb7"/></g>
+    <rect x="22" y="48" width="20" height="8" fill="#c6d4e7"/><rect x="18" y="54" width="12" height="5" fill="#aebfd5"/><rect x="35" y="54" width="12" height="5" fill="#aebfd5"/><rect x="27" y="24" width="10" height="3" fill="#fff"/>
+  </svg>`;
+  return emoji;
+}
+
 function petIsHungry(data=petData){return !!data && Date.now()-Number(data.lastFedAt||Date.now())>=PET_HUNGER_MS}
 function petRender(){
   if(!petData||!user)return;
   const type=PET_TYPES.find(x=>x.emoji===petData.petType)||PET_TYPES[0];
-  $('petEmoji').textContent=type.emoji;$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
+  $('petEmoji').innerHTML=petPixelMarkup(type.emoji);$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
   document.querySelectorAll('.pet-choice').forEach(btn=>{btn.classList.toggle('active',btn.dataset.pet===type.emoji);btn.disabled=!!petData.petChosen;});
   $('petChoices').hidden=!!petData.petChosen;
   $('petFeed').hidden=!petData.petChosen;
@@ -2497,10 +2556,21 @@ function petMove(){
   const maxY=Math.max(margin,areaH-petH-margin);
   const x=margin+Math.random()*Math.max(0,maxX-margin);
   const y=margin+Math.random()*Math.max(0,maxY-margin);
+  pet.classList.remove('pet-jumping','pet-happy','pet-sleeping');
+  pet.classList.add('pet-walking');
   pet.style.left=Math.round(x)+'px';
   pet.style.top=Math.round(y)+'px';
   pet.style.right='auto';
   pet.style.bottom='auto';
+  clearTimeout(petMove.actionTimer);
+  petMove.actionTimer=setTimeout(()=>{
+    pet.classList.remove('pet-walking');
+    const actions=['pet-jumping','pet-happy','pet-sleeping'];
+    const action=actions[Math.floor(Math.random()*actions.length)];
+    pet.classList.add(action);
+    clearTimeout(petMove.finishTimer);
+    petMove.finishTimer=setTimeout(()=>pet.classList.remove(action),action==='pet-sleeping'?5000:2200);
+  },8000);
 }
 window.addEventListener('resize',()=>{
   if($('petStage').hidden)return;
