@@ -1,3 +1,4 @@
+Testing
 
 
 <!DOCTYPE html>
@@ -22,7 +23,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #enter{width:100%}
 #passwordError{color:#b42318}
 #status,#chatStatus{font-size:13px;color:#666}
-#chatLayout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
+#chatLayout{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
 #chatMain,#sidePanel{min-width:0}
 #chatMain{position:relative}
 #aminoToastStack{position:absolute;top:8px;right:8px;z-index:30;width:min(330px,calc(100% - 16px));display:flex;flex-direction:column;gap:7px;pointer-events:none}
@@ -242,7 +243,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){.floating-heart{animation:none}}
 
 /* EVENT NUOI PET 20/10 */
-#petStage{position:fixed;inset:0;z-index:8500;pointer-events:none;overflow:hidden}
+#petStage{position:absolute;inset:0;z-index:8500;pointer-events:none;overflow:hidden;contain:layout paint}
 #petDim{position:absolute;inset:0;background:rgba(24,18,35,.34);opacity:0;transition:opacity .35s;pointer-events:none;transform:translateZ(0)}
 /* Khi pet đói: hậu cảnh nhòe như mắt bị cận, lớp pet nằm phía trên nên vẫn rõ nét. */
 #petStage.pet-hungry #petDim{
@@ -343,6 +344,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <div id="playerWrap" hidden><div id="player"></div></div>
         <div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
       </section>
+    </div>
+    <!-- Pet phủ toàn bộ chatLayout: khung tin nhắn, online và nhạc chung -->
+    <div id="petStage" hidden aria-label="Thú cưng Amino">
+      <div id="petDim"></div>
+      <button id="aminoPet" type="button" aria-label="Mở chăm sóc thú cưng"><span id="petBubble" hidden></span><span id="petEmoji">🐱</span></button>
     </div>
   </div>
 </section>
@@ -448,11 +454,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </section>
 
 
-<!-- Event nuoi pet 20/10 -->
-<div id="petStage" hidden aria-label="Thú cưng Amino">
-  <div id="petDim"></div>
-  <button id="aminoPet" type="button" aria-label="Mở chăm sóc thú cưng"><span id="petBubble" hidden></span><span id="petEmoji">🐱</span></button>
-</div>
+<!-- Event nuoi pet 20/10: petStage phu toan bo chatLayout -->
 <div id="petPanel" hidden>
   <section id="petCard" role="dialog" aria-modal="true" aria-labelledby="petTitle">
     <div id="petFace">🐱</div><h2 id="petTitle">Bé pet của bạn</h2>
@@ -2488,13 +2490,15 @@ async function petFeed(){
 function petMove(){
   if($('petStage').hidden)return;
   const pet=$('aminoPet');
-  // Giữ toàn bộ thân pet trong vùng an toàn của màn hình, không chạy ra mép.
-  const marginX=12,topSafe=82,bottomSafe=92;
+  // Pet di chuyển trong toàn bộ chatLayout: khung chat, online và nhạc chung.
+  const stage=$('petStage');
+  const margin=8;
+  const areaW=stage.clientWidth,areaH=stage.clientHeight;
   const petW=pet.offsetWidth||64,petH=pet.offsetHeight||64;
-  const maxX=Math.max(marginX,window.innerWidth-petW-marginX);
-  const maxY=Math.max(topSafe,window.innerHeight-petH-bottomSafe);
-  const x=marginX+Math.random()*Math.max(0,maxX-marginX);
-  const y=topSafe+Math.random()*Math.max(0,maxY-topSafe);
+  const maxX=Math.max(margin,areaW-petW-margin);
+  const maxY=Math.max(margin,areaH-petH-margin);
+  const x=margin+Math.random()*Math.max(0,maxX-margin);
+  const y=margin+Math.random()*Math.max(0,maxY-margin);
   pet.style.left=Math.round(x)+'px';
   pet.style.top=Math.round(y)+'px';
   pet.style.right='auto';
@@ -2502,12 +2506,12 @@ function petMove(){
 }
 window.addEventListener('resize',()=>{
   if($('petStage').hidden)return;
-  const pet=$('aminoPet');
-  const marginX=12,topSafe=82,bottomSafe=92;
-  const maxX=Math.max(marginX,window.innerWidth-(pet.offsetWidth||64)-marginX);
-  const maxY=Math.max(topSafe,window.innerHeight-(pet.offsetHeight||64)-bottomSafe);
-  const x=Math.min(maxX,Math.max(marginX,parseFloat(pet.style.left)||marginX));
-  const y=Math.min(maxY,Math.max(topSafe,parseFloat(pet.style.top)||topSafe));
+  const pet=$('aminoPet'),stage=$('petStage');
+  const margin=8;
+  const maxX=Math.max(margin,stage.clientWidth-(pet.offsetWidth||64)-margin);
+  const maxY=Math.max(margin,stage.clientHeight-(pet.offsetHeight||64)-margin);
+  const x=Math.min(maxX,Math.max(margin,parseFloat(pet.style.left)||margin));
+  const y=Math.min(maxY,Math.max(margin,parseFloat(pet.style.top)||margin));
   pet.style.left=Math.round(x)+'px';pet.style.top=Math.round(y)+'px';
 });
 function petSpeak(customLine){
