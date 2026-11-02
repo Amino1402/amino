@@ -261,7 +261,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){
   #petStage.pet-hungry #petDim{animation:none}
 }
-#aminoPet{position:absolute;left:12px;bottom:90px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 8s linear,bottom 8s linear;cursor:pointer}
+#aminoPet{position:absolute;left:12px;top:80px;width:64px;height:64px;border:0;border-radius:50%;padding:0;background:transparent;font-size:46px;line-height:1;filter:drop-shadow(0 4px 5px #0003);pointer-events:auto;touch-action:manipulation;animation:petBob 1.4s ease-in-out infinite;transition:left 8s linear,top 8s linear;cursor:pointer}
 #aminoPet:after{content:'♡';position:absolute;right:-4px;top:-12px;font-size:18px;color:#f06ca9}
 #petBubble{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;white-space:normal;text-align:center;pointer-events:none;z-index:2}
 #petBubble:not([hidden]){display:block}
@@ -2487,10 +2487,29 @@ async function petFeed(){
 }
 function petMove(){
   if($('petStage').hidden)return;
-  const pet=$('aminoPet'),maxX=Math.max(0,window.innerWidth-75),maxY=Math.max(70,window.innerHeight-150);
-  const x=12+Math.random()*Math.max(0,maxX-12),y=65+Math.random()*Math.max(0,maxY-65);
-  pet.style.left=x+'px';pet.style.bottom=Math.max(70,window.innerHeight-y-64)+'px';
+  const pet=$('aminoPet');
+  // Giữ toàn bộ thân pet trong vùng an toàn của màn hình, không chạy ra mép.
+  const marginX=12,topSafe=82,bottomSafe=92;
+  const petW=pet.offsetWidth||64,petH=pet.offsetHeight||64;
+  const maxX=Math.max(marginX,window.innerWidth-petW-marginX);
+  const maxY=Math.max(topSafe,window.innerHeight-petH-bottomSafe);
+  const x=marginX+Math.random()*Math.max(0,maxX-marginX);
+  const y=topSafe+Math.random()*Math.max(0,maxY-topSafe);
+  pet.style.left=Math.round(x)+'px';
+  pet.style.top=Math.round(y)+'px';
+  pet.style.right='auto';
+  pet.style.bottom='auto';
 }
+window.addEventListener('resize',()=>{
+  if($('petStage').hidden)return;
+  const pet=$('aminoPet');
+  const marginX=12,topSafe=82,bottomSafe=92;
+  const maxX=Math.max(marginX,window.innerWidth-(pet.offsetWidth||64)-marginX);
+  const maxY=Math.max(topSafe,window.innerHeight-(pet.offsetHeight||64)-bottomSafe);
+  const x=Math.min(maxX,Math.max(marginX,parseFloat(pet.style.left)||marginX));
+  const y=Math.min(maxY,Math.max(topSafe,parseFloat(pet.style.top)||topSafe));
+  pet.style.left=Math.round(x)+'px';pet.style.top=Math.round(y)+'px';
+});
 function petSpeak(customLine){
   if($('petStage').hidden)return;
   const bubble=$('petBubble');
