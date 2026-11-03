@@ -1954,6 +1954,8 @@ function startDiary(){
   // Dữ liệu cũ sẽ được đọc/chuyển riêng từng ngày khi người dùng mở ngày đó.
   // Chỉ subscribe metadata nhẹ; tuyệt đối không nghe nhánh chứa Base64.
   onValue(ref(db,"diaryIndex"),snapshot=>{
+    // diaryIndex là danh sách nhật ký công khai của TẤT CẢ thành viên.
+    // Mỗi tài khoản chỉ được ghi dữ liệu của chính mình; mọi tài khoản đăng nhập đều được đọc.
     publicDiaryData=snapshot.val()||{};
     syncDiaryAminoToasts(publicDiaryData);
     diaryDataLoaded=true;
@@ -1961,6 +1963,10 @@ function startDiary(){
   },error=>{
     $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
   });
+
+  // Chuyển metadata nhật ký cũ của chính tài khoản này sang diaryIndex ở chế độ nền.
+  // Không chặn thao tác chat; ảnh vẫn được lưu riêng trong diaryImages.
+  migrateOwnDiaryImages().catch(error=>console.warn("Không thể đồng bộ nhật ký cũ:",error));
 
   window.addEventListener("pagehide",()=>{
     if(activeDiaryVisitRef){
