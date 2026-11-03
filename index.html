@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1008,14 +1009,20 @@ async function loadDiaryImages(uid,dateKey,force=false){
     if(Array.isArray(value))images=value;
     else if(value&&typeof value==="object")images=Object.keys(value).sort((a,b)=>Number(a)-Number(b)).map(k=>value[k]);
   }catch(error){console.warn("Không tải được ảnh nhật ký:",error);}
-  // Hỗ trợ ảnh cũ chưa được chuyển: chỉ đọc bản ghi đúng ngày đang mở.
+  // Hỗ trợ dữ liệu cũ: chỉ đọc đúng ngày đang mở, không tải cả tháng/cả tài khoản.
   if(!images.length){
     try{
       const legacy=await get(ref(db,`diary/${uid}/${monthKey}/${dateKey}`));
-      const old=legacy.val()?.images;
+      const oldEntry=legacy.val();
+      const old=oldEntry?.images;
       if(Array.isArray(old))images=old;
       else if(old&&typeof old==="object")images=Object.keys(old).sort((a,b)=>Number(a)-Number(b)).map(k=>old[k]);
-      if(images.length&&uid===user?.uid)await migrateDiaryEntryImages(uid,dateKey,images);
+      if(uid===user?.uid&&oldEntry){
+        const meta={uid,name:oldEntry.name||displayName,text:oldEntry.text||"",photoCount:images.length||Number(oldEntry.photoCount)||0,updatedAt:Number(oldEntry.updatedAt)||Date.now()};
+        await set(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`),meta);
+        publicDiaryData[uid]??={};publicDiaryData[uid][monthKey]??={};publicDiaryData[uid][monthKey][dateKey]=meta;
+        if(images.length)await migrateDiaryEntryImages(uid,dateKey,images);
+      }
     }catch(error){console.warn("Không đọc được ảnh nhật ký cũ:",error);}
   }
   images=images.filter(x=>typeof x==="string"&&x.startsWith("data:image/"));
@@ -1114,6 +1121,85 @@ async function deleteDiaryImage(dateKey,imageIndex){
     refreshDiaryView();$("diarySaveStatus").textContent="Đã xóa ảnh khỏi nhật ký ✓";return true;
   }catch(error){$("diarySaveStatus").textContent="Không xóa được ảnh: "+error.message;return false;}
 }
+
+function openDiaryImageViewer(src){
+  $("diaryImageViewerImage").src=src;
+  $("diaryImageViewer").hidden=false;
+}
+function closeDiaryImageViewer(){
+  $("diaryImageViewer").hidden=true;
+  $("diaryImageViewerImage").removeAttribute("src");
+}
+
+function renderDiaryCalendar(){
+  const calendar=$("diaryCalendar");
+  calendar.replaceChildren();
+  $("diaryMonthTitle").textContent=diaryMonth.toLocaleDateString("vi-VN",{
+    month:"long",year:"numeric"
+  });
+  const year=diaryMonth.getFullYear();
+  const month=diaryMonth.getMonth();
+  const offset=(new Date(year,month,1).getDay()+6)%7;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=diaryLocalKey(new Date());
+
+  for(let i=0;i<offset;i++){
+    const blank=document.createElement("span");
+    blank.className="diary-day empty";
+    calendar.append(blank);
+  }
+  for(let day=1;day<=daysInMonth;day++){
+    const key=diaryLocalKey(new Date(year,month,day));
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="diary-day";
+    button.textContent=String(day);
+    if(key===diarySelectedDate)button.classList.add("selected");
+    if(key===today)button.classList.add("today");
+    if(getEntriesForDate(key).length)button.classList.add("has-entry");
+    const hasPhoto=getEntriesForDate(key).some(entry=>entry.photoCount>0||entry.images.length>0);
+    if(hasPhoto)button.classList.add("has-photo");
+    button.setAttribute("aria-label",diaryDateLabel(key)+(hasPhoto?" — có ảnh":""));
+    button.addEventListener("click",()=>selectDiaryDate(key));
+    calendar.append(button);
+  }
+}
+
+function getOwnEntry(dateKey){
+  return publicDiaryData?.[user?.uid]?.[dateKey.slice(0,7)]?.[dateKey]||null;
+}
+
+function renderDiaryImagePreview(){
+  const preview=$("diaryImagePreview");
+  if(!preview)return;
+  preview.replaceChildren();
+  diaryDraftImages.forEach((imageData,index)=>{
+    const wrapper=document.createElement("div");
+    wrapper.className="diary-image-thumb";
+    const image=document.createElement("img");
+    image.src=imageData;
+    image.alt="Ảnh đã chọn "+(index+1);
+    const remove=document.createElement("button");
+    remove.type="button";
+    remove.className="diary-image-remove";
+    remove.textContent="×";
+    remove.disabled=!isDiaryEditable(diarySelectedDate);
+    remove.setAttribute("aria-label","Xóa ảnh "+(index+1));
+    remove.addEventListener("click",async()=>{
+      if(!isDiaryEditable(diarySelectedDate)){
+        $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
+        refreshDiaryView();
+        return;
+      }
+      diaryDraftImages.splice(index,1);
+      renderDiaryImagePreview();
+      await saveDiaryEntry(diarySelectedDate,$("diaryText").value,diaryDraftImages);
+    });
+    wrapper.append(image,remove);
+    preview.append(wrapper);
+  });
+}
+
 
 function compressDiaryImage(file){
   // Giữ nguyên file ảnh gốc: không resize, không đổi định dạng, không nén lại.
@@ -1864,8 +1950,8 @@ function startDiary(){
     refreshDiaryView();
   });
 
-  // Chuyển dữ liệu ảnh cũ của chính tài khoản sang nhánh ảnh riêng.
-  migrateOwnDiaryImages();
+  // Không tải toàn bộ diary/{uid} khi khởi động vì nhánh cũ có thể chứa Base64 rất lớn.
+  // Dữ liệu cũ sẽ được đọc/chuyển riêng từng ngày khi người dùng mở ngày đó.
   // Chỉ subscribe metadata nhẹ; tuyệt đối không nghe nhánh chứa Base64.
   onValue(ref(db,"diaryIndex"),snapshot=>{
     publicDiaryData=snapshot.val()||{};
@@ -2955,3 +3041,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+2
