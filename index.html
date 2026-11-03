@@ -718,9 +718,9 @@ function syncDiaryAminoToasts(diary){
         if(!postedAt)continue;
         const name=typeof entry.name==="string"&&entry.name.trim()?entry.name:"Một thành viên";
         const hasText=typeof entry.text==="string"&&entry.text.trim().length>0;
-        const hasImages=Array.isArray(entry.images)&&entry.images.length>0;
+        const hasImages=(Number(entry.photoCount)||0)>0||(Array.isArray(entry.images)&&entry.images.length>0);
         if(hasText)addAminoToast(`diary:${uid}:${dateKey}:text`,"📔","Nhật ký mới",`${name} vừa đăng nhật ký ngày ${dateKey}.`,postedAt);
-        if(hasImages)addAminoToast(`diary:${uid}:${dateKey}:image:${entry.images.length}`,"📸","Ảnh mới",`${name} vừa đăng ảnh trong nhật ký ngày ${dateKey}.`,postedAt);
+        if(hasImages)addAminoToast(`diary:${uid}:${dateKey}:image:${Number(entry.photoCount)||entry.images?.length||0}`,"📸","Ảnh mới",`${name} vừa đăng ảnh trong nhật ký ngày ${dateKey}.`,postedAt);
       }
     }
   }
@@ -957,233 +957,162 @@ function getEntriesForDate(dateKey){
   for(const [uid,months] of Object.entries(publicDiaryData||{})){
     const entry=months?.[monthKey]?.[dateKey];
     if(!entry||typeof entry!=="object"||typeof entry.text!=="string")continue;
-    entries.push({
-      uid,
-      name:typeof entry.name==="string"?entry.name:"Thành viên",
-      text:entry.text,
-      images:Array.isArray(entry.images)?entry.images.filter(image=>typeof image==="string"&&image.startsWith("data:image/")):[],
-      updatedAt:Number(entry.updatedAt)||0
-    });
+    entries.push({uid,name:typeof entry.name==="string"?entry.name:"Thành viên",
+      text:entry.text,photoCount:Math.max(0,Number(entry.photoCount)||0),
+      images:Array.isArray(entry.images)?entry.images:[],updatedAt:Number(entry.updatedAt)||0});
   }
   entries.sort((a,b)=>a.name.localeCompare(b.name,"vi"));
   return entries;
 }
 
-function renderPublicEntries(){
-  const container=$("publicDiaryEntries");
-  container.replaceChildren();
-  const entries=getEntriesForDate(diarySelectedDate);
-
-  if(!entries.length){
-    const empty=document.createElement("p");
-    empty.className="hint";
-    empty.textContent="Chưa có nhật ký nào trong ngày này. Cậu viết bài đầu tiên nhé!";
-    container.append(empty);
-    return;
+// Ảnh được tải riêng theo ngày và lưu cache trên thiết bị (IndexedDB).
+const DIARY_IMAGE_DB="amino-diary-image-cache-v1";
+const DIARY_IMAGE_STORE="images";
+let diaryImageCache=new Map();
+let diaryImageDbPromise=null;
+function openDiaryImageDB(){
+  if(diaryImageDbPromise)return diaryImageDbPromise;
+  diaryImageDbPromise=new Promise((resolve,reject)=>{
+    if(!("indexedDB" in window)){resolve(null);return;}
+    const request=indexedDB.open(DIARY_IMAGE_DB,1);
+    request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(DIARY_IMAGE_STORE))db.createObjectStore(DIARY_IMAGE_STORE);};
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>resolve(null);
+  });
+  return diaryImageDbPromise;
+}
+async function getCachedDiaryImages(key){
+  if(diaryImageCache.has(key))return diaryImageCache.get(key);
+  const idb=await openDiaryImageDB();if(!idb)return null;
+  return new Promise(resolve=>{
+    try{const req=idb.transaction(DIARY_IMAGE_STORE,"readonly").objectStore(DIARY_IMAGE_STORE).get(key);
+      req.onsuccess=()=>{const value=Array.isArray(req.result)?req.result:null;if(value)diaryImageCache.set(key,value);resolve(value);};
+      req.onerror=()=>resolve(null);
+    }catch(_){resolve(null);}
+  });
+}
+async function cacheDiaryImages(key,images){
+  diaryImageCache.set(key,images);
+  const idb=await openDiaryImageDB();if(!idb)return;
+  try{idb.transaction(DIARY_IMAGE_STORE,"readwrite").objectStore(DIARY_IMAGE_STORE).put(images,key);}catch(_){}
+}
+async function loadDiaryImages(uid,dateKey,force=false){
+  const key=uid+"/"+dateKey;
+  if(!force){const cached=await getCachedDiaryImages(key);if(cached)return cached;}
+  const monthKey=dateKey.slice(0,7);
+  const imageRef=ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`);
+  let images=[];
+  try{
+    const snap=await get(imageRef);
+    const value=snap.val();
+    if(Array.isArray(value))images=value;
+    else if(value&&typeof value==="object")images=Object.keys(value).sort((a,b)=>Number(a)-Number(b)).map(k=>value[k]);
+  }catch(error){console.warn("Không tải được ảnh nhật ký:",error);}
+  // Hỗ trợ ảnh cũ chưa được chuyển: chỉ đọc bản ghi đúng ngày đang mở.
+  if(!images.length){
+    try{
+      const legacy=await get(ref(db,`diary/${uid}/${monthKey}/${dateKey}`));
+      const old=legacy.val()?.images;
+      if(Array.isArray(old))images=old;
+      else if(old&&typeof old==="object")images=Object.keys(old).sort((a,b)=>Number(a)-Number(b)).map(k=>old[k]);
+      if(images.length&&uid===user?.uid)await migrateDiaryEntryImages(uid,dateKey,images);
+    }catch(error){console.warn("Không đọc được ảnh nhật ký cũ:",error);}
   }
-
+  images=images.filter(x=>typeof x==="string"&&x.startsWith("data:image/"));
+  await cacheDiaryImages(key,images);
+  return images;
+}
+async function migrateDiaryEntryImages(uid,dateKey,images){
+  if(uid!==user?.uid||!images?.length)return false;
+  const monthKey=dateKey.slice(0,7);
+  const imageRef=ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`);
+  await set(imageRef,images);
+  const verify=await get(imageRef);
+  if(!verify.exists())throw new Error("Chưa xác minh được ảnh sau khi chuyển.");
+  const legacySnap=await get(ref(db,`diary/${uid}/${monthKey}/${dateKey}`));
+  const legacy=legacySnap.val()||{};
+  const meta={uid,name:legacy.name||displayName,text:legacy.text||"",photoCount:images.length,updatedAt:legacy.updatedAt||Date.now()};
+  await set(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`),meta);
+  await update(ref(db,`diary/${uid}/${monthKey}/${dateKey}`),{images:null,photoCount:images.length});
+  await cacheDiaryImages(uid+"/"+dateKey,images);
+  return true;
+}
+async function migrateOwnDiaryImages(){
+  if(!user||!db)return;
+  try{
+    const snap=await get(ref(db,`diary/${user.uid}`));
+    const months=snap.val()||{};
+    for(const [monthKey,entries] of Object.entries(months)){
+      for(const [dateKey,entry] of Object.entries(entries||{})){
+        if(!entry)continue;
+        if(entry.images){
+          const images=Array.isArray(entry.images)?entry.images:
+            Object.keys(entry.images).sort((a,b)=>Number(a)-Number(b)).map(k=>entry.images[k]);
+          if(images.length)await migrateDiaryEntryImages(user.uid,dateKey,images);
+        }else{
+          const meta={uid:user.uid,name:entry.name||displayName,text:entry.text||"",photoCount:Number(entry.photoCount)||0,updatedAt:Number(entry.updatedAt)||Date.now()};
+          await set(ref(db,`diaryIndex/${user.uid}/${monthKey}/${dateKey}`),meta);
+        }
+      }
+    }
+  }catch(error){console.warn("Chuyển ảnh nhật ký cũ:",error);}
+}
+async function renderPublicEntries(){
+  const container=$("publicDiaryEntries");container.replaceChildren();
+  const entries=getEntriesForDate(diarySelectedDate);
+  if(!entries.length){const empty=document.createElement("p");empty.className="hint";
+    empty.textContent="Chưa có nhật ký nào trong ngày này. Cậu viết bài đầu tiên nhé!";container.append(empty);return;}
   for(const entry of entries){
     const own=entry.uid===user?.uid;
-    const card=document.createElement("article");
-    card.className="public-entry"+(own?" own-entry":"");
-    const heading=document.createElement("div");
-    heading.className="entry-heading";
-    const author=document.createElement("span");
-    author.className="entry-author";
-    author.textContent=entry.name+(own?" (Bạn)":"");
-    const time=document.createElement("span");
-    time.className="entry-time";
-    if(entry.updatedAt){
-      time.textContent="Cập nhật "+new Date(entry.updatedAt).toLocaleTimeString("vi-VN",{
-        hour:"2-digit",minute:"2-digit"
-      });
-    }
+    const card=document.createElement("article");card.className="public-entry"+(own?" own-entry":"");
+    const heading=document.createElement("div");heading.className="entry-heading";
+    const author=document.createElement("span");author.className="entry-author";author.textContent=entry.name+(own?" (Bạn)":"");
+    const time=document.createElement("span");time.className="entry-time";
+    if(entry.updatedAt)time.textContent="Cập nhật "+new Date(entry.updatedAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
     heading.append(author,time);
-    const content=document.createElement("div");
-    content.className="entry-content";
-    content.textContent=entry.text;
-    card.append(heading,content);
-    if(entry.images.length){
-      const imageRow=document.createElement("div");
-      imageRow.className="entry-images";
-      entry.images.forEach((imageData,index)=>{
-        const imageItem=document.createElement("div");
-        imageItem.className="entry-image-item";
-        const image=document.createElement("img");
-        image.src=imageData;
-        image.alt="Ảnh trong nhật ký của "+entry.name;
-        image.loading="lazy";
-        image.addEventListener("click",()=>openDiaryImageViewer(imageData));
-        imageItem.append(image);
-
-        // Chỉ chủ nhật ký mới nhìn thấy và sử dụng được nút xóa ảnh.
-        if(own&&isDiaryEditable(diarySelectedDate)){
-          const remove=document.createElement("button");
-          remove.type="button";
-          remove.className="entry-image-delete";
-          remove.textContent="×";
-          remove.title="Xóa ảnh này";
-          remove.setAttribute("aria-label","Xóa ảnh "+(index+1));
-          remove.addEventListener("click",async()=>{
-            if(remove.disabled)return;
-            remove.disabled=true;
-            remove.textContent="…";
-            await deleteDiaryImage(diarySelectedDate,imageData);
-            if(remove.isConnected){remove.disabled=false;remove.textContent="×";}
-          });
-          imageItem.append(remove);
-        }
-        imageRow.append(imageItem);
-      });
-      card.append(imageRow);
-    }
-    container.append(card);
+    const content=document.createElement("div");content.className="entry-content";content.textContent=entry.text;card.append(heading,content);
+    if(entry.photoCount>0||entry.images?.length){
+      const loading=document.createElement("p");loading.className="hint";loading.textContent="Đang tải "+(entry.photoCount||entry.images.length)+" ảnh...";card.append(loading);
+      container.append(card);
+      const images=entry.images?.length?entry.images:await loadDiaryImages(entry.uid,diarySelectedDate);
+      if(!card.isConnected)continue;
+      loading.remove();
+      if(images.length){
+        const imageRow=document.createElement("div");imageRow.className="entry-images";
+        images.forEach((imageData,index)=>{
+          const imageItem=document.createElement("div");imageItem.className="entry-image-item";
+          const image=document.createElement("img");image.src=imageData;image.alt="Ảnh trong nhật ký của "+entry.name;image.loading="lazy";
+          image.addEventListener("click",()=>openDiaryImageViewer(imageData));imageItem.append(image);
+          if(own&&isDiaryEditable(diarySelectedDate)){
+            const remove=document.createElement("button");remove.type="button";remove.className="entry-image-delete";remove.textContent="×";remove.title="Xóa ảnh này";
+            remove.setAttribute("aria-label","Xóa ảnh "+(index+1));
+            remove.addEventListener("click",async()=>{remove.disabled=true;await deleteDiaryImage(diarySelectedDate,index);});
+            imageItem.append(remove);
+          }
+          imageRow.append(imageItem);
+        });
+        card.append(imageRow);
+      }
+    }else container.append(card);
   }
 }
 
-async function deleteDiaryImage(dateKey,imageData){
-  if(!user||!db)return false;
-  if(!isDiaryEditable(dateKey)){
-    $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
-    return false;
-  }
+async function deleteDiaryImage(dateKey,imageIndex){
+  if(!user||!db||!isDiaryEditable(dateKey))return false;
   if(!window.confirm("Cậu có chắc muốn xóa riêng ảnh này khỏi nhật ký không?"))return false;
-
-  const uid=user.uid;
-  const monthKey=dateKey.slice(0,7);
-  const entryRef=ref(db,`diary/${uid}/${monthKey}/${dateKey}`);
-  $("diarySaveStatus").textContent="Đang xóa ảnh...";
-
+  const uid=user.uid,monthKey=dateKey.slice(0,7),key=uid+"/"+dateKey;
   try{
-    const result=await runTransaction(entryRef,current=>{
-      if(!isDiaryEditable(dateKey))return;
-      // Không cho phép xóa nếu bản ghi không còn thuộc tài khoản hiện tại.
-      if(!current||typeof current!=="object"||current.uid!==uid)return;
-
-      let images=[];
-      if(Array.isArray(current.images)){
-        images=current.images.slice();
-      }else if(current.images&&typeof current.images==="object"){
-        images=Object.keys(current.images)
-          .sort((a,b)=>Number(a)-Number(b))
-          .map(key=>current.images[key]);
-      }
-
-      const imageIndex=images.findIndex(value=>value===imageData);
-      if(imageIndex<0)return;
-      images.splice(imageIndex,1);
-      images=images.filter(value=>typeof value==="string"&&value.startsWith("data:image/"));
-
-      const updated={...current,updatedAt:Date.now()};
-      if(images.length)updated.images=images;
-      else delete updated.images;
-
-      // Nếu ảnh cuối cùng bị xóa và phần chữ trống, xóa luôn bản ghi rỗng.
-      if(!String(updated.text||"").trim()&&!images.length)return null;
-      return updated;
-    },{applyLocally:false});
-
-    if(!result.committed){
-      $("diarySaveStatus").textContent="Không tìm thấy ảnh để xóa hoặc nhật ký đã thay đổi.";
-      return false;
-    }
-
-    publicDiaryData[uid]??={};
-    publicDiaryData[uid][monthKey]??={};
-    const saved=result.snapshot.val();
-    if(saved)publicDiaryData[uid][monthKey][dateKey]=saved;
-    else delete publicDiaryData[uid][monthKey][dateKey];
-
-    if(dateKey===diarySelectedDate){
-      diaryDraftImages=Array.isArray(saved?.images)?saved.images.slice():[];
-      renderDiaryImagePreview();
-    }
-    refreshDiaryView();
-    $("diarySaveStatus").textContent="Đã xóa ảnh khỏi nhật ký ✓";
-    return true;
-  }catch(error){
-    console.error("Xóa ảnh nhật ký thất bại:",error);
-    $("diarySaveStatus").textContent="Không xóa được ảnh: "+(error?.message||String(error));
-    return false;
-  }
-}
-
-function openDiaryImageViewer(src){
-  $("diaryImageViewerImage").src=src;
-  $("diaryImageViewer").hidden=false;
-}
-function closeDiaryImageViewer(){
-  $("diaryImageViewer").hidden=true;
-  $("diaryImageViewerImage").removeAttribute("src");
-}
-
-function renderDiaryCalendar(){
-  const calendar=$("diaryCalendar");
-  calendar.replaceChildren();
-  $("diaryMonthTitle").textContent=diaryMonth.toLocaleDateString("vi-VN",{
-    month:"long",year:"numeric"
-  });
-  const year=diaryMonth.getFullYear();
-  const month=diaryMonth.getMonth();
-  const offset=(new Date(year,month,1).getDay()+6)%7;
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const today=diaryLocalKey(new Date());
-
-  for(let i=0;i<offset;i++){
-    const blank=document.createElement("span");
-    blank.className="diary-day empty";
-    calendar.append(blank);
-  }
-  for(let day=1;day<=daysInMonth;day++){
-    const key=diaryLocalKey(new Date(year,month,day));
-    const button=document.createElement("button");
-    button.type="button";
-    button.className="diary-day";
-    button.textContent=String(day);
-    if(key===diarySelectedDate)button.classList.add("selected");
-    if(key===today)button.classList.add("today");
-    if(getEntriesForDate(key).length)button.classList.add("has-entry");
-    const hasPhoto=getEntriesForDate(key).some(entry=>entry.images.length>0);
-    if(hasPhoto)button.classList.add("has-photo");
-    button.setAttribute("aria-label",diaryDateLabel(key)+(hasPhoto?" — có ảnh":""));
-    button.addEventListener("click",()=>selectDiaryDate(key));
-    calendar.append(button);
-  }
-}
-
-function getOwnEntry(dateKey){
-  return publicDiaryData?.[user?.uid]?.[dateKey.slice(0,7)]?.[dateKey]||null;
-}
-
-function renderDiaryImagePreview(){
-  const preview=$("diaryImagePreview");
-  if(!preview)return;
-  preview.replaceChildren();
-  diaryDraftImages.forEach((imageData,index)=>{
-    const wrapper=document.createElement("div");
-    wrapper.className="diary-image-thumb";
-    const image=document.createElement("img");
-    image.src=imageData;
-    image.alt="Ảnh đã chọn "+(index+1);
-    const remove=document.createElement("button");
-    remove.type="button";
-    remove.className="diary-image-remove";
-    remove.textContent="×";
-    remove.disabled=!isDiaryEditable(diarySelectedDate);
-    remove.setAttribute("aria-label","Xóa ảnh "+(index+1));
-    remove.addEventListener("click",async()=>{
-      if(!isDiaryEditable(diarySelectedDate)){
-        $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
-        refreshDiaryView();
-        return;
-      }
-      diaryDraftImages.splice(index,1);
-      renderDiaryImagePreview();
-      await saveDiaryEntry(diarySelectedDate,$("diaryText").value,diaryDraftImages);
-    });
-    wrapper.append(image,remove);
-    preview.append(wrapper);
-  });
+    const images=await loadDiaryImages(uid,dateKey,true);
+    if(imageIndex<0||imageIndex>=images.length)return false;
+    images.splice(imageIndex,1);
+    const imageRef=ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`);
+    await set(imageRef,images.length?images:null);
+    await update(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`),{photoCount:images.length,updatedAt:Date.now()});
+    await update(ref(db,`diary/${uid}/${monthKey}/${dateKey}`),{photoCount:images.length,updatedAt:Date.now()});
+    await cacheDiaryImages(key,images);
+    if(dateKey===diarySelectedDate){diaryDraftImages=images.slice();renderDiaryImagePreview();}
+    refreshDiaryView();$("diarySaveStatus").textContent="Đã xóa ảnh khỏi nhật ký ✓";return true;
+  }catch(error){$("diarySaveStatus").textContent="Không xóa được ảnh: "+error.message;return false;}
 }
 
 function compressDiaryImage(file){
@@ -1226,91 +1155,49 @@ function refreshDiaryView(){
 
 async function saveDiaryEntry(dateKey,value,images=diaryDraftImages){
   if(!user||!db)return false;
-  if(!isDiaryEditable(dateKey)){
-    $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
-    if(dateKey===diarySelectedDate)refreshDiaryView();
-    return false;
-  }
-  const requestVersion=++diaryRequestVersion;
-  const text=value.trim();
-  const safeImages=Array.isArray(images)?images:[];
-  const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
+  if(!isDiaryEditable(dateKey)){ $("diarySaveStatus").textContent="Nhật ký tự động lưu.";return false; }
+  const requestVersion=++diaryRequestVersion,text=value.trim(),safeImages=Array.isArray(images)?images:[];
+  const uid=user.uid,monthKey=dateKey.slice(0,7),now=Date.now();
+  const entryRef=ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`);
   $("diarySaveStatus").textContent="Đang lưu...";
   try{
     if(text||safeImages.length){
-      const now=Date.now();
-      const result=await runTransaction(entryRef,current=>{
-        if(!isDiaryEditable(dateKey))return;
-        const previous=current&&typeof current==="object"?current:{};
-        return {
-          uid:user.uid,name:displayName,text:value,images:safeImages,
-          updatedAt:now
-        };
-      },{applyLocally:false});
-      if(!result.committed){
-        $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
-        return false;
-      }
-      if(requestVersion===diaryRequestVersion){
-        $("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
-      }
-      return true;
+      const meta={uid,name:displayName,text,photoCount:safeImages.length,updatedAt:now};
+      await set(entryRef,meta);
+      await set(ref(db,`diary/${uid}/${monthKey}/${dateKey}`),meta);
+      await set(ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`),safeImages.length?safeImages:null);
+      await cacheDiaryImages(uid+"/"+dateKey,safeImages);
+      if(requestVersion===diaryRequestVersion)$("diarySaveStatus").textContent="Đã lưu nhật ký công khai ✓";
+      publicDiaryData[uid]??={};publicDiaryData[uid][monthKey]??={};publicDiaryData[uid][monthKey][dateKey]=meta;
     }else{
-      if(!isDiaryEditable(dateKey)){
-        $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
-        return false;
-      }
-      await set(entryRef,null);
-      if(requestVersion===diaryRequestVersion){
-        $("diarySaveStatus").textContent="Đã xóa nhật ký của bạn ✓";
-      }
-      return true;
+      await set(entryRef,null);await set(ref(db,`diary/${uid}/${monthKey}/${dateKey}`),null);
+      await set(ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`),null);
+      await cacheDiaryImages(uid+"/"+dateKey,[]);
+      if(requestVersion===diaryRequestVersion)$("diarySaveStatus").textContent="Đã xóa nhật ký của bạn ✓";
+      if(publicDiaryData?.[uid]?.[monthKey])delete publicDiaryData[uid][monthKey][dateKey];
     }
-  }catch(error){
-    if(requestVersion===diaryRequestVersion){
-      $("diarySaveStatus").textContent="Lưu thất bại: "+error.message;
-    }
-    console.error("Lưu nhật ký lên Firebase thất bại:",error);
-    return false;
-  }
+    return true;
+  }catch(error){$("diarySaveStatus").textContent="Lưu thất bại: "+error.message;console.error(error);return false;}
 }
 
 async function saveCapturedPhotoToFirebase(dateKey,imageData){
-  if(!user||!db)throw new Error("Chưa kết nối Firebase. Hãy tải lại phòng chat rồi thử lại.");
+  if(!user||!db)throw new Error("Chưa kết nối Firebase.");
   if(!isDiaryEditable(dateKey))throw new Error(diaryLockMessage(dateKey));
-  const entryRef=ref(db,`diary/${user.uid}/${dateKey.slice(0,7)}/${dateKey}`);
-  const now=Date.now();
-  const result=await runTransaction(entryRef,current=>{
-    if(!isDiaryEditable(dateKey))return;
-    const previous=current&&typeof current==="object"?current:{};
-    let oldImages=[];
-    if(Array.isArray(previous.images)){
-      oldImages=previous.images.filter(value=>typeof value==="string"&&value.startsWith("data:image/"));
-    }else if(previous.images&&typeof previous.images==="object"){
-      oldImages=Object.keys(previous.images)
-        .sort((a,b)=>Number(a)-Number(b))
-        .map(key=>previous.images[key])
-        .filter(value=>typeof value==="string"&&value.startsWith("data:image/"));
-    }
-    return {
-      uid:user.uid,name:displayName,
-      text:typeof previous.text==="string"?previous.text:"",
-      images:[...oldImages,imageData],
-      updatedAt:now
-    };
-  },{applyLocally:false});
-  if(!result.committed){
-    if(!isDiaryEditable(dateKey))throw new Error(diaryLockMessage(dateKey));
-    throw new Error("Firebase không xác nhận giao dịch lưu ảnh.");
-  }
-  const saved=result.snapshot.val();
-  if(!saved||!Array.isArray(saved.images)||!saved.images.includes(imageData)){
-    throw new Error("Firebase phản hồi nhưng không tìm thấy ảnh vừa lưu.");
-  }
-  publicDiaryData[user.uid]??={};
-  publicDiaryData[user.uid][dateKey.slice(0,7)]??={};
-  publicDiaryData[user.uid][dateKey]=saved;
-  return saved;
+  const uid=user.uid,monthKey=dateKey.slice(0,7),key=uid+"/"+dateKey;
+  const images=await loadDiaryImages(uid,dateKey,true);
+  images.push(imageData);
+  await set(ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`),images);
+  const verify=await get(ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`));
+  const saved=verify.val();
+  const checked=Array.isArray(saved)?saved:Object.values(saved||{});
+  if(checked.length!==images.length||checked[checked.length-1]!==imageData)throw new Error("Firebase chưa xác minh được ảnh vừa lưu.");
+  const now=Date.now(),old=publicDiaryData?.[uid]?.[monthKey]?.[dateKey]||{};
+  const meta={uid,name:displayName,text:old.text||"",photoCount:checked.length,updatedAt:now};
+  await set(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`),meta);
+  await set(ref(db,`diary/${uid}/${monthKey}/${dateKey}`),meta);
+  await cacheDiaryImages(key,checked);
+  publicDiaryData[uid]??={};publicDiaryData[uid][monthKey]??={};publicDiaryData[uid][monthKey][dateKey]=meta;
+  return {...meta,images:checked};
 }
 
 function scheduleDiarySave(){
@@ -1489,7 +1376,7 @@ async function selectDiaryDate(key){
   await savePendingDiary();
   await closeDiaryVisit();
   diarySelectedDate=key;
-  diaryDraftImages=(getOwnEntry(key)?.images||[]).slice();
+  diaryDraftImages=await loadDiaryImages(user.uid,key);
   renderDiaryImagePreview();
   refreshDiaryView();
   watchDiaryViews(key);
@@ -1504,7 +1391,7 @@ async function changeDiaryMonth(amount){
   diarySelectedDate=diaryLocalKey(
     new Date(diaryMonth.getFullYear(),diaryMonth.getMonth(),1)
   );
-  diaryDraftImages=(getOwnEntry(diarySelectedDate)?.images||[]).slice();
+  diaryDraftImages=await loadDiaryImages(user.uid,diarySelectedDate);
   renderDiaryImagePreview();
   refreshDiaryView();
   watchDiaryViews(diarySelectedDate);
@@ -1512,7 +1399,7 @@ async function changeDiaryMonth(amount){
   $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
 }
 
-function unlockDiary(){
+async function unlockDiary(){
   if($("diaryPassword").value!=="1406"){
     $("diaryPasswordError").textContent="Mật khẩu nhật ký không đúng!";
     $("diaryPassword").value="";
@@ -1523,134 +1410,85 @@ function unlockDiary(){
   $("diaryContent").hidden=false;
   $("diaryPasswordError").textContent="";
   $("diaryPassword").value="";
-  diaryDraftImages=(getOwnEntry(diarySelectedDate)?.images||[]).slice();
+  diaryDraftImages=await loadDiaryImages(user.uid,diarySelectedDate);
   renderDiaryImagePreview();
   refreshDiaryView();
   watchDiaryViews(diarySelectedDate);
   startDiaryVisit(diarySelectedDate);
 }
 
-function getAllDiaryPhotos(onlyOwn=false){
+async function getAllDiaryPhotos(onlyOwn=false){
   const photos=[];
-  Object.entries(publicDiaryData||{}).forEach(([uid,months])=>{
-    if(onlyOwn&&uid!==user?.uid)return;
-    Object.entries(months||{}).forEach(([monthKey,entries])=>{
-      Object.entries(entries||{}).forEach(([dateKey,entry])=>{
-        (Array.isArray(entry?.images)?entry.images:[]).forEach((src,index)=>{
-          if(typeof src==="string"&&src.startsWith("data:image/")){
-            photos.push({src,dateKey,index,uid,name:typeof entry?.name==="string"&&entry.name.trim()?entry.name:"Thành viên"});
-          }
-        });
-      });
-    });
-  });
+  for(const [uid,months] of Object.entries(publicDiaryData||{})){
+    if(onlyOwn&&uid!==user?.uid)continue;
+    for(const [monthKey,entries] of Object.entries(months||{})){
+      for(const [dateKey,entry] of Object.entries(entries||{})){
+        const count=Math.max(0,Number(entry?.photoCount)||0);
+        if(!count)continue;
+        const images=await loadDiaryImages(uid,dateKey);
+        images.forEach((src,index)=>photos.push({src,dateKey,index,uid,name:entry.name||"Thành viên"}));
+      }
+    }
+  }
   photos.sort((a,b)=>b.dateKey.localeCompare(a.dateKey)||b.index-a.index);
   return photos;
 }
-function getOwnDiaryPhotos(){return getAllDiaryPhotos(true);}
+async function getOwnDiaryPhotos(){return getAllDiaryPhotos(true);}
 function renderDiaryCameraGallery(){
   const items=diaryCameraGalleryItems;
-  if(!items.length){
-    $("diaryCameraGalleryImage").removeAttribute("src");
-    $("diaryCameraGalleryDate").textContent="Chưa có ảnh nào được lưu trong Nhật ký.";
-    return;
-  }
-  const item=items[diaryCameraGalleryIndex];
-  $("diaryCameraGalleryImage").src=item.src;
+  if(!items.length){$("diaryCameraGalleryImage").removeAttribute("src");$("diaryCameraGalleryDate").textContent="Chưa có ảnh nào được lưu trong Nhật ký.";return;}
+  const item=items[diaryCameraGalleryIndex];$("diaryCameraGalleryImage").src=item.src;
   $("diaryCameraGalleryDate").textContent=item.name+" · "+diaryDateLabel(item.dateKey)+` · ${diaryCameraGalleryIndex+1}/${items.length}`;
 }
-function openDiaryCameraGallery(showEveryone=false){
-  diaryCameraGalleryItems=getAllDiaryPhotos(!showEveryone);
-  const heading=$("diaryCameraGalleryTop").querySelector("strong");
-  if(heading)heading.textContent=showEveryone?"📸 Ảnh của mọi người":"📸 Ảnh của tôi";
-  if(!diaryCameraGalleryItems.length){
-    $("diaryCameraGallery").hidden=false;
-    renderDiaryCameraGallery();
-    return;
-  }
-  diaryCameraGalleryIndex=0;
-  $("diaryCameraGallery").hidden=false;
-  renderDiaryCameraGallery();
+async function openDiaryCameraGallery(showEveryone=false){
+  diaryCameraGalleryItems=await getAllDiaryPhotos(!showEveryone);
+  const heading=$("diaryCameraGalleryTop").querySelector("strong");if(heading)heading.textContent=showEveryone?"📸 Ảnh của mọi người":"📸 Ảnh của tôi";
+  diaryCameraGalleryIndex=0;$("diaryCameraGallery").hidden=false;renderDiaryCameraGallery();
 }
-function closeDiaryCameraGallery(){
-  $("diaryCameraGallery").hidden=true;
-  $("diaryCameraGalleryImage").removeAttribute("src");
-}
+function closeDiaryCameraGallery(){$("diaryCameraGallery").hidden=true;$("diaryCameraGalleryImage").removeAttribute("src");}
 function moveDiaryCameraGallery(direction){
-  if(!diaryCameraGalleryItems.length)return;
-  const next=diaryCameraGalleryIndex+direction;
-  if(next<0||next>=diaryCameraGalleryItems.length)return;
-  diaryCameraGalleryIndex=next;
-  renderDiaryCameraGallery();
+  if(!diaryCameraGalleryItems.length)return;const next=diaryCameraGalleryIndex+direction;
+  if(next<0||next>=diaryCameraGalleryItems.length)return;diaryCameraGalleryIndex=next;renderDiaryCameraGallery();
 }
-function handleDiaryGalleryTouchStart(event){
-  diaryCameraGalleryTouchY=event.touches?.[0]?.clientY??null;
-}
+function handleDiaryGalleryTouchStart(event){diaryCameraGalleryTouchY=event.touches?.[0]?.clientY??null;}
 function handleDiaryGalleryTouchEnd(event){
-  if(diaryCameraGalleryTouchY===null)return;
-  const endY=event.changedTouches?.[0]?.clientY;
-  const delta=diaryCameraGalleryTouchY-(endY??diaryCameraGalleryTouchY);
-  diaryCameraGalleryTouchY=null;
+  if(diaryCameraGalleryTouchY===null)return;const endY=event.changedTouches?.[0]?.clientY;
+  const delta=diaryCameraGalleryTouchY-(endY??diaryCameraGalleryTouchY);diaryCameraGalleryTouchY=null;
   if(Math.abs(delta)>45)moveDiaryCameraGallery(delta>0?1:-1);
 }
-function showDiaryCommunity(){
-  renderDiaryCommunityFeed();
-  $("diaryCommunityView").hidden=false;
-  $("diaryPhotoCalendarView").hidden=true;
-  $("diaryCameraGallery").hidden=true;
-}
-function showDiaryCamera(){
-  $("diaryCommunityView").hidden=true;
-  $("diaryPhotoCalendarView").hidden=true;
-  $("diaryCameraGallery").hidden=true;
-}
-function renderDiaryCommunityFeed(){
-  const feed=$("diaryCommunityFeed");
-  feed.replaceChildren();
-  const photos=getAllDiaryPhotos(false);
-  if(!photos.length){
-    const empty=document.createElement("p");
-    empty.textContent="Chưa có ai đăng ảnh.";
-    empty.style.cssText="text-align:center;color:#bbb;margin:auto";
-    feed.append(empty);return;
-  }
-  photos.forEach(item=>{
-    const card=document.createElement("article");card.className="diary-community-card";
+function showDiaryCommunity(){renderDiaryCommunityFeed();$("diaryCommunityView").hidden=false;$("diaryPhotoCalendarView").hidden=true;$("diaryCameraGallery").hidden=true;}
+function showDiaryCamera(){$("diaryCommunityView").hidden=true;$("diaryPhotoCalendarView").hidden=true;$("diaryCameraGallery").hidden=true;}
+async function renderDiaryCommunityFeed(){
+  const feed=$("diaryCommunityFeed");feed.replaceChildren();const photos=await getAllDiaryPhotos(false);
+  if(!photos.length){const empty=document.createElement("p");empty.textContent="Chưa có ai đăng ảnh.";empty.style.cssText="text-align:center;color:#bbb;margin:auto";feed.append(empty);return;}
+  photos.forEach(item=>{const card=document.createElement("article");card.className="diary-community-card";
     const img=document.createElement("img");img.src=item.src;img.alt="Ảnh của "+item.name;img.loading="lazy";
-    img.addEventListener("click",()=>openDiaryImageViewer(item.src));
-    const meta=document.createElement("div");meta.className="diary-community-meta";
-    meta.textContent=item.name+" · "+diaryDateLabel(item.dateKey);
-    card.append(img,meta);feed.append(card);
-  });
+    img.addEventListener("click",()=>openDiaryImageViewer(item.src));const meta=document.createElement("div");meta.className="diary-community-meta";
+    meta.textContent=item.name+" · "+diaryDateLabel(item.dateKey);card.append(img,meta);feed.append(card);});
 }
-function renderDiaryPhotoCalendar(){
-  // Lịch riêng của người đang đăng nhập; dải cộng đồng vẫn hiển thị ảnh của tất cả mọi người.
-  const photos=getAllDiaryPhotos(true);
-  const dates=new Set(photos.map(p=>p.dateKey));
+async function renderDiaryPhotoCalendar(){
+  const photos=await getAllDiaryPhotos(true),dates=new Set(photos.map(p=>p.dateKey));
   const year=diaryPhotoCalendarMonth.getFullYear(),month=diaryPhotoCalendarMonth.getMonth();
   $("diaryPhotoMonthTitle").textContent=diaryPhotoCalendarMonth.toLocaleDateString("vi-VN",{month:"long",year:"numeric"});
-  const grid=$("diaryPhotoCalendarGrid");grid.replaceChildren();
-  const first=new Date(year,month,1);const offset=(first.getDay()+6)%7;const count=new Date(year,month+1,0).getDate();
-  for(let i=0;i<offset;i++){const blank=document.createElement("span");blank.className="diary-photo-day empty";grid.append(blank)}
-  for(let day=1;day<=count;day++){
-    const key=diaryLocalKey(new Date(year,month,day));const btn=document.createElement("button");btn.type="button";btn.className="diary-photo-day";btn.textContent=String(day);
+  const grid=$("diaryPhotoCalendarGrid");grid.replaceChildren();const first=new Date(year,month,1),offset=(first.getDay()+6)%7,count=new Date(year,month+1,0).getDate();
+  for(let i=0;i<offset;i++){const blank=document.createElement("span");blank.className="diary-photo-day empty";grid.append(blank);}
+  for(let day=1;day<=count;day++){const key=diaryLocalKey(new Date(year,month,day)),btn=document.createElement("button");btn.type="button";btn.className="diary-photo-day";btn.textContent=String(day);
     if(dates.has(key))btn.classList.add("has-photos");if(key===diaryPhotoCalendarSelected)btn.classList.add("selected");
-    btn.addEventListener("click",()=>selectDiaryPhotoCalendarDay(key));grid.append(btn);
-  }
-  renderDiaryPhotoDayImages();
+    btn.addEventListener("click",()=>selectDiaryPhotoCalendarDay(key));grid.append(btn);}
+  await renderDiaryPhotoDayImages();
 }
-function selectDiaryPhotoCalendarDay(key){diaryPhotoCalendarSelected=key;renderDiaryPhotoCalendar();}
-function renderDiaryPhotoDayImages(){
-  const photos=getAllDiaryPhotos(true).filter(p=>p.dateKey===diaryPhotoCalendarSelected);
+async function selectDiaryPhotoCalendarDay(key){diaryPhotoCalendarSelected=key;await renderDiaryPhotoCalendar();}
+async function renderDiaryPhotoDayImages(){
+  const photos=(await getAllDiaryPhotos(true)).filter(p=>p.dateKey===diaryPhotoCalendarSelected);
   $("diaryPhotoDayTitle").textContent=diaryPhotoCalendarSelected?diaryDateLabel(diaryPhotoCalendarSelected)+" · "+photos.length+" ảnh":"Chọn một ngày để xem ảnh";
   const wrap=$("diaryPhotoDayImages");wrap.replaceChildren();
-  photos.forEach(item=>{const card=document.createElement("div");card.className="diary-photo-thumb";const img=document.createElement("img");img.src=item.src;img.alt="Ảnh của "+item.name;img.loading="lazy";img.title=item.name;img.addEventListener("click",()=>openDiaryImageViewer(item.src));const name=document.createElement("div");name.textContent=item.name;card.append(img,name);wrap.append(card)});
+  photos.forEach(item=>{const card=document.createElement("div");card.className="diary-photo-thumb";const img=document.createElement("img");img.src=item.src;img.alt="Ảnh của "+item.name;img.loading="lazy";img.title=item.name;img.addEventListener("click",()=>openDiaryImageViewer(item.src));const name=document.createElement("div");name.textContent=item.name;card.append(img,name);wrap.append(card);});
 }
-function showDiaryPhotoCalendar(){
-  diaryPhotoCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
-  diaryPhotoCalendarSelected="";renderDiaryPhotoCalendar();
-  $("diaryCommunityView").hidden=true;$("diaryPhotoCalendarView").hidden=false;
+async function showDiaryPhotoCalendar(){
+  diaryPhotoCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);diaryPhotoCalendarSelected="";
+  await renderDiaryPhotoCalendar();$("diaryCommunityView").hidden=true;$("diaryPhotoCalendarView").hidden=false;
 }
+
 function handleDiaryCameraSwipeStart(event){
   const t=event.touches?.[0];if(t)diaryGestureStart={x:t.clientX,y:t.clientY,view:"camera"};
 }
@@ -1934,14 +1772,14 @@ function startDiary(){
     window.scrollTo({top:0,behavior:"auto"});
   });
 
-  $("diaryToggle").addEventListener("click",()=>{
+  $("diaryToggle").addEventListener("click",async()=>{
     $("chat").hidden=true;
     $("photoPage").hidden=true;
     $("diaryPage").hidden=false;
     $("diaryGate").hidden=diaryPageUnlocked;
     $("diaryContent").hidden=!diaryPageUnlocked;
     if(diaryPageUnlocked){
-      diaryDraftImages=(getOwnEntry(diarySelectedDate)?.images||[]).slice();
+      diaryDraftImages=await loadDiaryImages(user.uid,diarySelectedDate);
       renderDiaryImagePreview();
       refreshDiaryView();
       if(!activeDiaryVisitRef)startDiaryVisit(diarySelectedDate);
@@ -2026,7 +1864,10 @@ function startDiary(){
     refreshDiaryView();
   });
 
-  onValue(ref(db,"diary"),snapshot=>{
+  // Chuyển dữ liệu ảnh cũ của chính tài khoản sang nhánh ảnh riêng.
+  migrateOwnDiaryImages();
+  // Chỉ subscribe metadata nhẹ; tuyệt đối không nghe nhánh chứa Base64.
+  onValue(ref(db,"diaryIndex"),snapshot=>{
     publicDiaryData=snapshot.val()||{};
     syncDiaryAminoToasts(publicDiaryData);
     diaryDataLoaded=true;
