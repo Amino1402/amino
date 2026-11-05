@@ -2165,6 +2165,8 @@ let aminoMap=null;
 let mapMarkers={};
 let mapPhotosData={};
 let mapPhotoMarkers={};
+const mapPhotoImageCache={};
+const mapPhotoImageLoads={};
 let selectedMapPhotoFile=null;
 let mapPhotoListenersStarted=false;
 let mapPhotoControlsReady=false;
@@ -2624,22 +2626,34 @@ function mapPhotoTime(timestamp){
   });
 }
 
-function createMapPhotoPopupContent(photo){
-  const wrap=document.createElement('div');wrap.className='map-photo-popup';
-  const image=document.createElement('img');image.src=photo.image;image.alt='Ảnh tại địa điểm';image.style.cursor='zoom-in';image.addEventListener('click',()=>openMapPhotoFullImage(photo));
-  const name=document.createElement('strong');name.textContent=photo.name||'Thành viên Amino';
-  const time=document.createElement('div');time.textContent=mapPhotoTime(photo.createdAt);
-  wrap.append(name,image,time);
-  if(photo.caption){const caption=document.createElement('div');caption.textContent=photo.caption;caption.style.marginTop='5px';wrap.append(caption);}
-  const coord=document.createElement('small');coord.textContent=`${Number(photo.lat).toFixed(5)}, ${Number(photo.lng).toFixed(5)}`;coord.style.color='#777';wrap.append(coord);
-  return wrap;
+async function loadMapPhotoImage(photoId){
+  if(mapPhotoImageCache[photoId])return mapPhotoImageCache[photoId];
+  if(mapPhotoImageLoads[photoId])return mapPhotoImageLoads[photoId];
+  mapPhotoImageLoads[photoId]=(async()=>{
+    const snap=await get(ref(db,`mapPhotoImages/${photoId}/image`));
+    const image=snap.val();
+    if(typeof image!=="string"||!image.startsWith("data:image/"))throw new Error("Không tìm thấy dữ liệu ảnh.");
+    mapPhotoImageCache[photoId]=image;
+    return image;
+  })();
+  try{return await mapPhotoImageLoads[photoId];}
+  finally{delete mapPhotoImageLoads[photoId];}
 }
 
-function openMapPhotoFullImage(photo){
-  const view=$("mapPhotoFullView");if(!view||!photo?.image)return;
-  $("mapPhotoFullImage").src=photo.image;
-  $("mapPhotoFullInfo").textContent=[photo.name||"Thành viên Amino",mapPhotoTime(photo.createdAt),`${Number(photo.lat).toFixed(5)}, ${Number(photo.lng).toFixed(5)}`,photo.caption||""].filter(Boolean).join(" · ");
-  view.hidden=false;
+async function openMapPhotoFullImage(photoId){
+  const photo=mapPhotosData[photoId];if(!photo)return;
+  const view=$("mapPhotoFullView"),imageEl=$("mapPhotoFullImage"),info=$("mapPhotoFullInfo");
+  if(!view||!imageEl)return;
+  view.hidden=false;imageEl.removeAttribute("src");
+  info.textContent="Đang tải ảnh...";
+  try{
+    const image=await loadMapPhotoImage(photoId);
+    if(view.hidden)return;
+    imageEl.src=image;
+    info.textContent=[photo.name||"Thành viên Amino",mapPhotoTime(photo.createdAt),`${Number(photo.lat).toFixed(5)}, ${Number(photo.lng).toFixed(5)}`,photo.caption||""].filter(Boolean).join(" · ");
+  }catch(error){
+    info.textContent="Không tải được ảnh: "+(error.message||error);
+  }
 }
 function closeMapPhotoFullImage(){
   const view=$("mapPhotoFullView");if(view)view.hidden=true;
@@ -2652,55 +2666,32 @@ function updateMapPhotoMarkers(){
   if(!aminoMap||!window.L)return;
   const keep=new Set();
   for(const [key,photo] of Object.entries(mapPhotosData||{})){
-    if(!photo||!photo.image||!Number.isFinite(Number(photo.lat))||!Number.isFinite(Number(photo.lng)))continue;
+    if(!photo||!Number.isFinite(Number(photo.lat))||!Number.isFinite(Number(photo.lng)))continue;
     keep.add(key);
     let marker=mapPhotoMarkers[key];
     if(!marker){
       const icon=L.divIcon({className:'map-photo-marker',html:'<span>📷</span>',iconSize:[36,36],iconAnchor:[18,18]});
       marker=L.marker([Number(photo.lat),Number(photo.lng)],{icon}).addTo(aminoMap);
       mapPhotoMarkers[key]=marker;
+      marker.on("click",()=>openMapPhotoFullImage(key));
     }else marker.setLatLng([Number(photo.lat),Number(photo.lng)]);
-    marker.bindPopup(createMapPhotoPopupContent(photo));
-    marker.off("click");
-    marker.on("click",()=>openMapPhotoFullImage(photo));
+    marker.bindTooltip(`${photo.name||'Thành viên Amino'} · ${mapPhotoTime(photo.createdAt)}`);
   }
   for(const [key,marker] of Object.entries(mapPhotoMarkers)){
-    if(!keep.has(key)){aminoMap.removeLayer(marker);delete mapPhotoMarkers[key];}
-  }
-  renderMapPhotoList();
-}
-
-function renderMapPhotoList(){
-  const list=$('mapPhotoList');if(!list)return;
-  list.replaceChildren();
-  const entries=Object.entries(mapPhotosData||{}).filter(([,photo])=>photo?.image&&Number.isFinite(Number(photo.lat))&&Number.isFinite(Number(photo.lng)));
-  entries.sort((a,b)=>(Number(b[1].createdAt)||0)-(Number(a[1].createdAt)||0));
-  if(!entries.length){const empty=document.createElement('div');empty.className='map-photo-empty';empty.textContent='Chưa có ảnh vị trí nào. Hãy chụp ảnh khi bạn đang ở một địa điểm nhé.';list.append(empty);return;}
-  for(const [key,photo] of entries){
-    const card=document.createElement('button');card.type='button';card.className='map-photo-card';
-    const img=document.createElement('img');img.src=photo.image;img.alt='Ảnh địa điểm';img.loading='lazy';
-    const title=document.createElement('strong');title.textContent=photo.caption||('📍 '+(photo.name||'Thành viên Amino'));
-    const time=document.createElement('small');time.textContent=mapPhotoTime(photo.createdAt);
-    card.append(img,title,time);
-    card.addEventListener('click',()=>{
-      if(!aminoMap)return;
-      const point=[Number(photo.lat),Number(photo.lng)];
-      aminoMap.setView(point,Math.max(aminoMap.getZoom(),16),{animate:true});
-      const marker=mapPhotoMarkers[key];if(marker)marker.openPopup();
-    });
-    list.append(card);
+    if(!keep.has(key)){aminoMap.removeLayer(marker);delete mapPhotoMarkers[key];delete mapPhotoImageCache[key];}
   }
 }
 
 function startMapPhotoListener(){
   if(mapPhotoListenersStarted||!user||!db)return;
   mapPhotoListenersStarted=true;
-  onValue(ref(db,'mapPhotos'),snapshot=>{
+  // Chỉ tải metadata; ảnh Base64 được lưu riêng và chỉ đọc khi nhấn marker.
+  onValue(ref(db,'mapPhotoMeta'),snapshot=>{
     mapPhotosData=snapshot.val()||{};
     updateMapPhotoMarkers();
   },error=>{
     const status=$('mapPhotoStatus');
-    if(status)status.textContent='Không tải được ảnh vị trí: '+error.message+' (kiểm tra Firebase Rules).';
+    if(status)status.textContent='Không tải được danh sách check-in: '+error.message+' (kiểm tra Firebase Rules).';
   });
 }
 
@@ -2729,11 +2720,15 @@ function setupMapPhotoControls(){
       const position=await getMapPhotoPosition();
       $('mapPhotoStatus').textContent='Đang nén ảnh...';
       const image=await compressMapPhoto(selectedMapPhotoFile);
-      const photoRef=push(ref(db,'mapPhotos'));
-      const payload={uid:user.uid,name:displayName,lat:position.lat,lng:position.lng,
-        accuracy:position.accuracy,image,caption:$('mapPhotoCaption').value.trim(),createdAt:Date.now()};
-      $('mapPhotoStatus').textContent='Đang lưu ảnh lên Firebase...';
-      await set(photoRef,payload);
+      const photoRef=push(ref(db,'mapPhotoMeta'));
+      const photoId=photoRef.key;
+      const createdAt=Date.now();
+      const metadata={uid:user.uid,name:displayName,lat:position.lat,lng:position.lng,
+        accuracy:position.accuracy,caption:$('mapPhotoCaption').value.trim(),createdAt};
+      $('mapPhotoStatus').textContent='Đang lưu thông tin vị trí và ảnh lên Firebase...';
+      await set(photoRef,metadata);
+      try{await set(ref(db,`mapPhotoImages/${photoId}`),{uid:user.uid,image});}
+      catch(imageError){await remove(photoRef);throw imageError;}
       if(aminoMap){aminoMap.setView([position.lat,position.lng],Math.max(aminoMap.getZoom(),16));}
       $('mapPhotoStatus').textContent='Đã lưu ảnh và ghim vị trí thành công!';
       modal.hidden=true;selectedMapPhotoFile=null;fileInput.value='';preview.hidden=true;preview.removeAttribute('src');
