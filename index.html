@@ -368,7 +368,18 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #petRewardCard button{width:100%;margin-top:10px;background:#d94f91}
 .pet-small{font-size:12px;color:#94768a;line-height:1.45}
 @media(max-width:600px){#aminoPet{width:58px;height:58px;font-size:42px}#petCard{padding:16px}}
+/* FIX: GIỮ NGUYÊN MÀU PET KHI BẬT CHẾ ĐỘ BAN ĐÊM */
+#petStage {
+    color-scheme: only light;
+    forced-color-adjust: none;
+}
 
+#petStage #petEmoji,
+#petStage #petEmoji svg,
+#petStage #petEmoji svg * {
+    color-scheme: only light;
+    forced-color-adjust: none;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
