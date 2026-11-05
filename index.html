@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -230,6 +231,34 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .map-member-dot.online{background:#22c55e;box-shadow:0 0 0 3px #22c55e22}
 .map-member-name{font-weight:700;font-size:13px}
 .map-member-status{font-size:11px;color:#777;margin-top:2px}
+
+/* ẢNH KỶ NIỆM TẠI VỊ TRÍ TRÊN BẢN ĐỒ */
+#mapPhotoToolbar{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:12px 0;padding:11px;border:1px solid #f3c8dc;border-radius:12px;background:#fff8fb}
+#mapPhotoCaptureBtn{background:#d63384;flex:1 1 180px;min-height:42px;font-weight:700}
+#mapPhotoHint{font-size:12px;line-height:1.45;color:#87516d;flex:2 1 220px}
+#mapPhotoSection{margin-top:14px;border:1px solid #ead7e2;border-radius:12px;background:#fffafd;overflow:hidden}
+#mapPhotoSection h3{margin:0;padding:12px;color:#a12b68;font-size:16px;border-bottom:1px solid #f1e1e9}
+#mapPhotoList{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;padding:10px;max-height:330px;overflow:auto}
+.map-photo-card{display:block;padding:7px;background:#fff;border:1px solid #eedce5;border-radius:10px;color:#333;text-align:left;min-width:0}
+.map-photo-card img{display:block;width:100%;height:105px;object-fit:cover;border-radius:7px;background:#f3edf1}
+.map-photo-card strong{display:block;margin-top:6px;font-size:12px;overflow-wrap:anywhere}
+.map-photo-card small{display:block;margin-top:3px;color:#777;font-size:10px;line-height:1.4}
+.map-photo-empty{grid-column:1/-1;padding:15px;text-align:center;color:#888;font-size:12px}
+.map-photo-marker{background:transparent;border:0}
+.map-photo-marker span{display:grid;place-items:center;width:34px;height:34px;border:2px solid white;border-radius:50%;background:#d63384;box-shadow:0 2px 8px #0005;font-size:19px}
+.map-photo-popup{width:min(240px,65vw);color:#222}
+.map-photo-popup img{display:block;width:100%;max-height:180px;object-fit:cover;border-radius:7px;margin:6px 0}
+#mapPhotoModal{position:fixed;inset:0;z-index:10020;background:#0009;display:flex;align-items:center;justify-content:center;padding:14px}
+#mapPhotoModal[hidden]{display:none!important}
+#mapPhotoDialog{width:min(440px,100%);max-height:90vh;overflow:auto;background:white;border-radius:14px;padding:15px;box-shadow:0 12px 40px #0005}
+#mapPhotoDialog h3{margin:0 0 10px;color:#a12b68}
+#mapPhotoPreview{display:block;width:100%;max-height:260px;object-fit:contain;background:#f5f1f3;border-radius:9px;margin:10px 0}
+#mapPhotoCaption{width:100%;min-height:70px;resize:vertical}
+#mapPhotoStatus{font-size:12px;line-height:1.45;color:#a12b68;min-height:18px;margin:8px 0}
+#mapPhotoDialogButtons{display:flex;gap:8px}
+#mapPhotoDialogButtons button{flex:1}
+#mapPhotoCancel{background:#64748b}
+
 #mapMeetingHistorySection{margin-top:16px;border:1px solid #e1dced;border-radius:12px;background:#fcfbff;overflow:hidden}
 #mapMeetingHistorySection h3{font-size:16px;color:#6750a4;margin:0;padding:12px;border-bottom:1px solid #e8e1f2}
 #mapMeetingHistorySection #mapMeetingList{max-height:260px}
@@ -547,6 +576,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <div id="mapMembersList"><div class="map-meeting-empty">Chưa có người dùng nào chia sẻ vị trí.</div></div>
     </aside>
   </div>
+
+  <div id="mapPhotoToolbar">
+    <button id="mapPhotoCaptureBtn" type="button">📸 Chụp ảnh tại vị trí này</button>
+    <span id="mapPhotoHint">Ảnh sẽ được ghim lên bản đồ kèm tên người chụp, thời gian và tọa độ.</span>
+  </div>
+  <section id="mapPhotoSection" aria-label="Ảnh đã chụp tại các vị trí">
+    <h3>📍 Khoảnh khắc tại những nơi đã đến</h3>
+    <div id="mapPhotoList"><div class="map-photo-empty">Chưa có ảnh vị trí nào.</div></div>
+  </section>
   <section id="mapMeetingHistorySection" aria-label="Lịch sử gặp nhau gần 100 mét">
     <h3>❤️ Lịch sử gặp nhau</h3>
     <div id="mapMeetingSummary">Đang tải lịch sử...</div>
@@ -554,6 +592,21 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </section>
 </section>
 
+
+
+<div id="mapPhotoModal" hidden>
+  <div id="mapPhotoDialog" role="dialog" aria-modal="true" aria-labelledby="mapPhotoDialogTitle">
+    <h3 id="mapPhotoDialogTitle">📸 Lưu khoảnh khắc tại đây</h3>
+    <input id="mapPhotoFile" type="file" accept="image/*" capture="environment">
+    <img id="mapPhotoPreview" alt="Ảnh xem trước" hidden>
+    <textarea id="mapPhotoCaption" maxlength="180" placeholder="Ghi chú về địa điểm này (không bắt buộc)..."></textarea>
+    <div id="mapPhotoStatus" aria-live="polite"></div>
+    <div id="mapPhotoDialogButtons">
+      <button id="mapPhotoSave" type="button" disabled>💾 Lưu ảnh và vị trí</button>
+      <button id="mapPhotoCancel" type="button">Hủy</button>
+    </div>
+  </div>
+</div>
 
 <!-- Event nuoi pet 20/10: petStage phu toan bo chatLayout -->
 <div id="petPanel" hidden>
@@ -2106,6 +2159,11 @@ function startMusicSync(){
 /* BẢN ĐỒ GPS - CÁC THÀNH VIÊN ĐỒNG Ý SẼ HIỂN THỊ CÔNG KHAI */
 let aminoMap=null;
 let mapMarkers={};
+let mapPhotosData={};
+let mapPhotoMarkers={};
+let selectedMapPhotoFile=null;
+let mapPhotoListenersStarted=false;
+let mapPhotoControlsReady=false;
 let mapDistanceLine=null;
 let sharedLocationsData={};
 let presenceForMap={};
@@ -2526,9 +2584,173 @@ function updateMapMarkers(){
   $("mapStatus").textContent="";
 }
 
+
+/* ================= ẢNH ĐỊA ĐIỂM TRÊN BẢN ĐỒ ================= */
+function compressMapPhoto(file){
+  return new Promise((resolve,reject)=>{
+    if(!file||!file.type?.startsWith('image/')){reject(new Error('Vui lòng chọn một ảnh hợp lệ.'));return;}
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('Không đọc được ảnh.'));
+    reader.onload=()=>{
+      const image=new Image();
+      image.onerror=()=>reject(new Error('Ảnh không mở được.'));
+      image.onload=()=>{
+        const maxSide=1000;
+        const scale=Math.min(1,maxSide/Math.max(image.width,image.height));
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.max(1,Math.round(image.width*scale));
+        canvas.height=Math.max(1,Math.round(image.height*scale));
+        const ctx=canvas.getContext('2d');
+        if(!ctx){reject(new Error('Trình duyệt không hỗ trợ xử lý ảnh.'));return;}
+        ctx.drawImage(image,0,0,canvas.width,canvas.height);
+        let quality=.76;
+        let data=canvas.toDataURL('image/jpeg',quality);
+        while(data.length>420000&&quality>.42){quality-=.08;data=canvas.toDataURL('image/jpeg',quality);}
+        if(data.length>500000){
+          canvas.width=Math.max(1,Math.round(canvas.width*.75));
+          canvas.height=Math.max(1,Math.round(canvas.height*.75));
+          ctx.drawImage(image,0,0,canvas.width,canvas.height);
+          data=canvas.toDataURL('image/jpeg',.48);
+        }
+        if(data.length>650000){reject(new Error('Ảnh vẫn quá lớn. Hãy chọn ảnh khác hoặc chụp ở độ phân giải thấp hơn.'));return;}
+        resolve(data);
+      };
+      image.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function getMapPhotoPosition(){
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation){reject(new Error('Thiết bị không hỗ trợ GPS.'));return;}
+    navigator.geolocation.getCurrentPosition(position=>resolve({
+      lat:position.coords.latitude,lng:position.coords.longitude,
+      accuracy:Math.round(position.coords.accuracy||0)
+    }),error=>{
+      const messages={1:'Bạn chưa cấp quyền vị trí.',2:'Không xác định được vị trí GPS.',3:'Lấy vị trí quá lâu, hãy thử lại.'};
+      reject(new Error(messages[error.code]||error.message||'Không lấy được GPS.'));
+    },{enableHighAccuracy:true,maximumAge:0,timeout:25000});
+  });
+}
+
+function mapPhotoTime(timestamp){
+  return new Date(Number(timestamp)||Date.now()).toLocaleString('vi-VN',{
+    timeZone:'Asia/Ho_Chi_Minh',day:'2-digit',month:'2-digit',year:'numeric',
+    hour:'2-digit',minute:'2-digit'
+  });
+}
+
+function createMapPhotoPopupContent(photo){
+  const wrap=document.createElement('div');wrap.className='map-photo-popup';
+  const image=document.createElement('img');image.src=photo.image;image.alt='Ảnh tại địa điểm';
+  const name=document.createElement('strong');name.textContent=photo.name||'Thành viên Amino';
+  const time=document.createElement('div');time.textContent=mapPhotoTime(photo.createdAt);
+  wrap.append(name,image,time);
+  if(photo.caption){const caption=document.createElement('div');caption.textContent=photo.caption;caption.style.marginTop='5px';wrap.append(caption);}
+  const coord=document.createElement('small');coord.textContent=`${Number(photo.lat).toFixed(5)}, ${Number(photo.lng).toFixed(5)}`;coord.style.color='#777';wrap.append(coord);
+  return wrap;
+}
+
+function updateMapPhotoMarkers(){
+  if(!aminoMap||!window.L)return;
+  const keep=new Set();
+  for(const [key,photo] of Object.entries(mapPhotosData||{})){
+    if(!photo||!photo.image||!Number.isFinite(Number(photo.lat))||!Number.isFinite(Number(photo.lng)))continue;
+    keep.add(key);
+    let marker=mapPhotoMarkers[key];
+    if(!marker){
+      const icon=L.divIcon({className:'map-photo-marker',html:'<span>📷</span>',iconSize:[36,36],iconAnchor:[18,18]});
+      marker=L.marker([Number(photo.lat),Number(photo.lng)],{icon}).addTo(aminoMap);
+      mapPhotoMarkers[key]=marker;
+    }else marker.setLatLng([Number(photo.lat),Number(photo.lng)]);
+    marker.bindPopup(createMapPhotoPopupContent(photo));
+  }
+  for(const [key,marker] of Object.entries(mapPhotoMarkers)){
+    if(!keep.has(key)){aminoMap.removeLayer(marker);delete mapPhotoMarkers[key];}
+  }
+  renderMapPhotoList();
+}
+
+function renderMapPhotoList(){
+  const list=$('mapPhotoList');if(!list)return;
+  list.replaceChildren();
+  const entries=Object.entries(mapPhotosData||{}).filter(([,photo])=>photo?.image&&Number.isFinite(Number(photo.lat))&&Number.isFinite(Number(photo.lng)));
+  entries.sort((a,b)=>(Number(b[1].createdAt)||0)-(Number(a[1].createdAt)||0));
+  if(!entries.length){const empty=document.createElement('div');empty.className='map-photo-empty';empty.textContent='Chưa có ảnh vị trí nào. Hãy chụp ảnh khi bạn đang ở một địa điểm nhé.';list.append(empty);return;}
+  for(const [key,photo] of entries){
+    const card=document.createElement('button');card.type='button';card.className='map-photo-card';
+    const img=document.createElement('img');img.src=photo.image;img.alt='Ảnh địa điểm';img.loading='lazy';
+    const title=document.createElement('strong');title.textContent=photo.caption||('📍 '+(photo.name||'Thành viên Amino'));
+    const time=document.createElement('small');time.textContent=mapPhotoTime(photo.createdAt);
+    card.append(img,title,time);
+    card.addEventListener('click',()=>{
+      if(!aminoMap)return;
+      const point=[Number(photo.lat),Number(photo.lng)];
+      aminoMap.setView(point,Math.max(aminoMap.getZoom(),16),{animate:true});
+      const marker=mapPhotoMarkers[key];if(marker)marker.openPopup();
+    });
+    list.append(card);
+  }
+}
+
+function startMapPhotoListener(){
+  if(mapPhotoListenersStarted||!user||!db)return;
+  mapPhotoListenersStarted=true;
+  onValue(ref(db,'mapPhotos'),snapshot=>{
+    mapPhotosData=snapshot.val()||{};
+    updateMapPhotoMarkers();
+  },error=>{
+    const status=$('mapPhotoStatus');
+    if(status)status.textContent='Không tải được ảnh vị trí: '+error.message+' (kiểm tra Firebase Rules).';
+  });
+}
+
+function setupMapPhotoControls(){
+  if(mapPhotoControlsReady)return;
+  mapPhotoControlsReady=true;
+  const fileInput=$('mapPhotoFile'),modal=$('mapPhotoModal'),preview=$('mapPhotoPreview');
+  $('mapPhotoCaptureBtn')?.addEventListener('click',()=>{
+    if(!user){$('mapPhotoHint').textContent='Bạn cần đăng nhập trước.';return;}
+    fileInput.value='';selectedMapPhotoFile=null;preview.hidden=true;preview.removeAttribute('src');
+    $('mapPhotoCaption').value='';$('mapPhotoStatus').textContent='Chọn hoặc chụp ảnh bằng camera. Khi lưu, ứng dụng sẽ lấy GPS mới.';
+    $('mapPhotoSave').disabled=true;modal.hidden=false;fileInput.click();
+  });
+  fileInput?.addEventListener('change',()=>{
+    const file=fileInput.files?.[0];if(!file)return;
+    if(!file.type.startsWith('image/')){$('mapPhotoStatus').textContent='File đã chọn không phải ảnh.';return;}
+    selectedMapPhotoFile=file;preview.src=URL.createObjectURL(file);preview.hidden=false;
+    $('mapPhotoSave').disabled=false;$('mapPhotoStatus').textContent='Ảnh đã sẵn sàng. Bấm lưu để lấy vị trí GPS và ghim lên bản đồ.';
+  });
+  $('mapPhotoCancel')?.addEventListener('click',()=>{modal.hidden=true;selectedMapPhotoFile=null;fileInput.value='';});
+  $('mapPhotoSave')?.addEventListener('click',async()=>{
+    if(!selectedMapPhotoFile||!user)return;
+    const save=$('mapPhotoSave');save.disabled=true;
+    $('mapPhotoStatus').textContent='Đang lấy vị trí GPS...';
+    try{
+      const position=await getMapPhotoPosition();
+      $('mapPhotoStatus').textContent='Đang nén ảnh...';
+      const image=await compressMapPhoto(selectedMapPhotoFile);
+      const photoRef=push(ref(db,'mapPhotos'));
+      const payload={uid:user.uid,name:displayName,lat:position.lat,lng:position.lng,
+        accuracy:position.accuracy,image,caption:$('mapPhotoCaption').value.trim(),createdAt:Date.now()};
+      $('mapPhotoStatus').textContent='Đang lưu ảnh lên Firebase...';
+      await set(photoRef,payload);
+      if(aminoMap){aminoMap.setView([position.lat,position.lng],Math.max(aminoMap.getZoom(),16));}
+      $('mapPhotoStatus').textContent='Đã lưu ảnh và ghim vị trí thành công!';
+      modal.hidden=true;selectedMapPhotoFile=null;fileInput.value='';preview.hidden=true;preview.removeAttribute('src');
+    }catch(error){
+      $('mapPhotoStatus').textContent='Không lưu được ảnh: '+(error.message||error);
+      save.disabled=false;
+    }
+  });
+}
+/* ================= HẾT ẢNH ĐỊA ĐIỂM ================= */
+
 function startMapListeners(){
   if(mapListenersStarted)return;
   mapListenersStarted=true;
+  startMapPhotoListener();
   onValue(ref(db,"sharedLocations"),snapshot=>{
     sharedLocationsData=snapshot.val()||{};
     updateMapMarkers();
@@ -2557,6 +2779,7 @@ function openMapPage(){
   $("mapPage").hidden=false;
   ensureAminoMap();
   startMapListeners();
+  updateMapPhotoMarkers();
   beginLocationSharing();
   requestAnimationFrame(()=>requestAnimationFrame(()=>aminoMap&&aminoMap.invalidateSize()));
   window.scrollTo({top:0,behavior:"auto"});
@@ -2622,6 +2845,7 @@ async function beginLocationSharing(){
 
 function setupMapControls(){
   setupMotorbikeRouteControls();
+  setupMapPhotoControls();
   const mapToggle=$("mapToggle");
   const mapBack=$("mapBack");
 
