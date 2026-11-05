@@ -749,8 +749,8 @@ function syncMapAminoToasts(records){
 
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderAminoToasts()});
 
-/* TỰ XÓA THÔNG BÁO VÀO / RỜI PHÒNG SAU 10 GIỜ */
-const SYSTEM_MESSAGE_TTL = 10 * 60 * 60 * 1000;
+/* TỰ XÓA THÔNG BÁO VÀO / RỜI PHÒNG SAU 1 GIỜ */
+const SYSTEM_MESSAGE_TTL = 1 * 60 * 60 * 1000;
 let systemMessageCleanupTimer = null;
 
 async function cleanupExpiredSystemMessages(){
