@@ -358,7 +358,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @keyframes petSleep3D{0%,100%{transform:translateY(3px) rotateZ(4deg) scale(1,.97)}50%{transform:translateY(5px) rotateZ(6deg) scale(1,.94)}}
 @keyframes petShadow{0%,100%{transform:scaleX(1);opacity:.7}50%{transform:scaleX(.78);opacity:.42}}
 
-/* Luna: mo hinh GLB 3D that, tach rieng de cac pet khac khong bi anh huong */
+/* Luna 3D tao truc tiep bang Three.js, khong can file GLB */
 .pet-seal-3d-real{position:relative;width:100%;height:100%;display:block;}
 .luna3d-canvas{display:block;width:100%;height:100%;outline:none;}
 .luna3d-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:11px;color:#8e7db0;pointer-events:none;}
@@ -2896,97 +2896,88 @@ function initLuna3D(){
   if(!host||host.dataset.ready==='1')return;
   host.dataset.ready='1';
   if(!luna3DPromise){
-    luna3DPromise=(async()=>{
-      // Luna duoc tao truc tiep bang geometry Three.js, khong can file GLB.
-      const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
-      return {THREE};
-    })();
+    luna3DPromise=import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js').then(THREE=>{
+      const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+      const fur= new THREE.MeshPhysicalMaterial({color:0xfff8f5,roughness:.82,metalness:0,clearcoat:.08,clearcoatRoughness:.8});
+      const shadowFur=mat(0xe8e1f1,.9), bellyMat=mat(0xfffdfb,.9), pink=mat(0xf39bb7,.58), blush=new THREE.MeshStandardMaterial({color:0xf4a6bd,roughness:.85,transparent:true,opacity:.68}), spotMat=new THREE.MeshStandardMaterial({color:0xcfc6e5,roughness:.9,transparent:true,opacity:.72});
+      const eyeMat=new THREE.MeshPhysicalMaterial({color:0x100d18,roughness:.12,metalness:.02,clearcoat:1,clearcoatRoughness:.05});
+      const white= new THREE.MeshBasicMaterial({color:0xffffff});
+      const noseMat=mat(0x332632,.4), mouthMat=mat(0x8b5368,.7), whiskerMat=mat(0xb8a6a7,.8);
+      const scene=new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xfff8ff,0x77708e,2.1));
+      const key=new THREE.DirectionalLight(0xffffff,2.7);key.position.set(-3,5,5);scene.add(key);
+      const fill=new THREE.DirectionalLight(0xd8caff,1.35);fill.position.set(4,2,3);scene.add(fill);
+      const rim=new THREE.DirectionalLight(0xffffff,1.5);rim.position.set(0,4,-4);scene.add(rim);
+      const root=new THREE.Group();scene.add(root);
+      const bodyGroup=new THREE.Group();root.add(bodyGroup);
+      function ball(parent,name,material,pos,scale,segments=32){const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,Math.max(16,segments>>1)),material);m.name=name;m.position.set(...pos);m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
+      // Thân hải cẩu nằm dài, đầu lớn liền khối kiểu thú bông trong ảnh mẫu.
+      ball(bodyGroup,'Body',fur,[0,.48,-.02],[.78,.48,.91],48);
+      ball(bodyGroup,'Head',fur,[0,.79,.47],[.59,.57,.53],48);
+      ball(bodyGroup,'Belly',bellyMat,[0,.25,.36],[.52,.20,.49],40);
+      // Hai vây trước ngắn, bè và hơi xòe sang hai bên.
+      const flipperL=new THREE.Group();flipperL.position.set(-.48,.31,.48);bodyGroup.add(flipperL);
+      const flL=ball(flipperL,'Flipper_L',fur,[-.16,-.015,.04],[.29,.13,.20],32);flL.rotation.z=-.24;flL.rotation.y=-.18;
+      const flipperR=new THREE.Group();flipperR.position.set(.48,.31,.48);bodyGroup.add(flipperR);
+      const flR=ball(flipperR,'Flipper_R',fur,[.16,-.015,.04],[.29,.13,.20],32);flR.rotation.z=.24;flR.rotation.y=.18;
+      // Đuôi nhỏ phía sau, hai thùy tròn.
+      const tail=new THREE.Group();tail.position.set(0,.43,-.78);bodyGroup.add(tail);
+      const tl=ball(tail,'Tail_L',shadowFur,[-.13,.02,-.12],[.20,.12,.28],28);tl.rotation.z=-.28;
+      const tr=ball(tail,'Tail_R',fur,[.13,.02,-.12],[.20,.12,.28],28);tr.rotation.z=.28;
+      // Mõm, mắt long lanh, mũi và miệng nhỏ.
+      ball(bodyGroup,'Muzzle_L',bellyMat,[-.105,.70,.925],[.19,.13,.12],32);
+      ball(bodyGroup,'Muzzle_R',bellyMat,[.105,.70,.925],[.19,.13,.12],32);
+      ball(bodyGroup,'Eye_L',eyeMat,[-.235,.91,.932],[.105,.135,.075],32);
+      ball(bodyGroup,'Eye_R',eyeMat,[.235,.91,.932],[.105,.135,.075],32);
+      ball(bodyGroup,'EyeSpark_L',white,[-.268,.963,.995],[.031,.039,.018],16);
+      ball(bodyGroup,'EyeSpark_R',white,[.202,.963,.995],[.031,.039,.018],16);
+      ball(bodyGroup,'Nose',noseMat,[0,.735,1.055],[.075,.052,.045],24);
+      function tube(name,points,radius,material,parent=bodyGroup){const curve=new THREE.CatmullRomCurve3(points.map(v=>new THREE.Vector3(...v)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,18,radius,8,false),material);mesh.name=name;parent.add(mesh);return mesh;}
+      tube('Mouth_L',[[0,.69,1.055],[0,.65,1.07],[-.055,.625,1.06]],.012,mouthMat);
+      tube('Mouth_R',[[0,.69,1.055],[0,.65,1.07],[.055,.625,1.06]],.012,mouthMat);
+      // Má hồng và ria mảnh hai bên mõm.
+      ball(bodyGroup,'Blush_L',blush,[-.405,.70,.91],[.105,.055,.025],24);
+      ball(bodyGroup,'Blush_R',blush,[.405,.70,.91],[.105,.055,.025],24);
+      for(const side of [-1,1]){
+        tube('Whisker_'+side+'_1',[[side*.28,.72,.99],[side*.48,.75,.99],[side*.60,.78,.94]],.006,whiskerMat);
+        tube('Whisker_'+side+'_2',[[side*.29,.68,.99],[side*.49,.65,.98],[side*.60,.62,.93]],.006,whiskerMat);
+      }
+      // Đốm tím nhạt trên đỉnh và lưng, đúng phong cách mẫu.
+      const spots=[[-.39,1.02,.20,.075],[-.18,1.18,.05,.055],[.13,1.19,.10,.07],[.39,1.03,.20,.065],[-.48,.91,-.18,.055],[.48,.91,-.20,.06],[-.22,1.02,-.38,.07],[.20,1.04,-.40,.06],[0,1.08,-.58,.05]];
+      spots.forEach(([x,y,z,r],i)=>ball(bodyGroup,'Spot_'+i,spotMat,[x,y,z],[r,r*.58,r*.55],20));
+      // Bàn chân sau bé xíu.
+      ball(bodyGroup,'RearFlipper_L',shadowFur,[-.43,.19,-.49],[.22,.10,.27],24);
+      ball(bodyGroup,'RearFlipper_R',fur,[.43,.19,-.49],[.22,.10,.27],24);
+      // Bóng mềm dưới bụng.
+      const shadow=new THREE.Mesh(new THREE.CircleGeometry(.78,48),new THREE.MeshBasicMaterial({color:0x4b3c63,transparent:true,opacity:.13,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.set(0,.012,-.02);root.add(shadow);
+      const canvas=host.querySelector('canvas');
+      const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;
+      const camera=new THREE.PerspectiveCamera(31,1,.1,20);camera.position.set(0,1.48,4.55);camera.lookAt(0,.66,.12);
+      const resize=()=>{if(!host.isConnected)return;const w=Math.max(1,host.clientWidth||104),h=Math.max(1,host.clientHeight||104);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
+      const ro=new ResizeObserver(resize);ro.observe(host);resize();
+      const clock=new THREE.Clock();let raf=0;
+      const animate=()=>{
+        if(!host.isConnected){cancelAnimationFrame(raf);ro.disconnect();renderer.dispose();return;}
+        const t=clock.getElapsedTime(),pet=$('aminoPet');
+        const hungry=pet?.classList.contains('pet-hungry'),sleeping=pet?.classList.contains('pet-sleeping'),happy=pet?.classList.contains('pet-happy'),walking=pet?.classList.contains('pet-walking');
+        const breath=sleeping?Math.sin(t*1.35)*.012:Math.sin(t*2.1)*.018;
+        bodyGroup.scale.y=1+breath;root.position.y=(sleeping?.015:.035)+Math.sin(t*(sleeping?1.3:2.1))*(sleeping?.012:.025);
+        root.rotation.y=Math.sin(t*.62)*.10;root.rotation.z=hungry?Math.sin(t*8)*.025:Math.sin(t*1.1)*.012;
+        flipperL.rotation.z=Math.sin(t*(happy?5:2.4))*(happy?.34:.13)+(walking?-.12:0);
+        flipperR.rotation.z=-Math.sin(t*(happy?5:2.4))*(happy?.34:.13)+(walking?.12:0);
+        tail.rotation.x=Math.sin(t*2.3)*.12;
+        if(hungry){root.rotation.x=.07+Math.sin(t*4)*.018;}else if(sleeping){root.rotation.x=.045;}else{root.rotation.x=Math.sin(t*.8)*.012;}
+        renderer.render(scene,camera);raf=requestAnimationFrame(animate);
+      };
+      host.querySelector('.luna3d-loading')?.remove();
+      luna3DApp={renderer,scene,camera,root,bodyGroup,flipperL,flipperR,tail,host};animate();
+      return true;
+    });
   }
-  luna3DPromise.then(({THREE})=>{
-    if(!host.isConnected)return;
-    const canvas=host.querySelector('canvas');
-    const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
-    renderer.setSize(host.clientWidth||104,host.clientHeight||104,false);
-    renderer.outputColorSpace=THREE.SRGBColorSpace;
-    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.18;
-    renderer.setClearColor(0x000000,0);
-    const scene=new THREE.Scene();
-    scene.add(new THREE.HemisphereLight(0xffffff,0x9b86b7,2.15));
-    const key=new THREE.DirectionalLight(0xffffff,2.6);key.position.set(-3,5,5);scene.add(key);
-    const fill=new THREE.DirectionalLight(0xd9caff,1.15);fill.position.set(4,2,3);scene.add(fill);
-    const rim=new THREE.DirectionalLight(0xb8a5ff,1.35);rim.position.set(2,2,-4);scene.add(rim);
-    const camera=new THREE.PerspectiveCamera(30,(host.clientWidth||104)/(host.clientHeight||104),.1,30);
-    camera.position.set(0,1.12,4.9);camera.lookAt(0,.68,0);
-    const luna=new THREE.Group();scene.add(luna);const parts={};
-    const fur=new THREE.MeshStandardMaterial({color:0xf5efff,roughness:.78});
-    const furLight=new THREE.MeshStandardMaterial({color:0xfffbff,roughness:.72});
-    const furShade=new THREE.MeshStandardMaterial({color:0xd9cbea,roughness:.82});
-    const pink=new THREE.MeshStandardMaterial({color:0xf39cbd,roughness:.65});
-    const dark=new THREE.MeshStandardMaterial({color:0x211b2b,roughness:.28});
-    const white=new THREE.MeshBasicMaterial({color:0xffffff});
-    const noseMat=new THREE.MeshStandardMaterial({color:0x493344,roughness:.35});
-    const mouthMat=new THREE.MeshStandardMaterial({color:0x9b526e,roughness:.65});
-    const sphere=new THREE.SphereGeometry(1,28,20);
-    function ball(name,material,pos,scale,parent=luna){
-      const mesh=new THREE.Mesh(sphere,material);mesh.name=name||'detail';
-      mesh.position.set(...pos);mesh.scale.set(...scale);parent.add(mesh);
-      if(name)parts[name]=mesh;return mesh;
-    }
-    ball('Body',fur,[0,.48,-.02],[.83,.57,.62]);
-    ball('Belly',furLight,[0,.31,.43],[.57,.34,.25]);
-    ball('Head',furLight,[0,.83,.43],[.59,.55,.48]);
-    ball('Muzzle',furLight,[0,.66,.84],[.34,.23,.18]);
-    const left=new THREE.Group();left.position.set(-.59,.38,.28);luna.add(left);parts.Flipper_L=left;
-    ball('',fur,[-.13,-.035,.02],[.34,.15,.24],left).rotation.z=-.22;
-    const right=new THREE.Group();right.position.set(.59,.38,.28);luna.add(right);parts.Flipper_R=right;
-    ball('',fur,[.13,-.035,.02],[.34,.15,.24],right).rotation.z=.22;
-    const tail=new THREE.Group();tail.position.set(0,.45,-.55);luna.add(tail);parts.Tail=tail;
-    ball('',furShade,[0,.02,-.18],[.22,.13,.28],tail);
-    ball('',fur,[0,.02,-.34],[.15,.10,.18],tail);
-    const eyeL=ball('Eye_L',dark,[-.235,.91,.84],[.075,.105,.045]);
-    const eyeR=ball('Eye_R',dark,[.235,.91,.84],[.075,.105,.045]);
-    ball('',white,[-.255,.95,.879],[.022,.028,.012]);
-    ball('',white,[.215,.95,.879],[.022,.028,.012]);
-    ball('',pink,[-.39,.69,.80],[.12,.065,.025]);
-    ball('',pink,[.39,.69,.80],[.12,.065,.025]);
-    ball('Nose',noseMat,[0,.72,1.015],[.075,.052,.035]);
-    const c1=new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,.68,1.01),new THREE.Vector3(-.035,.62,1.035),new THREE.Vector3(-.105,.64,1.015));
-    const c2=new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,.68,1.01),new THREE.Vector3(.035,.62,1.035),new THREE.Vector3(.105,.64,1.015));
-    luna.add(new THREE.Mesh(new THREE.TubeGeometry(c1,12,.009,5,false),mouthMat));
-    luna.add(new THREE.Mesh(new THREE.TubeGeometry(c2,12,.009,5,false),mouthMat));
-    for(let i=0;i<7;i++){
-      const x=((i%3)-1)*.31,y=.91-Math.floor(i/3)*.18,z=.12-Math.abs(x)*.12;
-      ball('',furShade,[x,y,z],[.035,.045,.018]);
-    }
-    const resize=()=>{
-      if(!host.isConnected)return;
-      const w=Math.max(1,host.clientWidth||104),h=Math.max(1,host.clientHeight||104);
-      renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
-    };
-    const ro=new ResizeObserver(resize);ro.observe(host);
-    const clock=new THREE.Clock();
-    const animate=()=>{
-      if(!host.isConnected){ro.disconnect();renderer.dispose();return;}
-      const t=clock.getElapsedTime();
-      luna.position.y=Math.sin(t*2.1)*.025;
-      luna.rotation.y=Math.sin(t*.75)*.12;
-      luna.rotation.z=Math.sin(t*1.15)*.018;
-      luna.scale.y=1+Math.sin(t*2.2)*.012;
-      left.rotation.z=Math.sin(t*2.3)*.20-.08;
-      right.rotation.z=-Math.sin(t*2.3)*.20+.08;
-      tail.rotation.x=Math.sin(t*2)*.13;
-      const blink=Math.sin(t*1.35)>0.985?.12:1;
-      eyeL.scale.y=.105*blink;eyeR.scale.y=.105*blink;
-      renderer.render(scene,camera);requestAnimationFrame(animate);
-    };
-    host.querySelector('.luna3d-loading')?.remove();
-    luna3DApp={renderer,scene,camera,model:luna,parts,host};resize();animate();
-  }).catch(err=>{
+  luna3DPromise.then(()=>{if(host.isConnected)host.dataset.ready='1';}).catch(err=>{
     console.error('Luna 3D init error:',err);host.dataset.ready='0';
-    const label=host.querySelector('.luna3d-loading');
-    if(label)label.textContent='Luna 3D chưa khởi tạo được';
+    const label=host.querySelector('.luna3d-loading');if(label)label.textContent='Không thể khởi tạo 3D (kiểm tra WebGL/Internet)';
   });
 }
 
@@ -3141,7 +3132,7 @@ $('petAddressSave').addEventListener('click',async()=>{
 
 $("enter").addEventListener("click",async()=>{
   $("passwordError").textContent="";
-  if($("chatPassword").value!=="1409"){
+  if($("chatPassword").value!=="1402"){
     $("passwordError").textContent="Mật khẩu không đúng!";
     return;
   }
