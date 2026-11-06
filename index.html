@@ -400,7 +400,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #petRewardCard input{width:100%;margin-top:10px}
 #petRewardCard button{width:100%;margin-top:10px;background:#d94f91}
 .pet-small{font-size:12px;color:#94768a;line-height:1.45}
-@media(max-width:600px){#aminoPet{width:58px;height:58px;font-size:42px}#petCard{padding:16px}}
+@media(max-width:600px){#petCard{padding:16px}}
 /* FIX: GIỮ NGUYÊN MÀU PET KHI BẬT CHẾ ĐỘ BAN ĐÊM */
 #petStage {
     color-scheme: only light;
@@ -716,7 +716,7 @@ function floatHearts(){
 }
 
 
-/* THÔNG BÁO NHẬT KÝ / GẶP NHAU — HIỆN KHI VÀO PHÒNG NẾU CHƯA XEM, TỰ TẮT SAU 2 GIÂY */
+/* THÔNG BÁO NHẬT KÝ / GẶP NHAU — HIỆN KHI VÀO PHÒNG NẾU CHƯA XEM, TỰ TẮT SAU 5 GIÂY */
 const AMINO_TOAST_TTL=5000;
 const aminoToastItems=new Map();
 let aminoSeenNotifications=null;
@@ -1065,9 +1065,9 @@ async function cacheDiaryImages(key,images){
   const idb=await openDiaryImageDB();if(!idb)return;
   try{idb.transaction(DIARY_IMAGE_STORE,"readwrite").objectStore(DIARY_IMAGE_STORE).put(images,key);}catch(_){}
 }
-async function loadDiaryImages(uid,dateKey,force=false){
+async function loadDiaryImages(uid,dateKey,force=false,expected=null){
   const key=uid+"/"+dateKey;
-  if(!force){const cached=await getCachedDiaryImages(key);if(cached)return cached;}
+  if(!force){const cached=await getCachedDiaryImages(key);if(cached&&(expected===null||cached.length===expected))return cached;}
   const monthKey=dateKey.slice(0,7);
   const imageRef=ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`);
   let images=[];
@@ -1132,7 +1132,9 @@ async function migrateOwnDiaryImages(){
     }
   }catch(error){console.warn("Chuyển ảnh nhật ký cũ:",error);}
 }
+let diaryRenderToken=0;
 async function renderPublicEntries(){
+  const token=++diaryRenderToken;
   const container=$("publicDiaryEntries");container.replaceChildren();
   const entries=getEntriesForDate(diarySelectedDate);
   if(!entries.length){const empty=document.createElement("p");empty.className="hint";
@@ -1149,8 +1151,8 @@ async function renderPublicEntries(){
     if(entry.photoCount>0||entry.images?.length){
       const loading=document.createElement("p");loading.className="hint";loading.textContent="Đang tải "+(entry.photoCount||entry.images.length)+" ảnh...";card.append(loading);
       container.append(card);
-      const images=entry.images?.length?entry.images:await loadDiaryImages(entry.uid,diarySelectedDate);
-      if(!card.isConnected)continue;
+      const images=entry.images?.length?entry.images:await loadDiaryImages(entry.uid,diarySelectedDate,false,entry.photoCount||null);
+      if(token!==diaryRenderToken)return;if(!card.isConnected)continue;
       loading.remove();
       if(images.length){
         const imageRow=document.createElement("div");imageRow.className="entry-images";
@@ -1302,6 +1304,7 @@ function refreshDiaryView(){
   }
   const editable=isDiaryEditable(diarySelectedDate);
   $("diaryText").disabled=!editable;
+  $("diaryDelete").hidden=!(editable&&getOwnEntry(diarySelectedDate));
   $("diaryText").placeholder="Chia sẻ hôm nay của cậu thế nào nhé 💜";
   renderPublicEntries();
   renderDiaryViews();
@@ -1339,12 +1342,13 @@ async function saveCapturedPhotoToFirebase(dateKey,imageData){
   if(!isDiaryEditable(dateKey))throw new Error(diaryLockMessage(dateKey));
   const uid=user.uid,monthKey=dateKey.slice(0,7),key=uid+"/"+dateKey;
   const images=await loadDiaryImages(uid,dateKey,true);
+  if(images.length>=100)throw new Error("Mỗi ngày tối đa 100 ảnh.");
+  const imgRef=ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}/${images.length}`);
+  await set(imgRef,imageData);
+  const verify=await get(imgRef);
+  if(verify.val()!==imageData)throw new Error("Firebase chưa xác minh được ảnh vừa lưu.");
   images.push(imageData);
-  await set(ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`),images);
-  const verify=await get(ref(db,`diaryImages/${uid}/${monthKey}/${dateKey}`));
-  const saved=verify.val();
-  const checked=Array.isArray(saved)?saved:Object.values(saved||{});
-  if(checked.length!==images.length||checked[checked.length-1]!==imageData)throw new Error("Firebase chưa xác minh được ảnh vừa lưu.");
+  const checked=images;
   const now=Date.now(),old=publicDiaryData?.[uid]?.[monthKey]?.[dateKey]||{};
   const meta={uid,name:displayName,text:old.text||"",photoCount:checked.length,updatedAt:now};
   await set(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`),meta);
@@ -1579,7 +1583,7 @@ async function getAllDiaryPhotos(onlyOwn=false){
       for(const [dateKey,entry] of Object.entries(entries||{})){
         const count=Math.max(0,Number(entry?.photoCount)||0);
         if(!count)continue;
-        const images=await loadDiaryImages(uid,dateKey);
+        const images=await loadDiaryImages(uid,dateKey,false,count);
         images.forEach((src,index)=>photos.push({src,dateKey,index,uid,name:entry.name||"Thành viên"}));
       }
     }
@@ -1694,6 +1698,7 @@ async function openDiaryCamera(){
     await $("diaryCameraVideo").play();
   }catch(error){
     const message="Không mở được camera: "+error.message;
+    {const cs=$("diaryCameraSaveStatus");if(cs){cs.textContent=message;cs.hidden=false;}}
     $("diarySaveStatus").textContent=message;
     if(!$("photoPage").hidden)$("photoStatus").textContent=message;
   }
@@ -1788,11 +1793,7 @@ function captureDiaryPhoto(){
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
   // PNG giữ nguyên pixel từ khung hình camera, không nén mất dữ liệu như JPEG.
   diaryCapturedData=canvas.toDataURL("image/png");
-  if(diaryCapturedData.length>10000000){
-    diaryCapturedData=null;
-    $("diarySaveStatus").textContent="Ảnh chụp quá lớn để lưu trực tiếp vào Realtime Database. Hãy thử độ phân giải thấp hơn hoặc dùng Firebase Storage.";
-    return;
-  }
+  
   diaryCapturedAt=new Date();
   diaryCameraSaveDate=diaryLocalKey(diaryCapturedAt);
   $("diaryCapturedPreview").src=diaryCapturedData;
@@ -2567,7 +2568,6 @@ function updateMapMarkers(){
   renderMapMembersList();
   const count=valid.length;
   const liveCount=valid.filter(item=>item.online&&item.sharing).length;
-  $("mapStatus").textContent="";
 }
 
 
@@ -2598,7 +2598,7 @@ function compressMapPhoto(file){
           ctx.drawImage(image,0,0,canvas.width,canvas.height);
           data=canvas.toDataURL('image/jpeg',.48);
         }
-        if(data.length>650000){reject(new Error('Ảnh vẫn quá lớn. Hãy chọn ảnh khác hoặc chụp ở độ phân giải thấp hơn.'));return;}
+        if(data.length>500000){reject(new Error('Ảnh vẫn quá lớn. Hãy chọn ảnh khác hoặc chụp ở độ phân giải thấp hơn.'));return;}
         resolve(data);
       };
       image.src=reader.result;
@@ -2676,7 +2676,7 @@ function updateMapPhotoMarkers(){
       mapPhotoMarkers[key]=marker;
       marker.on("click",()=>openMapPhotoFullImage(key));
     }else marker.setLatLng([Number(photo.lat),Number(photo.lng)]);
-    marker.bindTooltip(`${photo.name||'Thành viên Amino'} · ${mapPhotoTime(photo.createdAt)}`);
+    const tip=document.createElement('span');tip.textContent=`${photo.name||'Thành viên Amino'} · ${mapPhotoTime(photo.createdAt)}`;marker.bindTooltip(tip);
   }
   for(const [key,marker] of Object.entries(mapPhotoMarkers)){
     if(!keep.has(key)){aminoMap.removeLayer(marker);delete mapPhotoMarkers[key];delete mapPhotoImageCache[key];}
@@ -2788,6 +2788,7 @@ async function setMyLocationSharingStatus(isSharing){
 }
 
 async function beginLocationSharing(){
+  if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;}
  if(!window.confirm("Bạn đồng ý công khai vị trí GPS của mình trên bản đồ Amino để các thành viên khác nhìn thấy chứ? Vị trí sẽ được cập nhật khi bạn đang mở ứng dụng.")){
   try{
     await setMyLocationSharingStatus(false);
@@ -2804,6 +2805,7 @@ async function beginLocationSharing(){
     const ownLocationRef=ref(db,`sharedLocations/${user.uid}`);
     // Tắt trạng thái chia sẻ cũ ngay khi bắt đầu xin quyền, tránh dùng tọa độ cũ như GPS trực tiếp.
   
+    onDisconnect(ref(db,`sharedLocations/${user.uid}/sharing`)).set(false).catch(()=>{});
     locationWatchId=navigator.geolocation.watchPosition(async position=>{
       const coords=position.coords;
       const payload={uid:user.uid,name:displayName,lat:coords.latitude,lng:coords.longitude,
@@ -2901,16 +2903,16 @@ function petIsHungry(data=petData){return !!data && Date.now()-Number(data.lastF
 function petRender(){
   if(!petData||!user)return;
   const type=PET_TYPES.find(x=>x.emoji===petData.petType)||PET_TYPES[0];
-  $('petEmoji').innerHTML=petPixelMarkup(type.emoji);$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
+  if($('petEmoji').dataset.type!==type.emoji){$('petEmoji').innerHTML=petPixelMarkup(type.emoji);$('petEmoji').dataset.type=type.emoji;}$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
   document.querySelectorAll('.pet-choice').forEach(btn=>{btn.classList.toggle('active',btn.dataset.pet===type.emoji);btn.disabled=!!petData.petChosen;});
   $('petChoices').hidden=!!petData.petChosen;
   $('petFeed').hidden=!petData.petChosen;
   $('petClose').hidden=!petData.petChosen;
-  if(!petData.petChosen){$('petHungerText').textContent='Hãy chọn một người bạn đồng hành nhé! Chọn xong sẽ không thể đổi pet.';}
+  
   const points=Math.max(0,Number(petData.points)||0),hungry=petIsHungry();
   $('petPoints').textContent=points+' / '+PET_TARGET+' điểm';
   $('petProgressFill').style.width=Math.min(100,points/PET_TARGET*100)+'%';
-  $('petHungerText').textContent=hungry?'Đang đói rồi, cho tớ ăn nhé 🥺':'Đang no bụng 💗';
+  $('petHungerText').textContent=!petData.petChosen?'Hãy chọn một người bạn đồng hành nhé! Chọn xong sẽ không thể đổi pet.':hungry?'Đang đói rồi, cho tớ ăn nhé 🥺':'Đang no bụng 💗';
   $('petFeed').disabled=!hungry||points>=PET_TARGET;
   $('petFeed').textContent=hungry?'🍖 Cho pet ăn (+1 điểm)':'💗 Pet chưa đói, quay lại sau nhé';
   $('petStage').classList.toggle('pet-hungry',hungry);
@@ -2944,10 +2946,10 @@ async function petAwardOnlineTime(){
     await runTransaction(petRef(),current=>{
       if(!current)return current;
       const now=Date.now(),last=Number(current.lastOnlineRewardAt)||now;
-      const intervals=Math.floor(Math.max(0,now-last)/PET_ONLINE_REWARD_MS);
+      const intervals=Math.min(1,Math.floor(Math.max(0,now-last)/PET_ONLINE_REWARD_MS));
       if(intervals<1)return current;
       current.points=Math.min(PET_TARGET,(Number(current.points)||0)+intervals);
-      current.lastOnlineRewardAt=last+intervals*PET_ONLINE_REWARD_MS;
+      current.lastOnlineRewardAt=now;
       if(current.points>=PET_TARGET)current.unlocked=true;
       return current;
     });
@@ -3080,7 +3082,7 @@ $("enter").addEventListener("click",async()=>{
     startTypingSync();
     startMusicSync();
     startDiary();
-    await initPet();
+    initPet().catch(e=>console.warn("Pet:",e));
 
     const recent=query(
       ref(db,"publicChat/messages"),
