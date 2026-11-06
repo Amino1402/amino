@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Amino</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://amino-c6032-default-rtdb.asia-southeast1.firebasedatabase.app" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
@@ -411,7 +414,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     forced-color-adjust: none;
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <main>
@@ -660,7 +663,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
   getDatabase,ref,push,set,onValue,get,remove,query,orderByChild,endAt,
-  limitToLast,onDisconnect,serverTimestamp,update,runTransaction
+  limitToLast,onDisconnect,serverTimestamp,update,runTransaction,onChildAdded,onChildRemoved,equalTo
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 const firebaseConfig={
@@ -812,8 +815,8 @@ async function cleanupExpiredSystemMessages(){
   try{
     const oldMessagesQuery = query(
       ref(db,"publicChat/messages"),
-      orderByChild("createdAt"),
-      endAt(cutoff)
+      orderByChild("name"),
+      equalTo("Thông báo hệ thống")
     );
     const snapshot = await get(oldMessagesQuery);
     const deletions = [];
@@ -835,8 +838,8 @@ async function cleanupExpiredSystemMessages(){
 function startSystemMessageCleanup(){
   cleanupExpiredSystemMessages();
   if(systemMessageCleanupTimer)clearInterval(systemMessageCleanupTimer);
-  // Kiểm tra mỗi phút; thông báo hết hạn sẽ được dọn khi có người đang ở trong phòng.
-  systemMessageCleanupTimer = setInterval(cleanupExpiredSystemMessages,60*1000);
+  // Kiểm tra mỗi 5 phút; thông báo hết hạn sẽ được dọn khi có người đang ở trong phòng.
+  systemMessageCleanupTimer = setInterval(cleanupExpiredSystemMessages,5*60*1000);
 }
 
 /* ONLINE */
@@ -862,6 +865,8 @@ function startPresence(){
   });
 
   onValue(ref(db,"presence"),snapshot=>{
+    presenceForMap=snapshot.val()||{};
+    try{updateMapMarkers()}catch(_){}
     const list=$("onlineList");
     list.replaceChildren();
     let count=0;
@@ -927,7 +932,7 @@ function startTypingSync(){
   typingListenerStarted=true;
   $("message").addEventListener("input",()=>{
     clearTimeout(typingWriteTimer);
-    typingWriteTimer=setTimeout(publishTypingDraft,150);
+    typingWriteTimer=setTimeout(publishTypingDraft,300);
   });
   onDisconnect(myTypingRef()).remove().catch(console.warn);
 
@@ -2744,10 +2749,7 @@ function startMapListeners(){
     sharedLocationsData=snapshot.val()||{};
     updateMapMarkers();
   },error=>{$("mapStatus").textContent="Không đọc được vị trí: "+error.message+". Kiểm tra Firebase Rules.";});
-  onValue(ref(db,"presence"),snapshot=>{
-    presenceForMap=snapshot.val()||{};
-    updateMapMarkers();
-  },error=>console.warn("Không đọc được trạng thái online cho bản đồ:",error));
+  // presence đã được nghe ở startPresence() và dùng chung cho bản đồ (tránh tải trùng).
   onValue(ref(db,"mapMeetings/active"),snapshot=>{
     activeMapMeetings=snapshot.val()||{};
     syncMapAminoToasts(activeMapMeetings);
@@ -2937,6 +2939,7 @@ async function initPet(){
 }
 async function petAwardOnlineTime(){
   if(!user||!petData)return;
+  if(Date.now()-(Number(petData.lastOnlineRewardAt)||0)<PET_ONLINE_REWARD_MS)return;
   try{
     await runTransaction(petRef(),current=>{
       if(!current)return current;
@@ -3085,42 +3088,58 @@ $("enter").addEventListener("click",async()=>{
       limitToLast(100)
     );
 
-    onValue(recent,snapshot=>{
-      messages.replaceChildren();
-      snapshot.forEach(item=>{
-        const data=item.val()||{};
-        const box=document.createElement("div");
-        if(data.name==="Thông báo hệ thống"){
-          box.className="system-message";
-          const text=document.createElement("span");
-          text.textContent=data.text||"";
-          const time=document.createElement("span");
-          time.className="system-time";
-          time.textContent=formatTime(data.createdAt);
-          box.append(text,time);
-          messages.append(box);
-          return;
-        }
-        box.className="message";
-        const sender=document.createElement("span");
-        sender.className="sender";
-        sender.textContent=data.name||"Khách";
-        const time=document.createElement("small");
-        time.className="message-time";
+    const chatNodes=new Map();
+    let initialBatch=true,scrollQueued=false;
+    const queueScroll=()=>{
+      if(scrollQueued)return;scrollQueued=true;
+      requestAnimationFrame(()=>{scrollQueued=false;messages.scrollTop=messages.scrollHeight});
+    };
+    const nearBottom=()=>messages.scrollHeight-messages.scrollTop-messages.clientHeight<80;
+    const buildMessage=data=>{
+      const box=document.createElement("div");
+      if(data.name==="Thông báo hệ thống"){
+        box.className="system-message";
+        const text=document.createElement("span");
+        text.textContent=data.text||"";
+        const time=document.createElement("span");
+        time.className="system-time";
         time.textContent=formatTime(data.createdAt);
-        const header=document.createElement("div");
-        header.className="message-header";
-        header.append(sender,time);
-        const body=document.createElement("div");
-        body.className="message-body";
-        body.textContent=data.text||"";
-        box.append(header,body);
-        messages.append(box);
-      });
-      messages.scrollTop=messages.scrollHeight;
-    },error=>{
+        box.append(text,time);
+        return box;
+      }
+      box.className="message";
+      const sender=document.createElement("span");
+      sender.className="sender";
+      sender.textContent=data.name||"Khách";
+      const time=document.createElement("small");
+      time.className="message-time";
+      time.textContent=formatTime(data.createdAt);
+      const header=document.createElement("div");
+      header.className="message-header";
+      header.append(sender,time);
+      const body=document.createElement("div");
+      body.className="message-body";
+      body.textContent=data.text||"";
+      box.append(header,body);
+      return box;
+    };
+    const chatError=error=>{
       $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
-    });
+    };
+    // Chỉ thêm / xóa đúng tin thay đổi, không dựng lại cả 100 tin mỗi lần có tin mới.
+    onChildAdded(recent,(item,prevKey)=>{
+      const stick=initialBatch||nearBottom();
+      const box=buildMessage(item.val()||{});
+      const prev=prevKey?chatNodes.get(prevKey):null;
+      if(prev&&prev.parentNode===messages)prev.after(box);else messages.prepend(box);
+      chatNodes.set(item.key,box);
+      if(stick)queueScroll();
+    },chatError);
+    onChildRemoved(recent,item=>{
+      chatNodes.get(item.key)?.remove();
+      chatNodes.delete(item.key);
+    },chatError);
+    onValue(recent,()=>{initialBatch=false},{onlyOnce:true});
 
     await set(push(ref(db,"publicChat/messages")),{
       uid:user.uid,name:"Thông báo hệ thống",
@@ -3270,4 +3289,3 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
-14
