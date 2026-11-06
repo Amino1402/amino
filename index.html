@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -360,6 +356,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @keyframes petHappy3D{0%,100%{transform:rotateZ(0) scale(1)}25%{transform:rotateZ(-10deg) scale(1.08)}50%{transform:rotateZ(10deg) scale(1.1)}75%{transform:rotateZ(-5deg) scale(1.04)}}
 @keyframes petSleep3D{0%,100%{transform:translateY(3px) rotateZ(4deg) scale(1,.97)}50%{transform:translateY(5px) rotateZ(6deg) scale(1,.94)}}
 @keyframes petShadow{0%,100%{transform:scaleX(1);opacity:.7}50%{transform:scaleX(.78);opacity:.42}}
+
+/* Luna: mo hinh GLB 3D that, tach rieng de cac pet khac khong bi anh huong */
+.pet-seal-3d-real{position:relative;width:100%;height:100%;display:block;}
+.luna3d-canvas{display:block;width:100%;height:100%;outline:none;}
+.luna3d-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:11px;color:#8e7db0;pointer-events:none;}
+
 #petBubble{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;white-space:normal;text-align:center;pointer-events:none;z-index:3}
 #petBubble:not([hidden]){display:block}
 #petBubble:after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#fff}
@@ -659,6 +661,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 })();
 </script>
 
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
@@ -2882,28 +2885,68 @@ function petPixelMarkup(emoji){
       <path d="M32 77 Q24 70 25 64" fill="none" stroke="#e7d4e9" stroke-width="8" stroke-linecap="round"/>
     </g><ellipse cx="87" cy="83" rx="8" ry="8" fill="#fff" opacity=".65"/><circle cx="87" cy="83" r="5" fill="#fff"/>
   </svg>`;
-  if(emoji==='🦭')return `<svg class="pet-3d-svg pet-seal-3d" viewBox="0 0 120 120" role="img" aria-label="Hải cẩu 3D hoạt hình">
-    <defs>
-      <radialGradient id="sealFur" cx="32%" cy="18%" r="82%"><stop stop-color="#fff"/><stop offset=".48" stop-color="#e9f0ff"/><stop offset="1" stop-color="#9eafd0"/></radialGradient>
-      <radialGradient id="sealBelly" cx="45%" cy="20%"><stop stop-color="#fff"/><stop offset="1" stop-color="#dce5f3"/></radialGradient>
-      <radialGradient id="sealEye" cx="30%" cy="25%"><stop stop-color="#66758c"/><stop offset=".5" stop-color="#263449"/><stop offset="1" stop-color="#121b2b"/></radialGradient>
-    </defs>
-    <ellipse cx="60" cy="108" rx="39" ry="7" fill="#302044" opacity=".16"/>
-    <g class="pet-body"><ellipse cx="60" cy="78" rx="43" ry="29" fill="url(#sealFur)"/><ellipse cx="60" cy="63" rx="34" ry="31" fill="url(#sealFur)"/><ellipse cx="60" cy="87" rx="29" ry="15" fill="url(#sealBelly)"/><ellipse cx="27" cy="91" rx="13" ry="8" fill="#aab9d2"/><ellipse cx="94" cy="91" rx="13" ry="8" fill="#9eafc9"/>
-      <ellipse cx="47" cy="63" rx="4.5" ry="6" fill="url(#sealEye)" class="pet-eye"/><ellipse cx="73" cy="63" rx="4.5" ry="6" fill="url(#sealEye)" class="pet-eye"/><circle cx="45.5" cy="60.5" r="1.6" fill="white"/><circle cx="71.5" cy="60.5" r="1.6" fill="white"/>
-      <ellipse cx="37" cy="75" rx="7" ry="4" fill="#f4a8bd" opacity=".8"/><ellipse cx="83" cy="75" rx="7" ry="4" fill="#f4a8bd" opacity=".8"/><ellipse cx="60" cy="72" rx="5" ry="3.5" fill="#554b61"/><path d="M60 75 Q55 81 50 77 M60 75 Q65 81 70 77" fill="none" stroke="#62586d" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M29 79 Q13 83 15 98 Q27 104 39 91" fill="url(#sealFur)" class="pet-flipper"/><path d="M91 79 Q107 83 105 98 Q93 104 81 91" fill="url(#sealFur)" class="pet-flipper"/>
-      <ellipse cx="42" cy="101" rx="13" ry="6" fill="#b8c6dc"/><ellipse cx="78" cy="101" rx="13" ry="6" fill="#aabbd4"/>
-    </g><ellipse cx="42" cy="42" rx="12" ry="6" fill="white" opacity=".42"/>
-  </svg>`;
+  if(emoji==='🦭')return `<div class="pet-seal-3d-real" aria-label="Luna mô hình 3D"><canvas class="luna3d-canvas"></canvas><span class="luna3d-loading">Luna</span></div>`;
   return emoji;
+}
+
+let luna3DPromise=null,luna3DApp=null;
+function initLuna3D(){
+  const host=$('petEmoji')?.querySelector('.pet-seal-3d-real');
+  if(!host||host.dataset.ready==='1')return;
+  host.dataset.ready='1';
+  if(!luna3DPromise){
+    luna3DPromise=(async()=>{
+      const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+      const {GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js');
+      const loader=new GLTFLoader();
+      const gltf=await loader.loadAsync('./Luna_3D.glb');
+      return {THREE,model:gltf.scene};
+    })();
+  }
+  luna3DPromise.then(({THREE,model})=>{
+    if(!host.isConnected)return;
+    const canvas=host.querySelector('canvas');
+    const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    renderer.setSize(host.clientWidth||104,host.clientHeight||104,false);
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=1.15;
+    const scene=new THREE.Scene();
+    scene.add(new THREE.HemisphereLight(0xffffff,0x8790b7,2.0));
+    const key=new THREE.DirectionalLight(0xffffff,2.4);key.position.set(-3,5,5);scene.add(key);
+    const rim=new THREE.DirectionalLight(0xb8a5ff,1.3);rim.position.set(3,2,-4);scene.add(rim);
+    const camera=new THREE.PerspectiveCamera(32,(host.clientWidth||104)/(host.clientHeight||104),.1,30);
+    camera.position.set(0,1.35,4.8);camera.lookAt(0,.78,0);
+    model.scale.setScalar(1.12);model.position.y=-.05;scene.add(model);
+    const parts={};model.traverse(o=>{if(o.isMesh){parts[o.name]=o;o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.roughness=.48;o.material.metalness=0;}}});
+    const resize=()=>{if(!host.isConnected)return;const w=host.clientWidth||104,h=host.clientHeight||104;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
+    const ro=new ResizeObserver(resize);ro.observe(host);
+    const clock=new THREE.Clock();
+    const animate=()=>{
+      if(!host.isConnected){ro.disconnect();renderer.dispose();return;}
+      const t=clock.getElapsedTime();
+      model.position.y=-.05+Math.sin(t*2.2)*.025;
+      model.rotation.y=Math.sin(t*.8)*.09;
+      model.rotation.z=Math.sin(t*1.3)*.018;
+      if(parts.Flipper_L)parts.Flipper_L.rotation.z=Math.sin(t*2.4)*.18;
+      if(parts.Flipper_R)parts.Flipper_R.rotation.z=-Math.sin(t*2.4)*.18;
+      if(parts.Tail)parts.Tail.rotation.x=Math.sin(t*2)*.08;
+      renderer.render(scene,camera);requestAnimationFrame(animate);
+    };
+    host.querySelector('.luna3d-loading')?.remove();
+    luna3DApp={renderer,scene,camera,model,parts,host};resize();animate();
+  }).catch(err=>{
+    console.error('Luna 3D load error:',err);host.dataset.ready='0';
+    const label=host.querySelector('.luna3d-loading');if(label)label.textContent='Không tải được mô hình 3D';
+  });
 }
 
 function petIsHungry(data=petData){return !!data && Date.now()-Number(data.lastFedAt||Date.now())>=PET_HUNGER_MS}
 function petRender(){
   if(!petData||!user)return;
   const type=PET_TYPES.find(x=>x.emoji===petData.petType)||PET_TYPES[0];
-  $('petEmoji').innerHTML=petPixelMarkup(type.emoji);$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
+  if(type.emoji==='🦭'){if(!$('petEmoji').querySelector('.pet-seal-3d-real'))$('petEmoji').innerHTML=petPixelMarkup(type.emoji);initLuna3D();}else{$('petEmoji').innerHTML=petPixelMarkup(type.emoji);}$('petFace').textContent=type.emoji;$('petTitle').textContent=type.name;
   document.querySelectorAll('.pet-choice').forEach(btn=>{btn.classList.toggle('active',btn.dataset.pet===type.emoji);btn.disabled=!!petData.petChosen;});
   $('petChoices').hidden=!!petData.petChosen;
   $('petFeed').hidden=!petData.petChosen;
@@ -3274,3 +3317,4 @@ $("musicForm").addEventListener("submit",async event=>{
 </script>
 </body>
 </html>
+14
