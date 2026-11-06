@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -2896,49 +2897,96 @@ function initLuna3D(){
   host.dataset.ready='1';
   if(!luna3DPromise){
     luna3DPromise=(async()=>{
+      // Luna duoc tao truc tiep bang geometry Three.js, khong can file GLB.
       const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
-      const {GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js');
-      const loader=new GLTFLoader();
-      const gltf=await loader.loadAsync('./Luna_3D.glb');
-      return {THREE,model:gltf.scene};
+      return {THREE};
     })();
   }
-  luna3DPromise.then(({THREE,model})=>{
+  luna3DPromise.then(({THREE})=>{
     if(!host.isConnected)return;
     const canvas=host.querySelector('canvas');
-    const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
     renderer.setSize(host.clientWidth||104,host.clientHeight||104,false);
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.15;
+    renderer.toneMappingExposure=1.18;
+    renderer.setClearColor(0x000000,0);
     const scene=new THREE.Scene();
-    scene.add(new THREE.HemisphereLight(0xffffff,0x8790b7,2.0));
-    const key=new THREE.DirectionalLight(0xffffff,2.4);key.position.set(-3,5,5);scene.add(key);
-    const rim=new THREE.DirectionalLight(0xb8a5ff,1.3);rim.position.set(3,2,-4);scene.add(rim);
-    const camera=new THREE.PerspectiveCamera(32,(host.clientWidth||104)/(host.clientHeight||104),.1,30);
-    camera.position.set(0,1.35,4.8);camera.lookAt(0,.78,0);
-    model.scale.setScalar(1.12);model.position.y=-.05;scene.add(model);
-    const parts={};model.traverse(o=>{if(o.isMesh){parts[o.name]=o;o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.roughness=.48;o.material.metalness=0;}}});
-    const resize=()=>{if(!host.isConnected)return;const w=host.clientWidth||104,h=host.clientHeight||104;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
+    scene.add(new THREE.HemisphereLight(0xffffff,0x9b86b7,2.15));
+    const key=new THREE.DirectionalLight(0xffffff,2.6);key.position.set(-3,5,5);scene.add(key);
+    const fill=new THREE.DirectionalLight(0xd9caff,1.15);fill.position.set(4,2,3);scene.add(fill);
+    const rim=new THREE.DirectionalLight(0xb8a5ff,1.35);rim.position.set(2,2,-4);scene.add(rim);
+    const camera=new THREE.PerspectiveCamera(30,(host.clientWidth||104)/(host.clientHeight||104),.1,30);
+    camera.position.set(0,1.12,4.9);camera.lookAt(0,.68,0);
+    const luna=new THREE.Group();scene.add(luna);const parts={};
+    const fur=new THREE.MeshStandardMaterial({color:0xf5efff,roughness:.78});
+    const furLight=new THREE.MeshStandardMaterial({color:0xfffbff,roughness:.72});
+    const furShade=new THREE.MeshStandardMaterial({color:0xd9cbea,roughness:.82});
+    const pink=new THREE.MeshStandardMaterial({color:0xf39cbd,roughness:.65});
+    const dark=new THREE.MeshStandardMaterial({color:0x211b2b,roughness:.28});
+    const white=new THREE.MeshBasicMaterial({color:0xffffff});
+    const noseMat=new THREE.MeshStandardMaterial({color:0x493344,roughness:.35});
+    const mouthMat=new THREE.MeshStandardMaterial({color:0x9b526e,roughness:.65});
+    const sphere=new THREE.SphereGeometry(1,28,20);
+    function ball(name,material,pos,scale,parent=luna){
+      const mesh=new THREE.Mesh(sphere,material);mesh.name=name||'detail';
+      mesh.position.set(...pos);mesh.scale.set(...scale);parent.add(mesh);
+      if(name)parts[name]=mesh;return mesh;
+    }
+    ball('Body',fur,[0,.48,-.02],[.83,.57,.62]);
+    ball('Belly',furLight,[0,.31,.43],[.57,.34,.25]);
+    ball('Head',furLight,[0,.83,.43],[.59,.55,.48]);
+    ball('Muzzle',furLight,[0,.66,.84],[.34,.23,.18]);
+    const left=new THREE.Group();left.position.set(-.59,.38,.28);luna.add(left);parts.Flipper_L=left;
+    ball('',fur,[-.13,-.035,.02],[.34,.15,.24],left).rotation.z=-.22;
+    const right=new THREE.Group();right.position.set(.59,.38,.28);luna.add(right);parts.Flipper_R=right;
+    ball('',fur,[.13,-.035,.02],[.34,.15,.24],right).rotation.z=.22;
+    const tail=new THREE.Group();tail.position.set(0,.45,-.55);luna.add(tail);parts.Tail=tail;
+    ball('',furShade,[0,.02,-.18],[.22,.13,.28],tail);
+    ball('',fur,[0,.02,-.34],[.15,.10,.18],tail);
+    const eyeL=ball('Eye_L',dark,[-.235,.91,.84],[.075,.105,.045]);
+    const eyeR=ball('Eye_R',dark,[.235,.91,.84],[.075,.105,.045]);
+    ball('',white,[-.255,.95,.879],[.022,.028,.012]);
+    ball('',white,[.215,.95,.879],[.022,.028,.012]);
+    ball('',pink,[-.39,.69,.80],[.12,.065,.025]);
+    ball('',pink,[.39,.69,.80],[.12,.065,.025]);
+    ball('Nose',noseMat,[0,.72,1.015],[.075,.052,.035]);
+    const c1=new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,.68,1.01),new THREE.Vector3(-.035,.62,1.035),new THREE.Vector3(-.105,.64,1.015));
+    const c2=new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,.68,1.01),new THREE.Vector3(.035,.62,1.035),new THREE.Vector3(.105,.64,1.015));
+    luna.add(new THREE.Mesh(new THREE.TubeGeometry(c1,12,.009,5,false),mouthMat));
+    luna.add(new THREE.Mesh(new THREE.TubeGeometry(c2,12,.009,5,false),mouthMat));
+    for(let i=0;i<7;i++){
+      const x=((i%3)-1)*.31,y=.91-Math.floor(i/3)*.18,z=.12-Math.abs(x)*.12;
+      ball('',furShade,[x,y,z],[.035,.045,.018]);
+    }
+    const resize=()=>{
+      if(!host.isConnected)return;
+      const w=Math.max(1,host.clientWidth||104),h=Math.max(1,host.clientHeight||104);
+      renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+    };
     const ro=new ResizeObserver(resize);ro.observe(host);
     const clock=new THREE.Clock();
     const animate=()=>{
       if(!host.isConnected){ro.disconnect();renderer.dispose();return;}
       const t=clock.getElapsedTime();
-      model.position.y=-.05+Math.sin(t*2.2)*.025;
-      model.rotation.y=Math.sin(t*.8)*.09;
-      model.rotation.z=Math.sin(t*1.3)*.018;
-      if(parts.Flipper_L)parts.Flipper_L.rotation.z=Math.sin(t*2.4)*.18;
-      if(parts.Flipper_R)parts.Flipper_R.rotation.z=-Math.sin(t*2.4)*.18;
-      if(parts.Tail)parts.Tail.rotation.x=Math.sin(t*2)*.08;
+      luna.position.y=Math.sin(t*2.1)*.025;
+      luna.rotation.y=Math.sin(t*.75)*.12;
+      luna.rotation.z=Math.sin(t*1.15)*.018;
+      luna.scale.y=1+Math.sin(t*2.2)*.012;
+      left.rotation.z=Math.sin(t*2.3)*.20-.08;
+      right.rotation.z=-Math.sin(t*2.3)*.20+.08;
+      tail.rotation.x=Math.sin(t*2)*.13;
+      const blink=Math.sin(t*1.35)>0.985?.12:1;
+      eyeL.scale.y=.105*blink;eyeR.scale.y=.105*blink;
       renderer.render(scene,camera);requestAnimationFrame(animate);
     };
     host.querySelector('.luna3d-loading')?.remove();
-    luna3DApp={renderer,scene,camera,model,parts,host};resize();animate();
+    luna3DApp={renderer,scene,camera,model:luna,parts,host};resize();animate();
   }).catch(err=>{
-    console.error('Luna 3D load error:',err);host.dataset.ready='0';
-    const label=host.querySelector('.luna3d-loading');if(label)label.textContent='Không tải được mô hình 3D';
+    console.error('Luna 3D init error:',err);host.dataset.ready='0';
+    const label=host.querySelector('.luna3d-loading');
+    if(label)label.textContent='Luna 3D chưa khởi tạo được';
   });
 }
 
