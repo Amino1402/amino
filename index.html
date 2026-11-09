@@ -502,7 +502,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <button id="diaryBack" type="button">← Quay lại phòng chat</button>
 
   <div id="diaryGate">
-    <h3>🔒 Nhật ký Amino</h3>
+    <h3>🛡️ PRIVATE</h3>
     <p id="diaryAccessStatus" aria-live="polite">Đang kiểm tra quyền truy cập...</p>
     <div id="diaryDeniedDetails" hidden>
       <p class="diary-approval-message">Please send your private device UID in the chat box for approval.</p>
@@ -1617,7 +1617,7 @@ function showDiaryAccessDenied(){
   const status=$("diaryAccessStatus");
   const details=$("diaryDeniedDetails");
   const uidBox=$("diaryPrivateUid");
-  if(status)status.textContent="UID này chưa được cấp quyền xem nhật ký.";
+  if(status)status.textContent="UID này chưa được cấp quyền xem.";
   if(uidBox)uidBox.textContent=user?.uid||"Không lấy được UID (hãy đăng nhập lại).";
   if(details)details.hidden=!user?.uid;
 }
