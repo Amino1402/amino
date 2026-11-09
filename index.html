@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -162,6 +163,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #diaryGate{max-width:430px;margin:35px auto;padding:20px;border:1px solid #e7def7;border-radius:14px;background:#faf8ff;text-align:center}
 #diaryGate h3{color:#6750a4}
 #diaryAccessStatus{color:#6750a4;font-size:13px;line-height:1.6;min-height:22px}
+#diaryDeniedDetails{margin-top:12px;padding:12px;border:1px solid #e7def7;border-radius:10px;background:#fff}
+.diary-approval-message{font-weight:600;color:#4b386f;line-height:1.5;margin:4px 0 12px}
+.diary-uid-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+#diaryPrivateUid{display:block;max-width:100%;overflow-wrap:anywhere;padding:9px 10px;background:#f1edfa;border-radius:7px;color:#38245e}
+#diaryCopyUid{padding:9px 12px;background:#6750a4;color:#fff;border:0;border-radius:7px;cursor:pointer}
+
 #diaryContent{margin-top:10px}
 
 /* LỊCH SỬ XEM NẰM CUỐI TRANG VÀ CÓ THANH CUỘN RIÊNG */
@@ -480,6 +487,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div id="diaryGate">
     <h3>🔒 Nhật ký Amino</h3>
     <p id="diaryAccessStatus" aria-live="polite">Đang kiểm tra quyền truy cập...</p>
+    <div id="diaryDeniedDetails" hidden>
+      <p class="diary-approval-message">Please send your private device UID in the chat box for approval.</p>
+      <div class="diary-uid-row">
+        <code id="diaryPrivateUid"></code>
+        <button id="diaryCopyUid" type="button">Copy UID</button>
+      </div>
+    </div>
   </div>
 
   <div id="diaryContent" hidden>
@@ -1582,6 +1596,15 @@ async function activateDiaryAccess(){
   if(!activeDiaryVisitRef)startDiaryVisit(diarySelectedDate);
 }
 
+function showDiaryAccessDenied(){
+  const status=$("diaryAccessStatus");
+  const details=$("diaryDeniedDetails");
+  const uidBox=$("diaryPrivateUid");
+  if(status)status.textContent="UID này chưa được cấp quyền xem nhật ký.";
+  if(uidBox)uidBox.textContent=user?.uid||"Không lấy được UID (hãy đăng nhập lại).";
+  if(details)details.hidden=!user?.uid;
+}
+
 function watchDiaryAccess(){
   if(!user||!db||diaryAccessUnsubscribe)return;
   // Người dùng chỉ đọc được cờ cấp quyền của chính UID mình.
@@ -1599,13 +1622,14 @@ function watchDiaryAccess(){
       if(!$('diaryPage').hidden){
         $('diaryGate').hidden=false;
         $('diaryContent').hidden=true;
-        $('diaryAccessStatus').textContent='UID của tài khoản này chưa được cấp quyền xem nhật ký.';
+        showDiaryAccessDenied();
       }
     }
   },error=>{
     diaryAccessAllowed=false;
     diaryPageUnlocked=false;
     $('diaryAccessStatus').textContent='Không kiểm tra được quyền truy cập: '+error.message;
+    $('diaryDeniedDetails').hidden=true;
   });
 }
 
@@ -1970,9 +1994,26 @@ function startDiary(){
     if(diaryAccessAllowed){
       await activateDiaryAccess();
     }else{
-      $("diaryAccessStatus").textContent="UID của tài khoản này chưa được cấp quyền xem nhật ký.";
+      showDiaryAccessDenied();
     }
     window.scrollTo({top:0,behavior:"auto"});
+  });
+
+  $("diaryCopyUid").addEventListener("click",async()=>{
+    const uid=user?.uid||"";
+    if(!uid)return;
+    try{
+      await navigator.clipboard.writeText(uid);
+      $("diaryCopyUid").textContent="Copied!";
+      setTimeout(()=>$("diaryCopyUid").textContent="Copy UID",1600);
+    }catch(error){
+      const range=document.createRange();
+      range.selectNodeContents($("diaryPrivateUid"));
+      const selection=window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      $("diaryCopyUid").textContent="Select and copy";
+    }
   });
 
   $("diaryBack").addEventListener("click",async()=>{
