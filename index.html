@@ -3120,7 +3120,7 @@ $('petAddressSave').addEventListener('click',async()=>{
 
 $("enter").addEventListener("click",async()=>{
   $("passwordError").textContent="";
-  if($("chatPassword").value!=="1402"){
+  if($("chatPassword").value!=="1409"){
     $("passwordError").textContent="Mật khẩu không đúng!";
     return;
   }
@@ -3374,14 +3374,14 @@ $("musicForm").addEventListener("submit",async event=>{
   for(let i=0;i<count;i++){
     const flake=document.createElement('span');
     flake.className='amino-snowflake';
-flake.textContent=flakes[i%flakes.length];
-flake.style.setProperty('--snow-left',(Math.random()*100).toFixed(2)+'%');
-flake.style.setProperty('--snow-size',(10+Math.random()*16).toFixed(1)+'px');
-flake.style.setProperty('--snow-duration',(4+Math.random()*4).toFixed(1)+'s');
-flake.style.setProperty('--snow-delay',(-Math.random()*8).toFixed(1)+'s');
-flake.style.setProperty('--snow-drift',(-50+Math.random()*100).toFixed(1)+'px');
-flake.style.setProperty('--snow-opacity',(0.45+Math.random()*0.45).toFixed(2));
-snowLayer.appendChild(flake);
+    flake.textContent=flakes[i%flakes.length];
+    flake.style.setProperty('--snow-left',(Math.random()*100).toFixed(2)+'%');
+    flake.style.setProperty('--snow-size',(8+Math.random()*12).toFixed(1)+'px');
+    flake.style.setProperty('--snow-duration',(7+Math.random()*8).toFixed(1)+'s');
+    flake.style.setProperty('--snow-delay',(-Math.random()*28).toFixed(1)+'s');
+    flake.style.setProperty('--snow-drift',(-35+Math.random()*70).toFixed(1)+'px');
+    flake.style.setProperty('--snow-opacity',(0.35+Math.random()*0.55).toFixed(2));
+    snowLayer.appendChild(flake);
   }
   let enabled=true;
   try{enabled=localStorage.getItem(storageKey)!=='false'}catch(_){ }
