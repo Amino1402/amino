@@ -421,6 +421,22 @@ button:disabled{opacity:.5;cursor:not-allowed}
     color-scheme: only light;
     forced-color-adjust: none;
 }
+
+/* ===== AMINO WINTER THEME: HIỆU ỨNG MÙA ĐÔNG NHẸ NHÀNG ===== */
+#aminoWinterFrost{position:fixed;inset:0;z-index:9988;pointer-events:none;overflow:hidden;background:
+  radial-gradient(ellipse at 0% 0%,rgba(197,229,255,.20),transparent 34%),
+  radial-gradient(ellipse at 100% 0%,rgba(215,239,255,.18),transparent 32%),
+  radial-gradient(ellipse at 100% 100%,rgba(197,229,255,.14),transparent 30%),
+  radial-gradient(ellipse at 0% 100%,rgba(215,239,255,.14),transparent 30%);}
+#aminoWinterSnow{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden;contain:strict;}
+.amino-snowflake{position:absolute;top:-24px;left:var(--snow-left);font-family:Arial,sans-serif;color:rgba(255,255,255,.94);font-size:var(--snow-size);line-height:1;text-shadow:0 1px 4px rgba(95,145,180,.35);opacity:var(--snow-opacity);animation:aminoSnowFall var(--snow-duration) linear var(--snow-delay) infinite;will-change:transform;}
+@keyframes aminoSnowFall{0%{transform:translate3d(0,-5vh,0) rotate(0deg)}50%{transform:translate3d(var(--snow-drift),52vh,0) rotate(180deg)}100%{transform:translate3d(calc(var(--snow-drift) * -.45),110vh,0) rotate(360deg)}}
+#aminoWinterToggle{position:fixed;right:14px;top:14px;z-index:10040;width:42px;height:42px;padding:0;border:1px solid rgba(178,211,235,.9);border-radius:50%;display:grid;place-items:center;background:rgba(245,251,255,.92);color:#477da3;font-size:21px;line-height:1;box-shadow:0 3px 12px rgba(53,91,120,.16);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+#aminoWinterToggle[aria-pressed="false"]{background:rgba(255,255,255,.88);color:#7d8790;}
+#aminoWinterToggle:focus-visible{outline:3px solid #8fc9f2;outline-offset:3px;}
+@media(max-width:600px){.amino-snowflake{font-size:calc(var(--snow-size) * .82)}#aminoWinterToggle{right:10px;top:10px;width:38px;height:38px;font-size:19px}}
+@media(prefers-reduced-motion:reduce){.amino-snowflake{animation-duration:36s!important}}
+
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -3104,7 +3120,7 @@ $('petAddressSave').addEventListener('click',async()=>{
 
 $("enter").addEventListener("click",async()=>{
   $("passwordError").textContent="";
-  if($("chatPassword").value!=="1111"){
+  if($("chatPassword").value!=="1402"){
     $("passwordError").textContent="Mật khẩu không đúng!";
     return;
   }
@@ -3342,5 +3358,49 @@ $("musicForm").addEventListener("submit",async event=>{
   }
 });
 </script>
+
+<!-- Hiệu ứng mùa đông toàn ứng dụng; độc lập với các chức năng hiện có -->
+<div id="aminoWinterFrost" aria-hidden="true"></div>
+<div id="aminoWinterSnow" aria-hidden="true"></div>
+<button id="aminoWinterToggle" type="button" aria-label="Tắt hiệu ứng mùa đông" aria-pressed="true" title="Bật/tắt hiệu ứng mùa đông">❄</button>
+<script>
+(()=>{
+  const snowLayer=document.getElementById('aminoWinterSnow');
+  const toggle=document.getElementById('aminoWinterToggle');
+  const storageKey='aminoWinterEffectEnabled';
+  if(!snowLayer||!toggle)return;
+  const count=window.matchMedia('(max-width: 600px)').matches?22:36;
+  const flakes=['❄','❅','❆','✧'];
+  for(let i=0;i<count;i++){
+    const flake=document.createElement('span');
+    flake.className='amino-snowflake';
+    flake.textContent=flakes[i%flakes.length];
+    flake.style.setProperty('--snow-left',(Math.random()*100).toFixed(2)+'%');
+    flake.style.setProperty('--snow-size',(8+Math.random()*12).toFixed(1)+'px');
+    flake.style.setProperty('--snow-duration',(13+Math.random()*19).toFixed(1)+'s');
+    flake.style.setProperty('--snow-delay',(-Math.random()*28).toFixed(1)+'s');
+    flake.style.setProperty('--snow-drift',(-35+Math.random()*70).toFixed(1)+'px');
+    flake.style.setProperty('--snow-opacity',(0.35+Math.random()*0.55).toFixed(2));
+    snowLayer.appendChild(flake);
+  }
+  let enabled=true;
+  try{enabled=localStorage.getItem(storageKey)!=='false'}catch(_){ }
+  const apply=()=>{
+    snowLayer.hidden=!enabled;
+    document.getElementById('aminoWinterFrost').hidden=!enabled;
+    toggle.setAttribute('aria-pressed',String(enabled));
+    toggle.setAttribute('aria-label',enabled?'Tắt hiệu ứng mùa đông':'Bật hiệu ứng mùa đông');
+    toggle.title=enabled?'Tắt hiệu ứng mùa đông':'Bật hiệu ứng mùa đông';
+    toggle.textContent=enabled?'❄':'☼';
+  };
+  toggle.addEventListener('click',()=>{
+    enabled=!enabled;
+    try{localStorage.setItem(storageKey,String(enabled))}catch(_){ }
+    apply();
+  });
+  apply();
+})();
+</script>
+
 </body>
 </html>
