@@ -1,3 +1,7 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -442,6 +446,41 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #aminoWxFl{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
 #aminoWxTag{position:absolute;left:4px;bottom:4px;font:700 10px Arial,sans-serif;color:#fff;background:rgba(20,30,40,.45);padding:2px 6px;border-radius:999px;white-space:nowrap}
 @media(max-width:600px){#aminoWx{--wx:68px}}
+
+
+/* ===== BẢNG DỰ BÁO THỜI TIẾT AMINO ===== */
+#aminoWx{cursor:pointer}
+#aminoWx:focus-visible{outline:3px solid #f5c84c;outline-offset:3px}
+#aminoWeatherModal{position:fixed;inset:0;z-index:12000;background:rgba(12,18,35,.68);display:flex;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(7px)}
+#aminoWeatherModal[hidden],#wxLoading[hidden],#wxError[hidden],#wxHourlySection[hidden],#wxDailySection[hidden]{display:none!important}
+#aminoWeatherCard{width:min(540px,100%);max-height:94dvh;overflow-y:auto;border-radius:22px;background:#f5f7fc;color:#202b40;box-shadow:0 15px 50px #0005;overscroll-behavior:contain}
+.wx-top{position:relative;padding:22px 18px;color:#fff;background:linear-gradient(145deg,#243b63,#526d9e);border-radius:22px 22px 0 0}
+#wxClose{position:absolute;right:14px;top:14px;width:36px;height:36px;border:0;border-radius:50%;padding:0;background:#ffffff28;color:#fff;font-size:24px;cursor:pointer}
+.wx-location{font-size:13px;color:#dce7fa;padding-right:42px}
+.wx-current{display:flex;align-items:center;justify-content:space-between;margin:16px 0}
+#wxTemperature{font-size:58px;font-weight:300;line-height:1.1}
+#wxDescription{font-size:15px;margin-top:5px}
+.wx-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.wx-stat{background:#ffffff20;padding:10px 7px;border-radius:11px;text-align:center;font-size:12px}
+.wx-stat strong{display:block;margin-top:5px;font-size:14px}
+.wx-tabs{display:flex;gap:8px;padding:14px 14px 8px}
+.wx-tabs button{flex:1;border:0;background:#e8eaf3;color:#59647b;border-radius:12px;padding:11px;font-weight:700;cursor:pointer}
+.wx-tabs button.active{background:#6750a4;color:#fff}
+.wx-section{padding:8px 14px 18px}
+#wxHourly{display:flex;gap:9px;overflow-x:auto;padding:7px 0 13px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.wx-hour{flex:0 0 82px;padding:12px 5px;border-radius:13px;background:#fff;text-align:center;border:1px solid #e7e9f1}
+.wx-hour .icon{font-size:27px;margin:9px 0}
+.wx-hour strong{font-size:16px}
+.wx-hour small{display:block;color:#758098;font-size:11px;margin-top:5px;white-space:nowrap}
+.wx-day{display:grid;grid-template-columns:minmax(0,1fr) 38px minmax(90px,auto);align-items:center;gap:8px;padding:12px 9px;background:#fff;border-bottom:1px solid #edf0f5;border-radius:9px;margin-bottom:6px}
+.wx-day .icon{text-align:center;font-size:24px}
+.wx-day-temp{text-align:right;font-weight:700;font-size:13px;white-space:nowrap}
+.wx-day small{display:block;color:#8590a3;font-size:11px;margin-top:4px}
+#wxLoading{text-align:center;padding:28px 10px;color:#6750a4}
+#wxError{padding:14px;margin:8px 14px;color:#a12622;background:#fff0ef;border-radius:12px;font-size:13px}
+#wxUpdated{text-align:center;color:#8992a5;font-size:11px;padding:10px 12px 15px}
+@media(max-width:600px){#aminoWeatherCard{max-height:94dvh}.wx-top{padding:20px 15px}#wxTemperature{font-size:52px}}
+
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -462,7 +501,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <section id="chat" hidden>
   <p id="welcome"></p>
   <div id="diaryToolbar">
-    <div id="aminoWx" aria-label="Thời tiết hiện tại" role="img"><div id="aminoWxFl"></div><div id="aminoWxTag">…</div></div>
+    <div id="aminoWx" aria-label="Mở dự báo thời tiết" role="button" tabindex="0" title="Xem dự báo thời tiết 7 ngày và 24 giờ"><div id="aminoWxFl"></div><div id="aminoWxTag">…</div></div>
     <button id="diaryToggle" type="button" aria-label="Mở trang nhật ký" title="Nhật ký công khai">📅</button>
     <button id="photoToggle" type="button" aria-label="Chụp ảnh lưu vào nhật ký" title="Chụp ảnh">📸</button>
     <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">🗺️</button>
@@ -503,6 +542,42 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
   </div>
 </section>
+
+
+
+<!-- Bảng dự báo thời tiết: mở khi chạm widget thời tiết 3D -->
+<div id="aminoWeatherModal" hidden>
+  <div id="aminoWeatherCard" role="dialog" aria-modal="true" aria-labelledby="wxDialogTitle">
+    <div class="wx-top">
+      <button id="wxClose" type="button" aria-label="Đóng dự báo">×</button>
+      <div class="wx-location" id="wxDialogTitle">📍 <span id="wxLocation">Vị trí hiện tại</span></div>
+      <div class="wx-current">
+        <div><div id="wxTemperature">--°C</div><div id="wxDescription">Đang tải thời tiết...</div></div>
+        <div id="wxMainIcon" style="font-size:65px" aria-hidden="true">🌤️</div>
+      </div>
+      <div class="wx-stats">
+        <div class="wx-stat">🌡️ Cảm giác<strong id="wxFeels">--</strong></div>
+        <div class="wx-stat">💧 Độ ẩm<strong id="wxHumidity">--</strong></div>
+        <div class="wx-stat">💨 Gió<strong id="wxWind">--</strong></div>
+      </div>
+    </div>
+    <div class="wx-tabs">
+      <button id="wxHourlyTab" class="active" type="button" aria-pressed="true">🕒 Theo giờ</button>
+      <button id="wxDailyTab" type="button" aria-pressed="false">📅 7 ngày</button>
+    </div>
+    <div id="wxLoading">⛅ Đang tải dự báo...</div>
+    <div id="wxError" hidden role="alert"></div>
+    <div id="wxHourlySection" class="wx-section">
+      <strong>🌤️ Dự báo 24 giờ tới</strong>
+      <div id="wxHourly"></div>
+    </div>
+    <div id="wxDailySection" class="wx-section" hidden>
+      <strong>📅 Dự báo 7 ngày tới</strong>
+      <div id="wxDaily"></div>
+    </div>
+    <div id="wxUpdated"></div>
+  </div>
+</div>
 
 <section id="diaryPage" hidden>
   <button id="diaryBack" type="button">← Quay lại phòng chat</button>
@@ -3615,6 +3690,170 @@ resize();tick();
   s.onload=()=>{const o=document.createElement('script');o.textContent=document.getElementById('aminoWxCode').textContent;document.body.appendChild(o)};
   s.onerror=()=>{const b=document.getElementById('aminoWx');if(b)b.style.display='none'};
   document.body.appendChild(s);
+})();
+</script>
+
+
+
+<script>
+/* ===== AMINO WEATHER FORECAST: 24 GIỜ + 7 NGÀY ===== */
+(()=>{
+  const $=id=>document.getElementById(id);
+  const modal=$('aminoWeatherModal');
+  const tile=$('aminoWx');
+  if(!modal||!tile)return;
+
+  let loadedAt=0,loading=false,previousBodyOverflow='';
+  const FALLBACK=window.__wxFallback||{lat:20.54,lon:105.91};
+
+  function weatherInfo(code,isDay=true){
+    if(code===0)return {icon:isDay?'☀️':'🌙',text:'Trời quang'};
+    if(code===1)return {icon:isDay?'🌤️':'🌙',text:'Ít mây'};
+    if(code===2)return {icon:'⛅',text:'Có mây'};
+    if(code===3)return {icon:'☁️',text:'Nhiều mây'};
+    if(code===45||code===48)return {icon:'🌫️',text:'Sương mù'};
+    if(code>=51&&code<=57)return {icon:'🌦️',text:'Mưa phùn'};
+    if(code>=61&&code<=67)return {icon:'🌧️',text:'Mưa'};
+    if(code>=71&&code<=77)return {icon:'❄️',text:'Tuyết'};
+    if(code>=80&&code<=82)return {icon:'🌧️',text:'Mưa rào'};
+    if(code===85||code===86)return {icon:'🌨️',text:'Mưa tuyết'};
+    if(code>=95)return {icon:'⛈️',text:'Dông sét'};
+    return {icon:'🌤️',text:'Thời tiết thay đổi'};
+  }
+
+  function hourLabel(value){
+    return new Date(value).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  }
+  function dayLabel(value,index){
+    if(index===0)return 'Hôm nay';
+    if(index===1)return 'Ngày mai';
+    return new Date(value+'T12:00:00').toLocaleDateString('vi-VN',{weekday:'long'});
+  }
+  function make(tag,className,text){
+    const el=document.createElement(tag);
+    if(className)el.className=className;
+    if(text!==undefined)el.textContent=text;
+    return el;
+  }
+
+  async function getPosition(){
+    if(!navigator.geolocation)return FALLBACK;
+    try{
+      const p=await new Promise((resolve,reject)=>{
+        navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:6000,maximumAge:600000,enableHighAccuracy:false});
+      });
+      return {lat:p.coords.latitude,lon:p.coords.longitude};
+    }catch(e){return FALLBACK;}
+  }
+
+  async function loadWeather(force=false){
+    if(loading)return;
+    if(!force&&loadedAt&&Date.now()-loadedAt<10*60*1000)return;
+    loading=true;
+    $('wxLoading').hidden=false;
+    $('wxError').hidden=true;
+    try{
+      const pos=await getPosition();
+      const params=new URLSearchParams({
+        latitude:String(pos.lat),longitude:String(pos.lon),timezone:'auto',forecast_days:'7',
+        current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day',
+        hourly:'temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,wind_speed_10m,weather_code,is_day',
+        daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset'
+      });
+      const response=await fetch('https://api.open-meteo.com/v1/forecast?'+params.toString());
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const data=await response.json();
+      if(!data.current||!data.hourly||!data.daily)throw new Error('Dữ liệu thời tiết không đầy đủ');
+      renderCurrent(data.current);
+      renderHourly(data.hourly);
+      renderDaily(data.daily);
+      $('wxLocation').textContent='Thời tiết tại vị trí của bạn';
+      $('wxUpdated').textContent='Cập nhật lúc '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+      loadedAt=Date.now();
+      $('wxLoading').hidden=true;
+    }catch(error){
+      console.error('Amino Weather forecast:',error);
+      $('wxError').textContent='Không tải được dự báo thời tiết. Kiểm tra Internet rồi chạm mở lại để thử lần nữa.';
+      $('wxError').hidden=false;
+      $('wxLoading').hidden=true;
+    }finally{loading=false;}
+  }
+
+  function renderCurrent(c){
+    const w=weatherInfo(c.weather_code,Number(c.is_day)===1);
+    $('wxTemperature').textContent=Math.round(c.temperature_2m)+'°C';
+    $('wxDescription').textContent=w.text;
+    $('wxMainIcon').textContent=w.icon;
+    $('wxFeels').textContent=Math.round(c.apparent_temperature)+'°C';
+    $('wxHumidity').textContent=c.relative_humidity_2m+'%';
+    $('wxWind').textContent=Math.round(c.wind_speed_10m)+' km/h';
+  }
+
+  function renderHourly(h){
+    const container=$('wxHourly');
+    container.replaceChildren();
+    const now=Date.now();
+    let start=h.time.findIndex(t=>new Date(t).getTime()>=now-30*60*1000);
+    if(start<0)start=0;
+    const end=Math.min(start+24,h.time.length);
+    for(let i=start;i<end;i++){
+      const w=weatherInfo(h.weather_code[i],h.is_day?Number(h.is_day[i])===1:true);
+      const card=make('div','wx-hour');
+      card.append(make('div','',i===start?'Hiện tại':hourLabel(h.time[i])));
+      card.append(make('div','icon',w.icon));
+      card.append(make('strong','',Math.round(h.temperature_2m[i])+'°C'));
+      card.append(make('small','', '🌧 '+(h.precipitation_probability[i]??0)+'%'));
+      card.append(make('small','', '💧 '+(h.relative_humidity_2m[i]??'--')+'%'));
+      card.append(make('small','', '💨 '+Math.round(h.wind_speed_10m[i])+' km/h'));
+      container.append(card);
+    }
+  }
+
+  function renderDaily(d){
+    const container=$('wxDaily');
+    container.replaceChildren();
+    for(let i=0;i<Math.min(7,d.time.length);i++){
+      const w=weatherInfo(d.weather_code[i],true);
+      const card=make('div','wx-day');
+      const name=make('div','',dayLabel(d.time[i],i));
+      name.append(make('small','', '🌧 Xác suất mưa: '+(d.precipitation_probability_max[i]??0)+'%'));
+      const icon=make('div','icon',w.icon);
+      const temps=make('div','wx-day-temp',Math.round(d.temperature_2m_max[i])+'° / '+Math.round(d.temperature_2m_min[i])+'°');
+      card.append(name,icon,temps);
+      container.append(card);
+    }
+  }
+
+  function showTab(tab){
+    const hourly=tab==='hourly';
+    $('wxHourlySection').hidden=!hourly;
+    $('wxDailySection').hidden=hourly;
+    $('wxHourlyTab').classList.toggle('active',hourly);
+    $('wxDailyTab').classList.toggle('active',!hourly);
+    $('wxHourlyTab').setAttribute('aria-pressed',String(hourly));
+    $('wxDailyTab').setAttribute('aria-pressed',String(!hourly));
+  }
+  function openWeather(){
+    previousBodyOverflow=document.body.style.overflow;
+    modal.hidden=false;
+    document.body.style.overflow='hidden';
+    showTab('hourly');
+    loadWeather();
+  }
+  function closeWeather(){
+    modal.hidden=true;
+    document.body.style.overflow=previousBodyOverflow;
+  }
+
+  tile.addEventListener('click',openWeather);
+  tile.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();openWeather();}
+  });
+  $('wxClose').addEventListener('click',closeWeather);
+  modal.addEventListener('click',e=>{if(e.target===modal)closeWeather();});
+  $('wxHourlyTab').addEventListener('click',()=>showTab('hourly'));
+  $('wxDailyTab').addEventListener('click',()=>showTab('daily'));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closeWeather();});
 })();
 </script>
 
