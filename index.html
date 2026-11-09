@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -3416,6 +3413,7 @@ const WX_FALLBACK=window.__wxFallback;
 try{
 const C=h=>new THREE.Color(h);
 const W={
+ cloudy:{e:'☁️',bg:'#aab6bf',bg2:'#70808a',grass:'#68a447',leaf:'#4a8f3a',cloud:'#d5d9df',sunC:'#e8eef5',sun:.9,amb:.8,stars:0,win:.4,sunVis:0,moonVis:0,rain:0,snow:0,storm:0},
  sunny:{e:'☀️',bg:'#c7ecff',bg2:'#7fbf8a',grass:'#7fc24a',leaf:'#58a83c',cloud:'#ffffff',sunC:'#fff0cf',sun:1.9,amb:.75,stars:0,win:0,sunVis:1,moonVis:0,rain:0,snow:0,storm:0},
  rain:{e:'🌧️',bg:'#93b186',bg2:'#5f7f62',grass:'#6fb244',leaf:'#4a9a3a',cloud:'#f6f2f8',sunC:'#fff2dc',sun:1.3,amb:.8,stars:0,win:.8,sunVis:0,moonVis:0,rain:14,snow:0,storm:0},
  storm:{e:'⛈️',bg:'#56627a',bg2:'#2a3345',grass:'#4f8140',leaf:'#38732f',cloud:'#838a9e',sunC:'#aab8d8',sun:.45,amb:.5,stars:0,win:1,sunVis:0,moonVis:0,rain:30,snow:0,storm:1},
@@ -3425,7 +3423,7 @@ const W={
 const CK=['bg','bg2','grass','leaf','cloud','sunC'],NK=['sun','amb','stars','win','sunVis','moonVis','storm'];
 Object.values(W).forEach(c=>CK.forEach(k=>c[k+'C']=C(c[k])));
 const cur={};CK.forEach(k=>cur[k]=W.rain[k+'C'].clone());NK.forEach(k=>cur[k]=W.rain[k]);
-let T=W.rain,curK='rain',temp='';
+let T=W.rain,curK='rain',temp='',windT=0,windV=0,isDay=true,nm=0;
 
 const box=document.getElementById('aminoWx');
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
@@ -3471,13 +3469,13 @@ for(let i=0;i<N;i++){const x=(Math.random()-.5)*8,z=(Math.random()-.5)*8,h=hf(x,
  const v=.78+Math.random()*.4+h*.25;col.setRGB(v*.93,v,v*.8);blades.setColorAt(i,col)}
 blades.receiveShadow=true;world.add(blades);
 
-function tree(x,z,s,pine,li){const g=new THREE.Group();g.position.set(x,hf(x,z),z);g.scale.setScalar(s);
+const treeG=[];function tree(x,z,s,pine,li){const g=new THREE.Group();g.position.set(x,hf(x,z),z);g.scale.setScalar(s);
  const lm=leafMats[li%3].m;
  const add=(geo,mat,y,sx,sy)=>{const m=new THREE.Mesh(geo,mat);m.position.y=y;if(sx)m.scale.set(sx,sy,sx);m.castShadow=true;g.add(m)};
  add(new THREE.CylinderGeometry(.035,.05,.4,8),trunkMat,.2);
  if(pine){add(new THREE.ConeGeometry(.3,.45,12),lm,.5);add(new THREE.ConeGeometry(.24,.4,12),lm,.8);add(new THREE.ConeGeometry(.16,.34,12),lm,1.05)}
  else add(new THREE.SphereGeometry(.26,14,12),lm,.68,.95,1.35);
- world.add(g)}
+ world.add(g);treeG.push(g)}
 [[-2.7,-.3,1.1,0,0],[-2.1,-1,.9,0,1],[-2.5,-1.6,.7,0,2],[-3,.5,.65,0,1],[2.5,-1.4,1.1,1,0],[3,-.4,.85,0,2],[2.1,-.7,.65,0,1],
  [-1.2,2.4,.7,0,2],[2.2,2.4,.6,1,0],[0,-2.6,.8,0,1]].forEach(a=>tree(a[0],a[1],a[2],a[3],a[4]));
 
@@ -3550,44 +3548,56 @@ const snp=Array.from({length:120},(_,i)=>[(Math.random()-.5)*6,Math.random()*3.4
 
 // ===== API: setWeather('sunny'|'rain'|'storm'|'snow'|'night') =====
 const tag=document.getElementById('aminoWxTag'),fl=document.getElementById('aminoWxFl');
-function setWeather(k){if(!W[k])return;curK=k;T=W[k];rainM.count=T.rain;snowM.count=T.snow;tag.textContent=T.e+(temp?' '+temp:'')}
+function setWeather(k){if(!W[k])return;curK=k;T=W[k];rainM.count=T.rain;snowM.count=T.snow;tag.textContent=T.e+(windT>.5?'💨':'')+(temp?' '+temp:'')}
 window.aminoSetWeather=setWeather;
-setWeather('sunny');
+setWeather('cloudy');
 
 // ===== đồng bộ thời tiết thật (Open-Meteo, không cần API key) =====
-function fromCode(c,day){if(c>=95)return'storm';if((c>=71&&c<=77)||c===85||c===86)return'snow';
+function fromCodeOld(c,day){if(c>=95)return'storm';if((c>=71&&c<=77)||c===85||c===86)return'snow';
  if((c>=51&&c<=67)||(c>=80&&c<=82))return'rain';return day?'sunny':'night'}
+function applyReal(c){
+ const code=c.weather_code,pr=(c.precipitation||0)+(c.rain||0)+(c.showers||0),cc=c.cloud_cover||0,ws=c.wind_speed_10m||0,gu=c.wind_gusts_10m||0,day=!!c.is_day;
+ isDay=day;windT=Math.min(1,Math.max(ws,gu*.6)/40);
+ let k;
+ if(code>=95||(pr>0&&gu>=55))k='storm';
+ else if((code>=71&&code<=77)||code===85||code===86)k='snow';
+ else if(pr>0||(code>=51&&code<=67)||(code>=80&&code<=82))k='rain';
+ else if(code===3||code===45||code===48||cc>=70)k='cloudy';
+ else k=day?'sunny':'night';
+ setWeather(k)}
 async function sync(){
  try{
   let lat=WX_FALLBACK.lat,lon=WX_FALLBACK.lon;
   try{const p=await new Promise((ok,no)=>navigator.geolocation.getCurrentPosition(ok,no,{timeout:4000}));lat=p.coords.latitude;lon=p.coords.longitude}catch(e){}
-  const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`);
+  const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day,precipitation,rain,showers,cloud_cover,wind_speed_10m,wind_gusts_10m`);
   const c=(await res.json()).current;temp=Math.round(c.temperature_2m)+'°C';
-  setWeather(fromCode(c.weather_code,c.is_day));
+  applyReal(c);
  }catch(e){console.warn('Không lấy được thời tiết',e)}}
-sync();setInterval(sync,600000);
+sync();setInterval(sync,600000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
 
 const clock=new THREE.Clock();let time=0,flash=0;
 function tick(){
- const dt=Math.min(clock.getDelta(),.05);time+=dt;
+ const dt=Math.min(clock.getDelta(),.05);time+=dt;windV+=(windT-windV)*.03;nm+=(((!isDay&&curK!=='night')?1:0)-nm)*.05;
  CK.forEach(k=>cur[k].lerp(T[k+'C'],.05));NK.forEach(k=>cur[k]+=(T[k]-cur[k])*.05);
  if(T.storm&&Math.random()<.006)flash=1;flash*=.9;fl.style.opacity=flash*.45;
- box.style.background=`radial-gradient(ellipse at 50% 38%,${cur.bg.getStyle()},${cur.bg2.getStyle()})`;
+ box.style.background=`radial-gradient(ellipse at 50% 38%,${cur.bg.clone().multiplyScalar(1-.6*nm).getStyle()},${cur.bg2.clone().multiplyScalar(1-.6*nm).getStyle()})`;
  grassMat.color.copy(cur.grass);bladeMat.color.copy(cur.grass);slabMat.color.copy(cur.grass).multiplyScalar(.82);
  leafMats.forEach(l=>l.m.color.copy(cur.leaf).offsetHSL(l.o[0],l.o[1],l.o[2]));cloudMat.color.copy(cur.cloud);
- sunL.color.copy(cur.sunC);sunL.intensity=cur.sun+flash;hemi.intensity=cur.amb+flash*.8;
- win.emissiveIntensity=cur.win*1.3;hl.intensity=cur.win*1.1;
+ sunL.color.copy(cur.sunC);sunL.intensity=cur.sun*(1-.6*nm)+flash;hemi.intensity=cur.amb*(1-.45*nm)+flash*.8;
+ win.emissiveIntensity=Math.max(cur.win,nm)*1.3;hl.intensity=Math.max(cur.win,nm)*1.1;
  sunM.visible=cur.sunVis>.03;sunM.scale.setScalar(cur.sunVis+.001);moonM.visible=cur.moonVis>.03;moonM.scale.setScalar(cur.moonVis*.55+.001);
  starSp.forEach(s=>s.material.opacity=cur.stars);lines.visible=false;
  rbV+=((curK==='sunny'?1:0)-rbV)*.05;rb.visible=rbV>.02;rb.children.forEach(m=>m.material.opacity=.6*rbV);
  world.position.y=GY+Math.sin(time*1.1)*.07;
  cloud.position.y=4.05+Math.sin(time*1.5)*.12+Math.sin(time*1.1)*.07;
+ cloud.position.x=Math.sin(time*.9)*(.05+windV*.45);cloud.rotation.z=-windV*.1+Math.sin(time*2)*windV*.03;
+ treeG.forEach((g,i)=>{g.rotation.z=Math.sin(time*(1.5+windV*3)+i*1.3)*(.015+windV*.09);g.rotation.x=Math.cos(time*1.3+i)*(.01+windV*.05)});
  mouth.rotation.z=Math.PI*(1-cur.storm);
  bolt.visible=T.storm&&flash>.25;
- for(let i=0;i<T.rain;i++){const p=rp[i];p[1]-=(T.storm?7:3.2)*dt;if(p[1]<hf(p[0],p[2])+GY+.1){p[1]=3;p[0]=(Math.random()-.5)*4.4;p[2]=(Math.random()-.5)*4.4}
-  d.position.set(p[0],p[1],p[2]);d.rotation.set(0,0,0);d.scale.set(.2,.3,.2);d.updateMatrix();rainM.setMatrixAt(i,d.matrix)}
+ for(let i=0;i<T.rain;i++){const p=rp[i];p[1]-=(T.storm?7:3.2)*dt;p[0]+=windV*dt*(T.storm?6:4);if(p[0]>2.8)p[0]-=5.6;if(p[1]<hf(p[0],p[2])+GY+.1){p[1]=3;p[0]=(Math.random()-.5)*4.4;p[2]=(Math.random()-.5)*4.4}
+  d.position.set(p[0],p[1],p[2]);d.rotation.set(0,0,windV*.9);d.scale.set(.2,.3,.2);d.updateMatrix();rainM.setMatrixAt(i,d.matrix)}
  rainM.instanceMatrix.needsUpdate=true;
- for(let i=0;i<T.snow;i++){const p=snp[i];p[1]-=.7*dt;if(p[1]<hf(p[0],p[2])+GY+.05)p[1]=3.4;
+ for(let i=0;i<T.snow;i++){const p=snp[i];p[1]-=.7*dt;p[0]+=windV*dt*2.5;if(p[0]>3.2)p[0]-=6.4;if(p[1]<hf(p[0],p[2])+GY+.05)p[1]=3.4;
   d.position.set(p[0]+Math.sin(time*1.2+p[3])*.2,p[1],p[2]+Math.cos(time+p[3])*.15);d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();snowM.setMatrixAt(i,d.matrix)}
  snowM.instanceMatrix.needsUpdate=true;
  if(box.clientWidth>0&&!document.hidden)renderer.render(scene,cam);requestAnimationFrame(tick)}
@@ -3609,5 +3619,4 @@ resize();tick();
 </script>
 
 </body>
-</html> 
-14
+</html>
