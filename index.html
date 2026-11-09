@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -160,8 +161,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #diaryDelete{background:#b42318;font-size:12px;padding:9px 12px;margin-top:10px}
 #diaryGate{max-width:430px;margin:35px auto;padding:20px;border:1px solid #e7def7;border-radius:14px;background:#faf8ff;text-align:center}
 #diaryGate h3{color:#6750a4}
-#diaryPassword{width:100%;margin:10px 0}
-#diaryPasswordError{color:#b42318;font-size:13px;min-height:18px}
+#diaryAccessStatus{color:#6750a4;font-size:13px;line-height:1.6;min-height:22px}
 #diaryContent{margin-top:10px}
 
 /* LỊCH SỬ XEM NẰM CUỐI TRANG VÀ CÓ THANH CUỘN RIÊNG */
@@ -479,11 +479,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   <div id="diaryGate">
     <h3>🔒 Nhật ký Amino</h3>
-    <p>Nhập mật khẩu để mở trang nhật ký nhé.</p>
-    <p><strong>Gợi ý: Ngày của tôi </strong></p>
-    <input id="diaryPassword" type="password" inputmode="numeric" placeholder="Mật khẩu nhật ký">
-    <button id="diaryUnlock" type="button" style="width:100%">Mở nhật ký 💜</button>
-    <p id="diaryPasswordError" aria-live="polite"></p>
+    <p id="diaryAccessStatus" aria-live="polite">Đang kiểm tra quyền truy cập...</p>
   </div>
 
   <div id="diaryContent" hidden>
@@ -989,6 +985,9 @@ let activeDiaryVisitDate=null;
 let activeDiaryDisconnect=null;
 let diaryViewsUnsubscribe=null;
 let diaryPageUnlocked=false;
+let diaryAccessAllowed=false;
+let diaryAccessUnsubscribe=null;
+let diaryIndexUnsubscribe=null;
 let diaryViewsData={};
 
 function diaryLocalKey(date){
@@ -1557,22 +1556,57 @@ async function changeDiaryMonth(amount){
   $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
 }
 
-async function unlockDiary(){
-  if($("diaryPassword").value!=="1406"){
-    $("diaryPasswordError").textContent="Mật khẩu nhật ký không đúng!";
-    $("diaryPassword").value="";
-    return;
-  }
+async function activateDiaryAccess(){
+  if(!user||!db||!diaryAccessAllowed)return;
   diaryPageUnlocked=true;
   $("diaryGate").hidden=true;
   $("diaryContent").hidden=false;
-  $("diaryPasswordError").textContent="";
-  $("diaryPassword").value="";
+  $("diaryAccessStatus").textContent="";
+  if(!diaryIndexUnsubscribe){
+    // Chỉ người có UID nằm trong diaryAccess mới được tải danh sách nhật ký.
+    diaryIndexUnsubscribe=onValue(ref(db,"diaryIndex"),snapshot=>{
+      publicDiaryData=snapshot.val()||{};
+      syncDiaryAminoToasts(publicDiaryData);
+      diaryDataLoaded=true;
+      refreshDiaryView();
+    },error=>{
+      $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
+    });
+    // Chỉ chuyển dữ liệu nhật ký cũ sau khi đã được cấp quyền.
+    migrateOwnDiaryImages().catch(error=>console.warn("Không thể đồng bộ nhật ký cũ:",error));
+  }
   diaryDraftImages=await loadDiaryImages(user.uid,diarySelectedDate);
   renderDiaryImagePreview();
   refreshDiaryView();
   watchDiaryViews(diarySelectedDate);
-  startDiaryVisit(diarySelectedDate);
+  if(!activeDiaryVisitRef)startDiaryVisit(diarySelectedDate);
+}
+
+function watchDiaryAccess(){
+  if(!user||!db||diaryAccessUnsubscribe)return;
+  // Người dùng chỉ đọc được cờ cấp quyền của chính UID mình.
+  diaryAccessUnsubscribe=onValue(ref(db,`diaryAccess/${user.uid}`),snapshot=>{
+    const allowed=snapshot.val()===true;
+    diaryAccessAllowed=allowed;
+    if(allowed){
+      if(!$('diaryPage').hidden)activateDiaryAccess();
+    }else{
+      diaryPageUnlocked=false;
+      if(diaryIndexUnsubscribe){diaryIndexUnsubscribe();diaryIndexUnsubscribe=null;}
+      publicDiaryData={};
+      diaryDataLoaded=false;
+      closeDiaryVisit();
+      if(!$('diaryPage').hidden){
+        $('diaryGate').hidden=false;
+        $('diaryContent').hidden=true;
+        $('diaryAccessStatus').textContent='UID của tài khoản này chưa được cấp quyền xem nhật ký.';
+      }
+    }
+  },error=>{
+    diaryAccessAllowed=false;
+    diaryPageUnlocked=false;
+    $('diaryAccessStatus').textContent='Không kiểm tra được quyền truy cập: '+error.message;
+  });
 }
 
 async function getAllDiaryPhotos(onlyOwn=false){
@@ -1931,22 +1965,14 @@ function startDiary(){
     $("chat").hidden=true;
     $("photoPage").hidden=true;
     $("diaryPage").hidden=false;
-    $("diaryGate").hidden=diaryPageUnlocked;
-    $("diaryContent").hidden=!diaryPageUnlocked;
-    if(diaryPageUnlocked){
-      diaryDraftImages=await loadDiaryImages(user.uid,diarySelectedDate);
-      renderDiaryImagePreview();
-      refreshDiaryView();
-      if(!activeDiaryVisitRef)startDiaryVisit(diarySelectedDate);
+    $("diaryGate").hidden=diaryAccessAllowed;
+    $("diaryContent").hidden=!diaryAccessAllowed;
+    if(diaryAccessAllowed){
+      await activateDiaryAccess();
     }else{
-      $("diaryPassword").focus();
+      $("diaryAccessStatus").textContent="UID của tài khoản này chưa được cấp quyền xem nhật ký.";
     }
     window.scrollTo({top:0,behavior:"auto"});
-  });
-
-  $("diaryUnlock").addEventListener("click",unlockDiary);
-  $("diaryPassword").addEventListener("keydown",event=>{
-    if(event.key==="Enter")unlockDiary();
   });
 
   $("diaryBack").addEventListener("click",async()=>{
@@ -2019,23 +2045,8 @@ function startDiary(){
     refreshDiaryView();
   });
 
-  // Không tải toàn bộ diary/{uid} khi khởi động vì nhánh cũ có thể chứa Base64 rất lớn.
-  // Dữ liệu cũ sẽ được đọc/chuyển riêng từng ngày khi người dùng mở ngày đó.
-  // Chỉ subscribe metadata nhẹ; tuyệt đối không nghe nhánh chứa Base64.
-  onValue(ref(db,"diaryIndex"),snapshot=>{
-    // diaryIndex là danh sách nhật ký công khai của TẤT CẢ thành viên.
-    // Mỗi tài khoản chỉ được ghi dữ liệu của chính mình; mọi tài khoản đăng nhập đều được đọc.
-    publicDiaryData=snapshot.val()||{};
-    syncDiaryAminoToasts(publicDiaryData);
-    diaryDataLoaded=true;
-    refreshDiaryView();
-  },error=>{
-    $("diarySaveStatus").textContent="Không tải được nhật ký: "+error.message;
-  });
-
-  // Chuyển metadata nhật ký cũ của chính tài khoản này sang diaryIndex ở chế độ nền.
-  // Không chặn thao tác chat; ảnh vẫn được lưu riêng trong diaryImages.
-  migrateOwnDiaryImages().catch(error=>console.warn("Không thể đồng bộ nhật ký cũ:",error));
+  // Theo dõi quyền đọc nhật ký của UID hiện tại. Không tải diaryIndex khi chưa được cấp quyền.
+  watchDiaryAccess();
 
   window.addEventListener("pagehide",()=>{
     if(activeDiaryVisitRef){
