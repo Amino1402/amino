@@ -360,7 +360,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @keyframes earWalk{0%,100%{transform:rotate(-13deg)}50%{transform:rotate(13deg)}}
 @keyframes legWalk{0%,100%{transform:rotate(-18deg) translateY(0)}50%{transform:rotate(18deg) translateY(-2px)}}
 @keyframes flipperFloat{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}
-@keyframes petWalk3D{0%,100%{transform:translateY(1px) rotateZ(-4deg) rotateY(-8deg) scaleX(.98)}50%{transform:translateY(-5px) rotateZ(4deg) rotateY(8deg) scaleX(1.02)}}
+@keyframes petWalk3D{0%,100%{transform:translateY(1px) rotateZ(-4deg) rotateY(-8deg) scaleX(.98)}50%{transform:translateY(-1px) rotateZ(4deg) rotateY(8deg) scaleX(1.02)}}
 @keyframes petJump3D{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-24px) scale(1.04,1.08) rotateZ(-5deg)}65%{transform:translateY(-27px) scale(.98,1.03) rotateZ(5deg)}100%{transform:translateY(0) scale(1)}}
 @keyframes petHappy3D{0%,100%{transform:rotateZ(0) scale(1)}25%{transform:rotateZ(-10deg) scale(1.08)}50%{transform:rotateZ(10deg) scale(1.1)}75%{transform:rotateZ(-5deg) scale(1.04)}}
 @keyframes petSleep3D{0%,100%{transform:translateY(3px) rotateZ(4deg) scale(1,.97)}50%{transform:translateY(5px) rotateZ(6deg) scale(1,.94)}}
@@ -435,6 +435,51 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:600px){.amino-snowflake{font-size:calc(var(--snow-size) * .82)}#aminoWinterToggle{right:10px;top:10px;width:38px;height:38px;font-size:19px}}
 @media(prefers-reduced-motion:reduce){.amino-snowflake{animation-duration:36s!important}}
 
+
+/* ===== Widget thời tiết 3D (đồng bộ thời tiết thật) ===== */
+#diaryToolbar{align-items:center}
+#aminoWx{--wx:76px;position:relative;flex:0 0 auto;width:var(--wx);height:var(--wx);border-radius:20px;overflow:hidden;border:2px solid #fff;box-shadow:0 4px 14px #0003;background:#93b186;margin-right:4px;transform:translateY(-5px)}
+#aminoWx canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#aminoWxFl{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+#aminoWxTag{position:absolute;left:4px;bottom:4px;font:700 10px Arial,sans-serif;color:#fff;background:rgba(20,30,40,.45);padding:2px 6px;border-radius:999px;white-space:nowrap}
+@media(max-width:600px){
+  #aminoWx{--wx:68px}
+}
+
+
+/* ===== BẢNG DỰ BÁO THỜI TIẾT AMINO ===== */
+#aminoWx{cursor:pointer}
+#aminoWx:focus-visible{outline:3px solid #f5c84c;outline-offset:3px}
+#aminoWeatherModal{position:fixed;inset:0;z-index:12000;background:rgba(12,18,35,.68);display:flex;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(7px)}
+#aminoWeatherModal[hidden],#wxLoading[hidden],#wxError[hidden],#wxHourlySection[hidden],#wxDailySection[hidden]{display:none!important}
+#aminoWeatherCard{width:min(540px,100%);max-height:94dvh;overflow-y:auto;border-radius:22px;background:#f5f7fc;color:#202b40;box-shadow:0 15px 50px #0005;overscroll-behavior:contain}
+.wx-top{position:relative;padding:22px 18px;color:#fff;background:linear-gradient(145deg,#243b63,#526d9e);border-radius:22px 22px 0 0}
+#wxClose{position:absolute;right:14px;top:14px;width:36px;height:36px;border:0;border-radius:50%;padding:0;background:#ffffff28;color:#fff;font-size:24px;cursor:pointer}
+.wx-location{font-size:13px;color:#dce7fa;padding-right:42px}
+.wx-current{display:flex;align-items:center;justify-content:space-between;margin:16px 0}
+#wxTemperature{font-size:58px;font-weight:300;line-height:1.1}
+#wxDescription{font-size:15px;margin-top:5px}
+.wx-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.wx-stat{background:#ffffff20;padding:10px 7px;border-radius:11px;text-align:center;font-size:12px}
+.wx-stat strong{display:block;margin-top:5px;font-size:14px}
+.wx-tabs{display:flex;gap:8px;padding:14px 14px 8px}
+.wx-tabs button{flex:1;border:0;background:#e8eaf3;color:#59647b;border-radius:12px;padding:11px;font-weight:700;cursor:pointer}
+.wx-tabs button.active{background:#6750a4;color:#fff}
+.wx-section{padding:8px 14px 18px}
+#wxHourly{display:flex;gap:9px;overflow-x:auto;padding:7px 0 13px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.wx-hour{flex:0 0 82px;padding:12px 5px;border-radius:13px;background:#fff;text-align:center;border:1px solid #e7e9f1}
+.wx-hour .icon{font-size:27px;margin:9px 0}
+.wx-hour strong{font-size:16px}
+.wx-hour small{display:block;color:#758098;font-size:11px;margin-top:5px;white-space:nowrap}
+.wx-day{display:grid;grid-template-columns:minmax(0,1fr) 38px minmax(90px,auto);align-items:center;gap:8px;padding:12px 9px;background:#fff;border-bottom:1px solid #edf0f5;border-radius:9px;margin-bottom:6px}
+.wx-day .icon{text-align:center;font-size:24px}
+.wx-day-temp{text-align:right;font-weight:700;font-size:13px;white-space:nowrap}
+.wx-day small{display:block;color:#8590a3;font-size:11px;margin-top:4px}
+#wxLoading{text-align:center;padding:28px 10px;color:#6750a4}
+#wxError{padding:14px;margin:8px 14px;color:#a12622;background:#fff0ef;border-radius:12px;font-size:13px}
+#wxUpdated{text-align:center;color:#8992a5;font-size:11px;padding:10px 12px 15px}
+@media(max-width:600px){#aminoWeatherCard{max-height:94dvh}.wx-top{padding:20px 15px}#wxTemperature{font-size:52px}}
+
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -455,6 +500,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <section id="chat" hidden>
   <p id="welcome"></p>
   <div id="diaryToolbar">
+    <div id="aminoWx" aria-label="Mở dự báo thời tiết" role="button" tabindex="0" title="Xem dự báo thời tiết 7 ngày và 24 giờ"><div id="aminoWxFl"></div><div id="aminoWxTag">…</div></div>
     <button id="diaryToggle" type="button" aria-label="Mở trang nhật ký" title="Nhật ký công khai">📅</button>
     <button id="photoToggle" type="button" aria-label="Chụp ảnh lưu vào nhật ký" title="Chụp ảnh">📸</button>
     <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">🗺️</button>
@@ -495,6 +541,42 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
   </div>
 </section>
+
+
+
+<!-- Bảng dự báo thời tiết: mở khi chạm widget thời tiết 3D -->
+<div id="aminoWeatherModal" hidden>
+  <div id="aminoWeatherCard" role="dialog" aria-modal="true" aria-labelledby="wxDialogTitle">
+    <div class="wx-top">
+      <button id="wxClose" type="button" aria-label="Đóng dự báo">×</button>
+      <div class="wx-location" id="wxDialogTitle">📍 <span id="wxLocation">Vị trí hiện tại</span></div>
+      <div class="wx-current">
+        <div><div id="wxTemperature">--°C</div><div id="wxDescription">Đang tải thời tiết...</div></div>
+        <div id="wxMainIcon" style="font-size:65px" aria-hidden="true">🌤️</div>
+      </div>
+      <div class="wx-stats">
+        <div class="wx-stat">🌡️ Cảm giác<strong id="wxFeels">--</strong></div>
+        <div class="wx-stat">💧 Độ ẩm<strong id="wxHumidity">--</strong></div>
+        <div class="wx-stat">💨 Gió<strong id="wxWind">--</strong></div>
+      </div>
+    </div>
+    <div class="wx-tabs">
+      <button id="wxHourlyTab" class="active" type="button" aria-pressed="true">🕒 Theo giờ</button>
+      <button id="wxDailyTab" type="button" aria-pressed="false">📅 7 ngày</button>
+    </div>
+    <div id="wxLoading">⛅ Đang tải dự báo...</div>
+    <div id="wxError" hidden role="alert"></div>
+    <div id="wxHourlySection" class="wx-section">
+      <strong>🌤️ Dự báo 24 giờ tới</strong>
+      <div id="wxHourly"></div>
+    </div>
+    <div id="wxDailySection" class="wx-section" hidden>
+      <strong>📅 Dự báo 7 ngày tới</strong>
+      <div id="wxDaily"></div>
+    </div>
+    <div id="wxUpdated"></div>
+  </div>
+</div>
 
 <section id="diaryPage" hidden>
   <button id="diaryBack" type="button">← Quay lại phòng chat</button>
@@ -2927,7 +3009,7 @@ function setupMapControls(){
 /* ================= EVENT NUOI PET 20/10 ================= */
 const PET_TARGET=1403, PET_HUNGER_MS=1*60*1000, PET_ONLINE_REWARD_MS=10*60*1000, PET_DIALOGUE_MS=1*30*1000;
 const PET_TYPES=[{emoji:'🐱',name:'Chikawa'},{emoji:'🐰',name:'Usagi'},{emoji:'🐶',name:'Mập'},{emoji:'🐹',name:'Hamster'},{emoji:'🦭',name:'Luna'}];
-const PET_LINES=['Cậu ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Có cậu chăm sóc, tớ vui lắm!','Cho tớ ở cạnh cậu thêm chút nha','Cậu đang làm gì đó? Kể tớ nghe với!','Hôm nay mình cùng cố gắng nhé! ✨','Tớ thích được ở bên Cậu lắm 💞','Cậu có nhớ tớ không nè?'];
+const PET_LINES=['Cậu ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Lạnh rồi cậu nhớ mặc ấm nhé,đi chơi về sớm 1 chut🥺','Cho tớ ở cạnh cậu thêm chút nha','Cậu đang làm gì đó? Kể tớ nghe với!','Hôm nay mình cùng cố gắng nhé! ✨','Tớ thích được ở bên Cậu lắm 💞','Cậu có nhớ tớ không nè?'];
 let petData=null,petTimer=null,petMoveTimer=null,petDialogueTimer=null,petRewardShown=false;
 function petRef(){return ref(db,`pets/${user.uid}`)}
 
@@ -3078,7 +3160,7 @@ window.addEventListener('resize',()=>{
 function petSpeak(customLine){
   if($('petStage').hidden)return;
   const bubble=$('petBubble');
-  bubble.textContent=customLine||(petIsHungry()?'Cậu ơi, tớ đói bụng mất rồi 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
+  bubble.textContent=customLine||(petIsHungry()?'Cậu ơi, tớ đói bụng mất rồi,lạnh nữa! 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
   bubble.hidden=false;
   clearTimeout(petSpeak.hideTimer);
   petSpeak.hideTimer=setTimeout(()=>{bubble.hidden=true;},10000);
@@ -3400,5 +3482,380 @@ $("musicForm").addEventListener("submit",async event=>{
 })();
 </script>
 
+<script type="text/plain" id="aminoWxCode">
+const WX_FALLBACK=window.__wxFallback;
+try{
+const C=h=>new THREE.Color(h);
+const W={
+ cloudy:{e:'☁️',bg:'#aab6bf',bg2:'#70808a',grass:'#68a447',leaf:'#4a8f3a',cloud:'#d5d9df',sunC:'#e8eef5',sun:.9,amb:.8,stars:0,win:.4,sunVis:0,moonVis:0,rain:0,snow:0,storm:0},
+ sunny:{e:'☀️',bg:'#c7ecff',bg2:'#7fbf8a',grass:'#7fc24a',leaf:'#58a83c',cloud:'#ffffff',sunC:'#fff0cf',sun:1.9,amb:.75,stars:0,win:0,sunVis:1,moonVis:0,rain:0,snow:0,storm:0},
+ rain:{e:'🌧️',bg:'#93b186',bg2:'#5f7f62',grass:'#6fb244',leaf:'#4a9a3a',cloud:'#f6f2f8',sunC:'#fff2dc',sun:1.3,amb:.8,stars:0,win:.8,sunVis:0,moonVis:0,rain:14,snow:0,storm:0},
+ storm:{e:'⛈️',bg:'#56627a',bg2:'#2a3345',grass:'#4f8140',leaf:'#38732f',cloud:'#838a9e',sunC:'#aab8d8',sun:.45,amb:.5,stars:0,win:1,sunVis:0,moonVis:0,rain:30,snow:0,storm:1},
+ snow:{e:'❄️',bg:'#e9f1f8',bg2:'#a9bed2',grass:'#eef4f8',leaf:'#d2e4d8',cloud:'#ffffff',sunC:'#ffffff',sun:1.1,amb:1,stars:0,win:.8,sunVis:0,moonVis:0,rain:0,snow:120,storm:0},
+ night:{e:'🌙',bg:'#2d3d6b',bg2:'#0c1028',grass:'#3a6b48',leaf:'#2b5c3d',cloud:'#aab4d6',sunC:'#8aa0e0',sun:.7,amb:.4,stars:1,win:1,sunVis:0,moonVis:1,rain:0,snow:0,storm:0}
+};
+const CK=['bg','bg2','grass','leaf','cloud','sunC'],NK=['sun','amb','stars','win','sunVis','moonVis','storm'];
+Object.values(W).forEach(c=>CK.forEach(k=>c[k+'C']=C(c[k])));
+const cur={};CK.forEach(k=>cur[k]=W.rain[k+'C'].clone());NK.forEach(k=>cur[k]=W.rain[k]);
+let T=W.rain,curK='rain',temp='',windT=0,windV=0,isDay=true,nm=0;
+
+const box=document.getElementById('aminoWx');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0,0);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+box.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const cam=new THREE.OrthographicCamera(-6.4,6.4,6.4,-6.4,-60,120);
+cam.position.set(14,14,14);cam.lookAt(0,0,0);scene.add(cam);
+function resize(){const s=box.clientWidth;if(s>0)renderer.setSize(s,s,false)}
+if(window.ResizeObserver)new ResizeObserver(resize).observe(box);
+addEventListener('resize',resize);resize();
+
+const hemi=new THREE.HemisphereLight(0xffffff,0x4a6b3a,.8);scene.add(hemi);
+const sunL=new THREE.DirectionalLight(0xffffff,1);sunL.position.set(-4,10,6);sunL.castShadow=true;
+sunL.shadow.mapSize.set(512,512);Object.assign(sunL.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:1,far:30});sunL.shadow.bias=-.0008;
+scene.add(sunL);
+
+const M=o=>new THREE.MeshStandardMaterial(o);
+const grassMat=M({roughness:1}),slabMat=M({roughness:.85}),bladeMat=M({roughness:1}),
+ cloudMat=M({roughness:.9,emissive:0x333344,emissiveIntensity:.35}),trunkMat=M({color:0x8a5a3a,roughness:1});
+const leafMats=[[0,0,0],[.03,.02,.07],[-.02,0,-.05]].map(o=>({m:M({roughness:.85}),o}));
+const world=new THREE.Group();scene.add(world);const GY=-1;
+
+const w=4,r=1.3,sh=new THREE.Shape();
+sh.moveTo(-w+r,-w);sh.lineTo(w-r,-w);sh.quadraticCurveTo(w,-w,w,-w+r);sh.lineTo(w,w-r);sh.quadraticCurveTo(w,w,w-r,w);
+sh.lineTo(-w+r,w);sh.quadraticCurveTo(-w,w,-w,w-r);sh.lineTo(-w,-w+r);sh.quadraticCurveTo(-w,-w,-w+r,-w);
+const slabG=new THREE.ExtrudeGeometry(sh,{depth:.8,bevelEnabled:true,bevelSize:.3,bevelThickness:.3,bevelSegments:6,curveSegments:12});
+slabG.rotateX(-Math.PI/2);
+const slab=new THREE.Mesh(slabG,slabMat);slab.position.y=-1.1;slab.receiveShadow=true;world.add(slab);
+
+function hf(x,z){const e=Math.max(0,1-Math.max(Math.abs(x),Math.abs(z))/4.1),f=Math.min(1,e*3.5);
+ return f*(.5*Math.sin(x*.7+.5)*Math.cos(z*.6)+.28*Math.cos(x*.35-z*.45)+.3)}
+const hg=new THREE.PlaneGeometry(8.4,8.4,48,48);hg.rotateX(-Math.PI/2);
+const hp=hg.attributes.position;for(let i=0;i<hp.count;i++)hp.setY(i,hf(hp.getX(i),hp.getZ(i))+.005);
+hg.computeVertexNormals();
+const hill=new THREE.Mesh(hg,grassMat);hill.receiveShadow=true;world.add(hill);
+
+const N=6000,blades=new THREE.InstancedMesh(new THREE.ConeGeometry(.06,.3,3,1),bladeMat,N),d=new THREE.Object3D(),col=new THREE.Color();
+for(let i=0;i<N;i++){const x=(Math.random()-.5)*8,z=(Math.random()-.5)*8,h=hf(x,z);
+ d.position.set(x,h+.1,z);d.rotation.set((Math.random()-.5)*.6,Math.random()*6.28,(Math.random()-.5)*.6);
+ d.scale.set(1,.6+Math.random()*.9,1);d.updateMatrix();blades.setMatrixAt(i,d.matrix);
+ const v=.78+Math.random()*.4+h*.25;col.setRGB(v*.93,v,v*.8);blades.setColorAt(i,col)}
+blades.receiveShadow=true;world.add(blades);
+
+const treeG=[];function tree(x,z,s,pine,li){const g=new THREE.Group();g.position.set(x,hf(x,z),z);g.scale.setScalar(s);
+ const lm=leafMats[li%3].m;
+ const add=(geo,mat,y,sx,sy)=>{const m=new THREE.Mesh(geo,mat);m.position.y=y;if(sx)m.scale.set(sx,sy,sx);m.castShadow=true;g.add(m)};
+ add(new THREE.CylinderGeometry(.035,.05,.4,8),trunkMat,.2);
+ if(pine){add(new THREE.ConeGeometry(.3,.45,12),lm,.5);add(new THREE.ConeGeometry(.24,.4,12),lm,.8);add(new THREE.ConeGeometry(.16,.34,12),lm,1.05)}
+ else add(new THREE.SphereGeometry(.26,14,12),lm,.68,.95,1.35);
+ world.add(g);treeG.push(g)}
+[[-2.7,-.3,1.1,0,0],[-2.1,-1,.9,0,1],[-2.5,-1.6,.7,0,2],[-3,.5,.65,0,1],[2.5,-1.4,1.1,1,0],[3,-.4,.85,0,2],[2.1,-.7,.65,0,1],
+ [-1.2,2.4,.7,0,2],[2.2,2.4,.6,1,0],[0,-2.6,.8,0,1]].forEach(a=>tree(a[0],a[1],a[2],a[3],a[4]));
+
+const win=M({color:0x6b4b2e,emissive:0xffc457,emissiveIntensity:0});
+const hs=new THREE.Group();hs.position.set(.7,hf(.7,1.1),1.1);hs.rotation.y=.2;hs.scale.setScalar(.85);world.add(hs);
+const hm=(geo,mat,x,y,z,ry)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);if(ry)m.rotation.y=ry;m.castShadow=true;hs.add(m);return m};
+hm(new THREE.BoxGeometry(1,.7,.8),M({color:0xd8a06a,roughness:.8}),0,.35,0);
+const roofG=new THREE.ConeGeometry(.85,.55,4);roofG.rotateY(Math.PI/4);const roof=hm(roofG,M({color:0x9a5a38,roughness:.8}),0,.97,0);roof.scale.z=.9;
+hm(new THREE.BoxGeometry(.15,.35,.15),M({color:0xa86d3f}),.3,1.05,-.1);
+[[-.25,.42,.41],[.25,.42,.41]].forEach(p=>hm(new THREE.PlaneGeometry(.22,.24),win,...p));
+hm(new THREE.PlaneGeometry(.22,.24),win,.51,.42,.1,Math.PI/2);
+const hl=new THREE.PointLight(0xffb347,0,4);hl.position.set(0,.6,.9);hs.add(hl);
+
+const CS=[[0,0,0,1.0],[-1.15,-.2,0,.75],[1.15,-.15,0,.8],[-.55,.7,-.1,.65],[.55,.75,-.1,.7],[0,-.4,.05,.8]];
+function sdf(x,y,z){let d=1e9;for(const s of CS){const e=Math.hypot(x-s[0],y-s[1],z-s[2])-s[3],h=Math.max(.4-Math.abs(d-e),0)/.4;d=Math.min(d,e)-h*h*.1}return d}
+function surf(dx,dy,dz){const l=Math.hypot(dx,dy,dz);dx/=l;dy/=l;dz/=l;let lo=0,hi=4;for(let i=0;i<20;i++){const m=(lo+hi)/2;sdf(dx*m,dy*m,dz*m)<0?lo=m:hi=m}return lo}
+const cg=new THREE.SphereGeometry(1,72,48),cp=cg.attributes.position;
+for(let i=0;i<cp.count;i++){const x=cp.getX(i),y=cp.getY(i),z=cp.getZ(i),s=surf(x,y,z);cp.setXYZ(i,x*s,y*s,z*s)}
+cg.computeVertexNormals();
+const cloud=new THREE.Group();cloud.rotation.order='YXZ';cloud.rotation.set(-.3,Math.PI/4,0);scene.add(cloud);
+const cm=new THREE.Mesh(cg,cloudMat);cm.scale.y=.85;cm.castShadow=true;cloud.add(cm);
+const P=(x,y,z,o)=>{const s=surf(x,y,z)-o,l=Math.hypot(x,y,z);return [x/l*s,y/l*s*.85,z/l*s]};
+const dark=new THREE.MeshBasicMaterial({color:0x3a2a2a}),pink=new THREE.MeshBasicMaterial({color:0xff9aa2,transparent:true,opacity:.5});
+[-1,1].forEach(sx=>{const e=new THREE.Mesh(new THREE.SphereGeometry(.08,12,10),dark);e.position.set(...P(sx*.3,.12,1,.02));cloud.add(e);
+ const c=new THREE.Mesh(new THREE.SphereGeometry(.14,12,10),pink);c.position.set(...P(sx*.62,-.12,.9,.04));c.scale.z=.35;cloud.add(c)});
+const mouth=new THREE.Mesh(new THREE.TorusGeometry(.15,.035,8,16,Math.PI),dark);mouth.position.set(...P(0,-.1,1,.0));cloud.add(mouth);
+const bs=new THREE.Shape();bs.moveTo(.1,0);bs.lineTo(-.18,-.4);bs.lineTo(-.04,-.4);bs.lineTo(-.14,-.85);bs.lineTo(.2,-.3);bs.lineTo(.05,-.3);bs.lineTo(.18,0);
+const bolt=new THREE.Mesh(new THREE.ExtrudeGeometry(bs,{depth:.05,bevelEnabled:false}),new THREE.MeshBasicMaterial({color:0xffe45c}));
+bolt.position.set(.1,-.7,.55);cloud.add(bolt);
+cloud.scale.setScalar(1.3);
+
+const sky=new THREE.Group();cam.add(sky);
+const sunM=new THREE.Mesh(new THREE.SphereGeometry(.8,20,14),new THREE.MeshBasicMaterial({color:0xffd34d}));
+sunM.add(new THREE.Mesh(new THREE.SphereGeometry(1.25,20,14),new THREE.MeshBasicMaterial({color:0xffe9a0,transparent:true,opacity:.3})));
+const cs=new THREE.Shape();cs.absarc(0,0,1,1.0129,2*Math.PI-1.0129,false);cs.absarc(.5,0,.85,4.7448,1.5384,true);
+const moonM=new THREE.Mesh(new THREE.ShapeGeometry(cs,40),new THREE.MeshBasicMaterial({color:0xfff6d6}));moonM.rotation.z=.4;
+moonM.add(new THREE.Mesh(new THREE.CircleGeometry(1.6,32),new THREE.MeshBasicMaterial({color:0xfff6d6,transparent:true,opacity:.14,depthWrite:false})));
+sunM.position.set(4.3,4.5,-40);moonM.position.set(4.2,4.7,-40);sky.add(sunM,moonM);
+// Song Ngư (0-8) và Bảo Bình (9-16)
+const CON={pts:[[-2.8,3.23],[-2.98,3.0],[-3.25,3.06],[-3.22,3.49],[-3.0,3.59],[-3.56,3.64],[-4.47,3.72],[-4.71,3.76],[-5.22,3.55],[-5.42,3.48],[-5.64,3.22],[-5.8,3.17],[-5.49,3.91],[-5.35,4.24],[-5.24,4.61],[-5.15,5.06],[5.8,2.12],[5.47,2.12],[4.91,2.63],[4.21,3.31],[3.89,3.18],[3.75,3.36],[3.82,3.54],[3.61,3.35],[3.55,2.81],[3.26,2.37],[2.81,2.57],[3.22,1.3]],
+ ed:[[0,1],[1,2],[2,3],[3,4],[4,0],[3,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,12],[12,13],[13,14],[14,15],[16,17],[17,18],[18,19],[19,20],[20,21],[21,22],[21,23],[22,23],[23,24],[24,25],[25,27],[25,26]]};
+const sp=[];CON.pts.forEach(p=>sp.push(p[0],p[1],-50));
+const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
+const stars=new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:2.5,sizeAttenuation:false,transparent:true,opacity:0}));stars.visible=false;
+const stc=document.createElement('canvas');stc.width=stc.height=64;const stx=stc.getContext('2d');
+const sgr=stx.createRadialGradient(32,32,0,32,32,32);sgr.addColorStop(0,'rgba(255,255,255,1)');sgr.addColorStop(.12,'rgba(255,248,220,.9)');sgr.addColorStop(.35,'rgba(200,215,255,.28)');sgr.addColorStop(1,'rgba(200,215,255,0)');
+stx.fillStyle=sgr;stx.fillRect(0,0,64,64);
+[[32,0,32,64],[0,32,64,32]].forEach(l=>{const lg=stx.createLinearGradient(l[0],l[1],l[2],l[3]);lg.addColorStop(0,'rgba(255,255,255,0)');lg.addColorStop(.5,'rgba(255,255,255,.95)');lg.addColorStop(1,'rgba(255,255,255,0)');stx.strokeStyle=lg;stx.lineWidth=1.5;stx.beginPath();stx.moveTo(l[0],l[1]);stx.lineTo(l[2],l[3]);stx.stroke()});
+stx.clearRect(0,0,64,64);stx.fillStyle='#fff';stx.beginPath();stx.arc(32,32,14,0,6.283);stx.fill();const stTex=new THREE.CanvasTexture(stc);
+const starSp=CON.pts.map((p,i)=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:stTex,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));s.position.set(p[0],p[1],-50);s.scale.setScalar(.7+(i%3)*.15);sky.add(s);return s});
+const lp=[];CON.ed.forEach(e=>{const a=CON.pts[e[0]],b=CON.pts[e[1]];lp.push(a[0],a[1],-50,b[0],b[1],-50)});
+const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));
+const lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0}));sky.add(lines);
+// cầu vồng (chỉ hiện khi trời nắng)
+const rb=new THREE.Group();rb.position.set(-.8,-2.2,-45);sky.add(rb);
+['#ff5a5a','#ff9d4a','#ffe45c','#6fd36f','#5ab8ff','#6a7bff','#b06aff'].forEach((c,i)=>rb.add(new THREE.Mesh(new THREE.TorusGeometry(5.2-i*.2,.11,6,64,Math.PI),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0,depthWrite:false}))));
+let rbV=0;
+
+const cv=document.createElement('canvas');cv.width=cv.height=128;const cx=cv.getContext('2d'),gr=cx.createRadialGradient(64,64,0,64,64,64);
+gr.addColorStop(0,'rgba(0,0,0,.35)');gr.addColorStop(1,'rgba(0,0,0,0)');cx.fillStyle=gr;cx.fillRect(0,0,128,128);
+const blob=new THREE.Mesh(new THREE.PlaneGeometry(12,12),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));
+blob.rotation.x=-Math.PI/2;blob.position.y=-4.4;scene.add(blob);
+
+const pts=[];for(let i=0;i<=24;i++){const a=i/24*Math.PI;pts.push(new THREE.Vector2(Math.max(0,Math.sin(a)*Math.sin(a/2)*.6),Math.cos(a)))}
+const rainM=new THREE.InstancedMesh(new THREE.LatheGeometry(pts,10),new THREE.MeshStandardMaterial({color:0xa9d4f5,transparent:true,opacity:.8,roughness:.1}),40);
+const snowM=new THREE.InstancedMesh(new THREE.SphereGeometry(.09,6,6),new THREE.MeshBasicMaterial({color:0xffffff}),120);
+scene.add(rainM,snowM);
+const rp=Array.from({length:40},()=>[(Math.random()-.5)*4.4,Math.random()*2.6+.4,(Math.random()-.5)*4.4]);
+const snp=Array.from({length:120},(_,i)=>[(Math.random()-.5)*6,Math.random()*3.4,(Math.random()-.5)*6,i]);
+
+// ===== API: setWeather('sunny'|'rain'|'storm'|'snow'|'night') =====
+const tag=document.getElementById('aminoWxTag'),fl=document.getElementById('aminoWxFl');
+function setWeather(k){if(!W[k])return;curK=k;T=W[k];rainM.count=T.rain;snowM.count=T.snow;tag.textContent=T.e+(windT>.5?'💨':'')+(temp?' '+temp:'')}
+window.aminoSetWeather=setWeather;
+setWeather('cloudy');
+
+// ===== đồng bộ thời tiết thật (Open-Meteo, không cần API key) =====
+function fromCodeOld(c,day){if(c>=95)return'storm';if((c>=71&&c<=77)||c===85||c===86)return'snow';
+ if((c>=51&&c<=67)||(c>=80&&c<=82))return'rain';return day?'sunny':'night'}
+function applyReal(c){
+ const code=c.weather_code,pr=(c.precipitation||0)+(c.rain||0)+(c.showers||0),cc=c.cloud_cover||0,ws=c.wind_speed_10m||0,gu=c.wind_gusts_10m||0,day=!!c.is_day;
+ isDay=day;windT=Math.min(1,Math.max(ws,gu*.6)/40);
+ let k;
+ if(code>=95||(pr>0&&gu>=55))k='storm';
+ else if((code>=71&&code<=77)||code===85||code===86)k='snow';
+ else if(pr>0||(code>=51&&code<=67)||(code>=80&&code<=82))k='rain';
+ else if(code===3||code===45||code===48||cc>=70)k='cloudy';
+ else k=day?'sunny':'night';
+ setWeather(k)}
+async function sync(){
+ try{
+  let lat=WX_FALLBACK.lat,lon=WX_FALLBACK.lon;
+  try{const p=await new Promise((ok,no)=>navigator.geolocation.getCurrentPosition(ok,no,{timeout:4000}));lat=p.coords.latitude;lon=p.coords.longitude}catch(e){}
+  const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day,precipitation,rain,showers,cloud_cover,wind_speed_10m,wind_gusts_10m`);
+  const c=(await res.json()).current;temp=Math.round(c.temperature_2m)+'°C';
+  applyReal(c);
+ }catch(e){console.warn('Không lấy được thời tiết',e)}}
+sync();setInterval(sync,600000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
+
+const clock=new THREE.Clock();let time=0,flash=0;
+function tick(){
+ const dt=Math.min(clock.getDelta(),.05);time+=dt;windV+=(windT-windV)*.03;nm+=(((!isDay&&curK!=='night')?1:0)-nm)*.05;
+ CK.forEach(k=>cur[k].lerp(T[k+'C'],.05));NK.forEach(k=>cur[k]+=(T[k]-cur[k])*.05);
+ if(T.storm&&Math.random()<.006)flash=1;flash*=.9;fl.style.opacity=flash*.45;
+ box.style.background=`radial-gradient(ellipse at 50% 38%,${cur.bg.clone().multiplyScalar(1-.6*nm).getStyle()},${cur.bg2.clone().multiplyScalar(1-.6*nm).getStyle()})`;
+ grassMat.color.copy(cur.grass);bladeMat.color.copy(cur.grass);slabMat.color.copy(cur.grass).multiplyScalar(.82);
+ leafMats.forEach(l=>l.m.color.copy(cur.leaf).offsetHSL(l.o[0],l.o[1],l.o[2]));cloudMat.color.copy(cur.cloud);
+ sunL.color.copy(cur.sunC);sunL.intensity=cur.sun*(1-.6*nm)+flash;hemi.intensity=cur.amb*(1-.45*nm)+flash*.8;
+ win.emissiveIntensity=Math.max(cur.win,nm)*1.3;hl.intensity=Math.max(cur.win,nm)*1.1;
+ sunM.visible=cur.sunVis>.03;sunM.scale.setScalar(cur.sunVis+.001);moonM.visible=cur.moonVis>.03;moonM.scale.setScalar(cur.moonVis*.55+.001);
+ starSp.forEach(s=>s.material.opacity=cur.stars);lines.visible=false;
+ rbV+=((curK==='sunny'?1:0)-rbV)*.05;rb.visible=rbV>.02;rb.children.forEach(m=>m.material.opacity=.6*rbV);
+ world.position.y=GY+Math.sin(time*1.1)*.07;
+ cloud.position.y=4.05+Math.sin(time*1.5)*.12+Math.sin(time*1.1)*.07;
+ cloud.position.x=Math.sin(time*.9)*(.05+windV*.45);cloud.rotation.z=-windV*.1+Math.sin(time*2)*windV*.03;
+ treeG.forEach((g,i)=>{g.rotation.z=Math.sin(time*(1.5+windV*3)+i*1.3)*(.015+windV*.09);g.rotation.x=Math.cos(time*1.3+i)*(.01+windV*.05)});
+ mouth.rotation.z=Math.PI*(1-cur.storm);
+ bolt.visible=T.storm&&flash>.25;
+ for(let i=0;i<T.rain;i++){const p=rp[i];p[1]-=(T.storm?7:3.2)*dt;p[0]+=windV*dt*(T.storm?6:4);if(p[0]>2.8)p[0]-=5.6;if(p[1]<hf(p[0],p[2])+GY+.1){p[1]=3;p[0]=(Math.random()-.5)*4.4;p[2]=(Math.random()-.5)*4.4}
+  d.position.set(p[0],p[1],p[2]);d.rotation.set(0,0,windV*.9);d.scale.set(.2,.3,.2);d.updateMatrix();rainM.setMatrixAt(i,d.matrix)}
+ rainM.instanceMatrix.needsUpdate=true;
+ for(let i=0;i<T.snow;i++){const p=snp[i];p[1]-=.7*dt;p[0]+=windV*dt*2.5;if(p[0]>3.2)p[0]-=6.4;if(p[1]<hf(p[0],p[2])+GY+.05)p[1]=3.4;
+  d.position.set(p[0]+Math.sin(time*1.2+p[3])*.2,p[1],p[2]+Math.cos(time+p[3])*.15);d.rotation.set(0,0,0);d.scale.set(1,1,1);d.updateMatrix();snowM.setMatrixAt(i,d.matrix)}
+ snowM.instanceMatrix.needsUpdate=true;
+ if(box.clientWidth>0&&!document.hidden)renderer.render(scene,cam);requestAnimationFrame(tick)}
+resize();tick();
+}catch(e){box.style.display='none';console.error('Widget thời tiết lỗi',e)}
+</script>
+
+<!-- Widget thời tiết 3D: nạp three.js rồi dựng cảnh; độc lập với các chức năng hiện có -->
+<script>
+(()=>{
+  const WX_FALLBACK={lat:20.54,lon:105.91}; // dùng khi không lấy được GPS; đổi tọa độ ở đây nếu cần
+  window.__wxFallback=WX_FALLBACK;
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+  s.onload=()=>{const o=document.createElement('script');o.textContent=document.getElementById('aminoWxCode').textContent;document.body.appendChild(o)};
+  s.onerror=()=>{const b=document.getElementById('aminoWx');if(b)b.style.display='none'};
+  document.body.appendChild(s);
+})();
+</script>
+
+
+
+<script>
+/* ===== AMINO WEATHER FORECAST: 24 GIỜ + 7 NGÀY ===== */
+(()=>{
+  const $=id=>document.getElementById(id);
+  const modal=$('aminoWeatherModal');
+  const tile=$('aminoWx');
+  if(!modal||!tile)return;
+
+  let loadedAt=0,loading=false,previousBodyOverflow='';
+  const FALLBACK=window.__wxFallback||{lat:20.54,lon:105.91};
+
+  function weatherInfo(code,isDay=true){
+    if(code===0)return {icon:isDay?'☀️':'🌙',text:'Trời quang'};
+    if(code===1)return {icon:isDay?'🌤️':'🌙',text:'Ít mây'};
+    if(code===2)return {icon:'⛅',text:'Có mây'};
+    if(code===3)return {icon:'☁️',text:'Nhiều mây'};
+    if(code===45||code===48)return {icon:'🌫️',text:'Sương mù'};
+    if(code>=51&&code<=57)return {icon:'🌦️',text:'Mưa phùn'};
+    if(code>=61&&code<=67)return {icon:'🌧️',text:'Mưa'};
+    if(code>=71&&code<=77)return {icon:'❄️',text:'Tuyết'};
+    if(code>=80&&code<=82)return {icon:'🌧️',text:'Mưa rào'};
+    if(code===85||code===86)return {icon:'🌨️',text:'Mưa tuyết'};
+    if(code>=95)return {icon:'⛈️',text:'Dông sét'};
+    return {icon:'🌤️',text:'Thời tiết thay đổi'};
+  }
+
+  function hourLabel(value){
+    return new Date(value).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  }
+  function dayLabel(value,index){
+    if(index===0)return 'Hôm nay';
+    if(index===1)return 'Ngày mai';
+    return new Date(value+'T12:00:00').toLocaleDateString('vi-VN',{weekday:'long'});
+  }
+  function make(tag,className,text){
+    const el=document.createElement(tag);
+    if(className)el.className=className;
+    if(text!==undefined)el.textContent=text;
+    return el;
+  }
+
+  async function getPosition(){
+    if(!navigator.geolocation)return FALLBACK;
+    try{
+      const p=await new Promise((resolve,reject)=>{
+        navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:6000,maximumAge:600000,enableHighAccuracy:false});
+      });
+      return {lat:p.coords.latitude,lon:p.coords.longitude};
+    }catch(e){return FALLBACK;}
+  }
+
+  async function loadWeather(force=false){
+    if(loading)return;
+    if(!force&&loadedAt&&Date.now()-loadedAt<10*60*1000)return;
+    loading=true;
+    $('wxLoading').hidden=false;
+    $('wxError').hidden=true;
+    try{
+      const pos=await getPosition();
+      const params=new URLSearchParams({
+        latitude:String(pos.lat),longitude:String(pos.lon),timezone:'auto',forecast_days:'7',
+        current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day',
+        hourly:'temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,wind_speed_10m,weather_code,is_day',
+        daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset'
+      });
+      const response=await fetch('https://api.open-meteo.com/v1/forecast?'+params.toString());
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const data=await response.json();
+      if(!data.current||!data.hourly||!data.daily)throw new Error('Dữ liệu thời tiết không đầy đủ');
+      renderCurrent(data.current);
+      renderHourly(data.hourly);
+      renderDaily(data.daily);
+      $('wxLocation').textContent='Thời tiết tại vị trí của bạn';
+      $('wxUpdated').textContent='Cập nhật lúc '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+      loadedAt=Date.now();
+      $('wxLoading').hidden=true;
+    }catch(error){
+      console.error('Amino Weather forecast:',error);
+      $('wxError').textContent='Không tải được dự báo thời tiết. Kiểm tra Internet rồi chạm mở lại để thử lần nữa.';
+      $('wxError').hidden=false;
+      $('wxLoading').hidden=true;
+    }finally{loading=false;}
+  }
+
+  function renderCurrent(c){
+    const w=weatherInfo(c.weather_code,Number(c.is_day)===1);
+    $('wxTemperature').textContent=Math.round(c.temperature_2m)+'°C';
+    $('wxDescription').textContent=w.text;
+    $('wxMainIcon').textContent=w.icon;
+    $('wxFeels').textContent=Math.round(c.apparent_temperature)+'°C';
+    $('wxHumidity').textContent=c.relative_humidity_2m+'%';
+    $('wxWind').textContent=Math.round(c.wind_speed_10m)+' km/h';
+  }
+
+  function renderHourly(h){
+    const container=$('wxHourly');
+    container.replaceChildren();
+    const now=Date.now();
+    let start=h.time.findIndex(t=>new Date(t).getTime()>=now-30*60*1000);
+    if(start<0)start=0;
+    const end=Math.min(start+24,h.time.length);
+    for(let i=start;i<end;i++){
+      const w=weatherInfo(h.weather_code[i],h.is_day?Number(h.is_day[i])===1:true);
+      const card=make('div','wx-hour');
+      card.append(make('div','',i===start?'Hiện tại':hourLabel(h.time[i])));
+      card.append(make('div','icon',w.icon));
+      card.append(make('strong','',Math.round(h.temperature_2m[i])+'°C'));
+      card.append(make('small','', '🌧 '+(h.precipitation_probability[i]??0)+'%'));
+      card.append(make('small','', '💧 '+(h.relative_humidity_2m[i]??'--')+'%'));
+      card.append(make('small','', '💨 '+Math.round(h.wind_speed_10m[i])+' km/h'));
+      container.append(card);
+    }
+  }
+
+  function renderDaily(d){
+    const container=$('wxDaily');
+    container.replaceChildren();
+    for(let i=0;i<Math.min(7,d.time.length);i++){
+      const w=weatherInfo(d.weather_code[i],true);
+      const card=make('div','wx-day');
+      const name=make('div','',dayLabel(d.time[i],i));
+      name.append(make('small','', '🌧 Xác suất mưa: '+(d.precipitation_probability_max[i]??0)+'%'));
+      const icon=make('div','icon',w.icon);
+      const temps=make('div','wx-day-temp',Math.round(d.temperature_2m_max[i])+'° / '+Math.round(d.temperature_2m_min[i])+'°');
+      card.append(name,icon,temps);
+      container.append(card);
+    }
+  }
+
+  function showTab(tab){
+    const hourly=tab==='hourly';
+    $('wxHourlySection').hidden=!hourly;
+    $('wxDailySection').hidden=hourly;
+    $('wxHourlyTab').classList.toggle('active',hourly);
+    $('wxDailyTab').classList.toggle('active',!hourly);
+    $('wxHourlyTab').setAttribute('aria-pressed',String(hourly));
+    $('wxDailyTab').setAttribute('aria-pressed',String(!hourly));
+  }
+  function openWeather(){
+    previousBodyOverflow=document.body.style.overflow;
+    modal.hidden=false;
+    document.body.style.overflow='hidden';
+    showTab('hourly');
+    loadWeather();
+  }
+  function closeWeather(){
+    modal.hidden=true;
+    document.body.style.overflow=previousBodyOverflow;
+  }
+
+  tile.addEventListener('click',openWeather);
+  tile.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();openWeather();}
+  });
+  $('wxClose').addEventListener('click',closeWeather);
+  modal.addEventListener('click',e=>{if(e.target===modal)closeWeather();});
+  $('wxHourlyTab').addEventListener('click',()=>showTab('hourly'));
+  $('wxDailyTab').addEventListener('click',()=>showTab('daily'));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closeWeather();});
+})();
+</script>
+
 </body>
 </html>
+14
