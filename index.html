@@ -1068,6 +1068,10 @@ html[data-theme="rabbit"] .ai-bot{background:#ffe3ef;color:#6b2a4d}
 .ai-typing{opacity:.6;font-style:italic}
 #aiForm{display:flex;gap:8px}
 #aiInput{flex:1;width:100%}
+#aiAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}
+#aiImgPreview{position:relative;display:inline-block;margin-bottom:8px}
+#aiImgPreview img{height:70px;border-radius:8px;display:block}
+#aiImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;line-height:22px}
 #aiClear{margin-top:10px;background:#64748b;font-size:12px;padding:9px 12px}
 </style>
 </head>
@@ -1299,8 +1303,11 @@ html[data-theme="rabbit"] .ai-bot{background:#ffe3ef;color:#6b2a4d}
   <div id="aiMessages" aria-live="polite">
     <div class="ai-msg ai-bot">Chào cậu! Tớ là AI của Amino, cậu muốn hỏi gì nào? 💗</div>
   </div>
+  <div id="aiImgPreview" hidden></div>
   <form id="aiForm">
-    <input id="aiInput" maxlength="800" placeholder="Nhắn gì đó cho AI..." autocomplete="off" required>
+    <button id="aiAttach" type="button" title="Gửi ảnh" aria-label="Gửi ảnh">📎</button>
+    <input id="aiFile" type="file" accept="image/*" hidden>
+    <input id="aiInput" maxlength="800" placeholder="Nhắn gì đó cho AI... (có thể dán ảnh)" autocomplete="off">
     <button id="aiSend" type="submit">Gửi</button>
   </form>
   <button id="aiClear" type="button">🗑️ Xóa cuộc trò chuyện</button>
@@ -4468,7 +4475,12 @@ resize();tick();
 (()=>{
   const GPT_URL="https://autumn-mud-f851.nguyenvandinh-dhcn-2k3.workers.dev";
   const $=id=>document.getElementById(id);
-  let history=[],busy=false,lastSent=0;
+  let history=[],busy=false,lastSent=0,pendingImg=null;
+  function renderPreview(){const p=$("aiImgPreview");p.replaceChildren();if(!pendingImg){p.hidden=true;return;}p.hidden=false;const i=document.createElement("img");i.src=pendingImg;const x=document.createElement("button");x.type="button";x.textContent="×";x.onclick=()=>{pendingImg=null;renderPreview();};p.append(i,x);}
+  function loadImg(file){if(!file||!file.type.startsWith("image/"))return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,768/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext("2d").drawImage(im,0,0,c.width,c.height);pendingImg=c.toDataURL("image/jpeg",.8);renderPreview();};im.src=r.result;};r.readAsDataURL(file);}
+  $("aiAttach").addEventListener("click",()=>$("aiFile").click());
+  $("aiFile").addEventListener("change",e=>{loadImg(e.target.files[0]);e.target.value="";});
+  $("aiInput").addEventListener("paste",e=>{const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/"));if(f){e.preventDefault();loadImg(f);}});
   function addMsg(text,cls){
     const el=document.createElement("div");
     el.className="ai-msg "+cls;
@@ -4496,19 +4508,23 @@ resize();tick();
   $("aiForm").addEventListener("submit",async e=>{
     e.preventDefault();
     const text=$("aiInput").value.trim();
-    if(!text||busy)return;
+    const img=pendingImg;if((!text&&!img)||busy)return;
     if(Date.now()-lastSent<3000){addMsg("Từ từ thôi cậu, đợi vài giây nhé 😅","ai-bot");return;}
     lastSent=Date.now();busy=true;
     $("aiSend").disabled=true;
     $("aiInput").value="";
-    addMsg(text,"ai-user");
-    history.push({role:"user",content:text});
+    addMsg((img?"🖼️ ":"")+(text||"(ảnh)"),"ai-user");
+    const qtext=text||"Hãy mô tả ảnh này.";
+    history.push({role:"user",content:(img?"[Người dùng gửi kèm 1 ảnh] ":"")+qtext});
+    pendingImg=null;renderPreview();
+    const msgs=history.slice(-12).map(m=>({...m}));
+    if(img)msgs[msgs.length-1]={role:"user",content:[{type:"text",text:qtext},{type:"image_url",image_url:{url:img}}]};
     const typing=addMsg("Đang nghĩ...","ai-bot ai-typing");
     try{
       const res=await fetch(GPT_URL,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({messages:history.slice(-12)})
+        body:JSON.stringify({messages:msgs})
       });
       if(!res.ok)throw new Error("HTTP "+res.status);
       const data=await res.json();
