@@ -550,6 +550,9 @@ body:has(#chat:not([hidden])) main{margin-top:20px}
 .rb-anchor .rb-peek{top:-62px;left:16px;margin-left:0}
 .rb-anchor .rb-paws{position:absolute;top:4px;left:16px;width:99px;height:18px;pointer-events:none}
 @media(min-width:700px){.rb-anchor .rb-peek,.rb-anchor .rb-paws{left:50%;margin-left:-49px}}
+/* ===== PET ĐÓI: LÀM MỜ TOÀN BỘ MÀN HÌNH (pet vẫn nét) ===== */
+#petStage.pet-hungry{contain:none;overflow:visible}
+#petStage.pet-hungry #petDim{position:fixed;inset:0;width:auto;height:auto;background:rgba(60,15,45,.22);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
