@@ -530,6 +530,32 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 .wx-hour small,.wx-day small{color:#b0708f}
 #wxUpdated{color:#c08aa6}
 
+
+/* ===== THỎ ÔM KHUNG CHAT ===== */
+#chat::before,#chat::after{display:none}
+#chat{margin-top:78px}
+.rb-hug{position:absolute;left:0;right:0;top:-58px;height:80px;pointer-events:none;z-index:40;--lx:0;--ly:0}
+.rb-hug>*{pointer-events:auto}
+.rb-hug-head{position:absolute;left:50%;top:0;width:78px;height:68px;margin-left:-39px;z-index:3;cursor:pointer;animation:rbBob 3.2s ease-in-out infinite;transform-origin:50% 100%}
+.rb-arm{position:absolute;top:52px;height:19px;width:calc(50% - 22px);background:#fff;border:2.5px solid #f06ca9;border-radius:999px;z-index:2;transform-origin:50% 50%;cursor:pointer}
+.rb-arm-l{left:6px}.rb-arm-r{right:6px}
+.rb-paw{position:absolute;top:47px;width:27px;height:27px;border-radius:50%;background:radial-gradient(circle at 50% 62%,#ff9cc6 0 24%,transparent 26%),#fff;border:2.5px solid #f06ca9;z-index:4;cursor:pointer}
+.rb-paw-l{left:-8px}.rb-paw-r{right:-8px}
+.rb-pupil{transform:translate(calc(var(--lx)*3px),calc(var(--ly)*3px));transition:transform .08s linear}
+.rb-hug:hover .rb-hug-head{animation:rbHappy .6s ease-in-out infinite}
+.rb-hug.squeeze .rb-arm{animation:rbSqueeze .55s ease-in-out}
+.rb-hug.squeeze .rb-paw{animation:rbSqueezePaw .55s ease-in-out}
+.rb-hug.squeeze .rb-hug-head{animation:rbHeadSq .55s ease-in-out}
+.rb-hug:focus-visible{outline:3px solid #ff6fa8;outline-offset:4px;border-radius:16px}
+.rb-heart{position:absolute;left:50%;top:6px;z-index:5;font-size:18px;pointer-events:none;animation:rbFloat 1.3s ease-out forwards}
+@keyframes rbBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px) rotate(-1.5deg)}}
+@keyframes rbHappy{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(-2px)}}
+@keyframes rbSqueeze{0%,100%{transform:scaleY(1)}40%{transform:scaleY(.72) translateY(2px)}}
+@keyframes rbSqueezePaw{0%,100%{transform:scale(1)}40%{transform:scale(.85) translateY(2px)}}
+@keyframes rbHeadSq{0%,100%{transform:translateY(0)}40%{transform:translateY(5px) scaleY(.94)}}
+@keyframes rbFloat{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-90px) scale(1)}}
+@media(prefers-reduced-motion:reduce){.rb-hug-head,.rb-hug:hover .rb-hug-head{animation:none}}
+@media(max-width:520px){.rb-hug{top:-54px}.rb-hug-head{width:68px;height:59px;margin-left:-34px}.rb-arm{top:46px;width:calc(50% - 20px)}.rb-paw{top:41px}}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -549,6 +575,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 </section>
 
 <section id="chat" hidden>
+<div class="rb-hug" role="button" tabindex="0" aria-label="Thỏ ôm khung chat, chạm để nhận tim"><span class="rb-arm rb-arm-l"></span><span class="rb-arm rb-arm-r"></span><span class="rb-paw rb-paw-l"></span><span class="rb-paw rb-paw-r"></span><svg class='rb-hug-head' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'><g class='rb-ear-l' transform='rotate(-9 40 32)'><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g class='rb-ear-r' transform='rotate(9 80 32)'><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g class='rb-eye'><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><g class='rb-pupil'><circle cx='47' cy='72' r='2' fill='#fff'/></g></g><g class='rb-eye'><circle cx='75' cy='74' r='5.5' fill='#5a2a45'/><g class='rb-pupil'><circle cx='77' cy='72' r='2' fill='#fff'/></g></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></svg></div>
   <p id="welcome"></p>
   <div id="diaryToolbar">
     <div id="aminoWx" aria-label="Mở dự báo thời tiết" role="button" tabindex="0" title="Xem dự báo thời tiết 7 ngày và 24 giờ"><div id="aminoWxFl"></div><div id="aminoWxTag">…</div></div>
@@ -3907,5 +3934,25 @@ resize();tick();
 })();
 </script>
 
+<script>
+(function(){
+  var hug=document.querySelector('.rb-hug'); if(!hug)return;
+  var head=hug.querySelector('.rb-hug-head'),raf=0,mx=0,my=0;
+  document.addEventListener('pointermove',function(e){mx=e.clientX;my=e.clientY;if(raf)return;raf=requestAnimationFrame(function(){raf=0;
+    var r=head.getBoundingClientRect(); if(!r.width)return;
+    var dx=mx-(r.left+r.width/2),dy=my-(r.top+r.height*.7),d=Math.hypot(dx,dy)||1,k=Math.min(1,d/160);
+    hug.style.setProperty('--lx',(dx/d*k).toFixed(2));hug.style.setProperty('--ly',(dy/d*k).toFixed(2));});},{passive:true});
+  function hit(){
+    hug.classList.remove('squeeze');void hug.offsetWidth;hug.classList.add('squeeze');
+    var icons=['💗','💖','💕','🥕'];
+    for(var i=0;i<4;i++){(function(i){setTimeout(function(){var h=document.createElement('span');h.className='rb-heart';
+      h.textContent=icons[(Math.random()*icons.length)|0];h.style.setProperty('--dx',((Math.random()-.5)*90)+'px');
+      hug.appendChild(h);setTimeout(function(){h.remove();},1400);},i*110);})(i);}
+  }
+  hug.addEventListener('click',hit);
+  hug.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();hit();}});
+  hug.addEventListener('animationend',function(e){if(e.animationName==='rbSqueeze')hug.classList.remove('squeeze');});
+})();
+</script>
 </body>
 </html>
