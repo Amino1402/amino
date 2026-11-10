@@ -537,7 +537,6 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 .rb-peek{position:absolute;z-index:-1;top:-78px;left:50%;width:99px;height:86px;margin-left:-49px;pointer-events:none}
 .rb-peek svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 100%;animation:rbPeekSway 2.8s ease-in-out infinite}
 @keyframes rbPeekSway{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-2px)}}
-@media(prefers-reduced-motion:reduce){.rb-peek svg{animation:none}}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -3919,8 +3918,5 @@ resize();tick();
 })();
 </script>
 
-<script>
-if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){document.querySelectorAll('.rb-peek svg,.rb-mascot svg').forEach(function(v){try{v.pauseAnimations()}catch(e){}});}
-</script>
 </body>
 </html>
