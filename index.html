@@ -4612,7 +4612,7 @@ resize();tick();
 
     try{
       const recent=ctx.query(ctx.ref(ctx.db,"lunaChat/messages"),
-        ctx.orderByChild("createdAt"),ctx.limitToLast(12));
+        ctx.orderByChild("createdAt"),ctx.limitToLast(1));
       const snap=await ctx.get(recent);
       const messages=[];
       snap.forEach(child=>{
@@ -4635,7 +4635,7 @@ resize();tick();
       const response=await fetch(GPT_URL,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({messages:messages.slice(-12)})
+        body:JSON.stringify({messages:messages.slice(-1)})
       });
       if(!response.ok)throw new Error("HTTP "+response.status);
       const result=await response.json();
