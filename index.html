@@ -547,7 +547,13 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 @keyframes rbEarR{0%,100%{transform:rotate(9deg)}35%{transform:rotate(2deg)}65%{transform:rotate(18deg)}85%{transform:rotate(8deg)}}
 @keyframes rbEarSqL{0%,100%{transform:rotate(-9deg)}40%{transform:rotate(-34deg)}}
 @keyframes rbEarSqR{0%,100%{transform:rotate(9deg)}40%{transform:rotate(34deg)}}
-@media(prefers-reduced-motion:reduce){.rb-ear-l,.rb-ear-r,</style>
+@media(prefers-reduced-motion:reduce){.rb-ear-l,.rb-ear-r,
+/* ===== CHỚP MẮT RÕ HƠN + THỎ ĐỘNG Ở MỌI KHUNG ===== */
+#login::before,#diaryPage::before,#mapPage::before{display:none}
+.rb-eye{animation:rbBlink2 3.8s infinite}
+@keyframes rbBlink2{0%,86%,100%{transform:scaleY(1)}88%,91%{transform:scaleY(.06)}93%{transform:scaleY(1)}95%,97%{transform:scaleY(.06)}99%{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){.rb-eye{animation:none}}
+</style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
@@ -555,6 +561,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 <main>
 
 <section id="login">
+<div class="rb-peek" aria-hidden="true"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'><g class='rb-ear-l' transform='rotate(-9 40 32)'><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g class='rb-ear-r' transform='rotate(9 80 32)'><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g class='rb-eye'><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><circle cx='47' cy='72' r='2' fill='#fff'/></g><g class='rb-eye'><circle cx='75' cy='74' r='5.5' fill='#5a2a45'/><circle cx='77' cy='72' r='2' fill='#fff'/></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></svg></div>
   <p>Nhập mật khẩu để vào Amino Chat</p>
   <input id="chatPassword" type="password" placeholder="Nhập mật khẩu">
   <p id="passwordError" aria-live="polite"></p>
@@ -648,6 +655,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 </div>
 
 <section id="diaryPage" hidden>
+<div class="rb-peek" aria-hidden="true"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'><g class='rb-ear-l' transform='rotate(-9 40 32)'><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g class='rb-ear-r' transform='rotate(9 80 32)'><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g class='rb-eye'><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><circle cx='47' cy='72' r='2' fill='#fff'/></g><g class='rb-eye'><circle cx='75' cy='74' r='5.5' fill='#5a2a45'/><circle cx='77' cy='72' r='2' fill='#fff'/></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></svg></div>
   <button id="diaryBack" type="button">← Quay lại phòng chat</button>
 
   <div id="diaryGate">
@@ -735,6 +743,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 </section>
 
 <section id="mapPage" hidden>
+<div class="rb-peek" aria-hidden="true"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'><g class='rb-ear-l' transform='rotate(-9 40 32)'><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g class='rb-ear-r' transform='rotate(9 80 32)'><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g class='rb-eye'><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><circle cx='47' cy='72' r='2' fill='#fff'/></g><g class='rb-eye'><circle cx='75' cy='74' r='5.5' fill='#5a2a45'/><circle cx='77' cy='72' r='2' fill='#fff'/></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></svg></div>
   <button id="mapBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
   <h2>🗺️ Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
