@@ -537,6 +537,10 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 .rb-peek{position:absolute;z-index:-1;top:-78px;left:50%;width:99px;height:86px;margin-left:-49px;pointer-events:none}
 .rb-peek svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 100%;animation:rbPeekSway 2.8s ease-in-out infinite}
 @keyframes rbPeekSway{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-2px)}}
+/* ===== KHI VÀO PHÒNG CHAT: NỀN NGOÀI KHUNG MÀU ĐEN ===== */
+body:has(#chat:not([hidden])){background:#000}
+body:has(#chat:not([hidden])) #chat{box-shadow:0 0 0 2px #ff9cc6,0 0 34px rgba(255,111,168,.45)}
+body:has(#chat:not([hidden])) .rb-mascot{display:none}
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
