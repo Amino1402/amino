@@ -531,41 +531,23 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 #wxUpdated{color:#c08aa6}
 
 
-/* ===== THỎ ÔM KHUNG CHAT ===== */
-#chat::before,#chat::after{display:none}
+/* ===== THỎ THÒ ĐẦU KHUNG CHAT (giống màn đăng nhập) ===== */
+#chat::before{display:none}
 #chat{margin-top:78px}
-.rb-hug{position:absolute;left:50%;top:-67px;width:112px;height:87px;margin-left:-56px;z-index:40;cursor:pointer;--lx:0;--ly:0;-webkit-tap-highlight-color:transparent}
-.rb-hug-head{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 3px 0 rgba(201,54,115,.18))}
-.rb-headg{transform-box:view-box;animation:rbBob 3.2s ease-in-out infinite}
-.rb-arms{transform-box:view-box;transform-origin:70px 84px}
-.rb-pupil{transform:translate(calc(var(--lx)*3px),calc(var(--ly)*3px));transition:transform .08s linear}
-.rb-hug:hover .rb-headg{animation:rbHappy .6s ease-in-out infinite}
-.rb-hug.squeeze .rb-arms{animation:rbSqueeze .55s ease-in-out}
-.rb-hug.squeeze .rb-headg{animation:rbHeadSq .55s ease-in-out}
-.rb-hug:focus-visible{outline:3px solid #ff6fa8;outline-offset:4px;border-radius:16px}
-.rb-heart{position:absolute;left:50%;top:6px;z-index:5;font-size:18px;pointer-events:none;animation:rbFloat 1.3s ease-out forwards}
-@keyframes rbBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@keyframes rbHappy{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) translateY(-2px)}}
-@keyframes rbSqueeze{0%,100%{transform:scaleX(1)}40%{transform:scaleX(.82)}}
-@keyframes rbHeadSq{0%,100%{transform:translateY(0)}40%{transform:translateY(5px)}}
-@keyframes rbFloat{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-90px) scale(1)}}
-@media(prefers-reduced-motion:reduce){.rb-headg,.rb-hug:hover .rb-headg{animation:none}}
-@media(max-width:520px){.rb-hug{top:-58px;width:97px;height:75px;margin-left:-48px}}
-
+.rb-peek{position:absolute;z-index:-1;top:-60px;left:50%;width:76px;height:66px;margin-left:-38px;pointer-events:none}
+.rb-peek svg{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 100%;animation:rbPeekSway 2.8s ease-in-out infinite}
+@keyframes rbPeekSway{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){.rb-peek svg{animation:none}}
+@media(prefers-reduced-motion:reduce){.rb-ear-l,.rb-ear-r{animation:none}}
 /* ===== TAI THỎ CỬ ĐỘNG ===== */
 .rb-ear-l,.rb-ear-r{transform-box:fill-box;transform-origin:50% 100%}
 .rb-ear-l{animation:rbEarL 2.6s ease-in-out infinite}
 .rb-ear-r{animation:rbEarR 3.1s ease-in-out infinite}
-.rb-hug:hover .rb-ear-l{animation:rbEarL .38s ease-in-out infinite}
-.rb-hug:hover .rb-ear-r{animation:rbEarR .38s ease-in-out infinite}
-.rb-hug.squeeze .rb-ear-l{animation:rbEarSqL .55s ease-in-out}
-.rb-hug.squeeze .rb-ear-r{animation:rbEarSqR .55s ease-in-out}
 @keyframes rbEarL{0%,100%{transform:rotate(-9deg)}30%{transform:rotate(-17deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(-12deg)}}
 @keyframes rbEarR{0%,100%{transform:rotate(9deg)}35%{transform:rotate(2deg)}65%{transform:rotate(18deg)}85%{transform:rotate(8deg)}}
 @keyframes rbEarSqL{0%,100%{transform:rotate(-9deg)}40%{transform:rotate(-34deg)}}
 @keyframes rbEarSqR{0%,100%{transform:rotate(9deg)}40%{transform:rotate(34deg)}}
-@media(prefers-reduced-motion:reduce){.rb-ear-l,.rb-ear-r,.rb-hug:hover .rb-ear-l,.rb-hug:hover .rb-ear-r{animation:none}}
-</style>
+@media(prefers-reduced-motion:reduce){.rb-ear-l,.rb-ear-r,</style>
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
@@ -584,7 +566,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 
 </section>
 
 <section id="chat" hidden>
-<div class="rb-hug" role="button" tabindex="0" aria-label="Thỏ ôm khung chat, chạm để nhận tim"><svg class='rb-hug-head' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 108'><g class='rb-arms'><path d='M42 74 Q22 70 22 86' fill='none' stroke='#f06ca9' stroke-width='13' stroke-linecap='round'/><path d='M42 74 Q22 70 22 86' fill='none' stroke='#fff' stroke-width='8' stroke-linecap='round'/><path d='M98 74 Q118 70 118 86' fill='none' stroke='#f06ca9' stroke-width='13' stroke-linecap='round'/><path d='M98 74 Q118 70 118 86' fill='none' stroke='#fff' stroke-width='8' stroke-linecap='round'/><circle cx='22' cy='88' r='8.5' fill='#fff' stroke='#f06ca9' stroke-width='2.5'/><ellipse cx='22' cy='90' rx='3.2' ry='2.6' fill='#ff9cc6'/><circle cx='18.5' cy='85' r='1.3' fill='#ff9cc6'/><circle cx='22' cy='84' r='1.3' fill='#ff9cc6'/><circle cx='25.5' cy='85' r='1.3' fill='#ff9cc6'/><circle cx='118' cy='88' r='8.5' fill='#fff' stroke='#f06ca9' stroke-width='2.5'/><ellipse cx='118' cy='90' rx='3.2' ry='2.6' fill='#ff9cc6'/><circle cx='114.5' cy='85' r='1.3' fill='#ff9cc6'/><circle cx='118' cy='84' r='1.3' fill='#ff9cc6'/><circle cx='121.5' cy='85' r='1.3' fill='#ff9cc6'/></g><g class='rb-headg' transform='translate(19 0) scale(.85)'><g class='rb-ear-l' transform='rotate(-9 40 32)'><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g class='rb-ear-r' transform='rotate(9 80 32)'><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g class='rb-eye'><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><g class='rb-pupil'><circle cx='47' cy='72' r='2' fill='#fff'/></g></g><g class='rb-eye'><circle cx='75' cy='74' r='5.5' fill='#5a2a45'/><g class='rb-pupil'><circle cx='77' cy='72' r='2' fill='#fff'/></g></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></g></svg></div>
+<div class="rb-peek" aria-hidden="true"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'><g class='rb-ear-l' transform='rotate(-9 40 32)'><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g class='rb-ear-r' transform='rotate(9 80 32)'><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g class='rb-eye'><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><circle cx='47' cy='72' r='2' fill='#fff'/></g><g class='rb-eye'><circle cx='75' cy='74' r='5.5' fill='#5a2a45'/><circle cx='77' cy='72' r='2' fill='#fff'/></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></svg></div>
   <p id="welcome"></p>
   <div id="diaryToolbar">
     <div id="aminoWx" aria-label="Mở dự báo thời tiết" role="button" tabindex="0" title="Xem dự báo thời tiết 7 ngày và 24 giờ"><div id="aminoWxFl"></div><div id="aminoWxTag">…</div></div>
@@ -3943,25 +3925,5 @@ resize();tick();
 })();
 </script>
 
-<script>
-(function(){
-  var hug=document.querySelector('.rb-hug'); if(!hug)return;
-  var head=hug.querySelector('.rb-hug-head'),raf=0,mx=0,my=0;
-  document.addEventListener('pointermove',function(e){mx=e.clientX;my=e.clientY;if(raf)return;raf=requestAnimationFrame(function(){raf=0;
-    var r=head.getBoundingClientRect(); if(!r.width)return;
-    var dx=mx-(r.left+r.width/2),dy=my-(r.top+r.height*.7),d=Math.hypot(dx,dy)||1,k=Math.min(1,d/160);
-    hug.style.setProperty('--lx',(dx/d*k).toFixed(2));hug.style.setProperty('--ly',(dy/d*k).toFixed(2));});},{passive:true});
-  function hit(){
-    hug.classList.remove('squeeze');void hug.offsetWidth;hug.classList.add('squeeze');
-    var icons=['💗','💖','💕','🥕'];
-    for(var i=0;i<4;i++){(function(i){setTimeout(function(){var h=document.createElement('span');h.className='rb-heart';
-      h.textContent=icons[(Math.random()*icons.length)|0];h.style.setProperty('--dx',((Math.random()-.5)*90)+'px');
-      hug.appendChild(h);setTimeout(function(){h.remove();},1400);},i*110);})(i);}
-  }
-  hug.addEventListener('click',hit);
-  hug.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();hit();}});
-  hug.addEventListener('animationend',function(e){if(e.animationName==='rbSqueeze')hug.classList.remove('squeeze');});
-})();
-</script>
 </body>
 </html>
