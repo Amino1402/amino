@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1072,7 +1073,9 @@ html[data-theme="rabbit"] .ai-bot{background:#ffe3ef;color:#6b2a4d}
 #aiImgPreview{position:relative;display:inline-block;margin-bottom:8px}
 #aiImgPreview img{height:70px;border-radius:8px;display:block}
 #aiImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;line-height:22px}
-#aiClear{margin-top:10px;background:#64748b;font-size:12px;padding:9px 12px}
+#aiClear{display:none!important}
+.ai-msg-head{font-size:11px;font-weight:700;margin-bottom:5px;opacity:.82}
+.ai-msg-time{float:right;font-size:10px;font-weight:400;opacity:.75}
 </style>
 </head>
 <body>
@@ -1299,7 +1302,8 @@ html[data-theme="rabbit"] .ai-bot{background:#ffe3ef;color:#6b2a4d}
 
 <section id="aiPage" hidden>
   <button id="aiBack" type="button" aria-label="Quay lại phòng chat">←</button>
-  <h2>🤖 Trò chuyện với Luna</h2>
+  <h2>🦭 Phòng trò chuyện Luna</h2>
+  <p id="aiPublicNotice" style="font-size:12px;color:#9875a9;margin:4px 0 10px">💜 Phòng công khai · Mọi thành viên Amino đã đăng nhập đều xem được tin nhắn và ảnh tại đây.</p>
   <div id="aiMessages" aria-live="polite">
     <div class="ai-msg ai-bot">Chào cậu! Tớ là Luna của Amino, cậu muốn hỏi gì nào? 💗</div>
   </div>
@@ -3834,6 +3838,12 @@ $("enter").addEventListener("click",async()=>{
     }
     const result=await signInAnonymously(auth);
     user=result.user;
+    if(window.initLunaPublicChat){
+      window.initLunaPublicChat({
+        db,user,displayName,ref,push,set,get,query,orderByChild,
+        limitToLast,onChildAdded,runTransaction
+      });
+    }
     await setMyLocationSharingStatus(false);
     $("login").hidden=true;
     $("chat").hidden=false;
@@ -4475,23 +4485,185 @@ resize();tick();
 (()=>{
   const GPT_URL="https://autumn-mud-f851.nguyenvandinh-dhcn-2k3.workers.dev";
   const $=id=>document.getElementById(id);
-  let history=[],busy=false,lastSent=0,pendingImg=null;
-  function renderPreview(){const p=$("aiImgPreview");p.replaceChildren();if(!pendingImg){p.hidden=true;return;}p.hidden=false;const i=document.createElement("img");i.src=pendingImg;const x=document.createElement("button");x.type="button";x.textContent="×";x.onclick=()=>{pendingImg=null;renderPreview();};p.append(i,x);}
-  function loadImg(file){if(!file||!file.type.startsWith("image/"))return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,768/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext("2d").drawImage(im,0,0,c.width,c.height);pendingImg=c.toDataURL("image/jpeg",.8);renderPreview();};im.src=r.result;};r.readAsDataURL(file);}
-  $("aiAttach").addEventListener("click",()=>$("aiFile").click());
-  $("aiFile").addEventListener("change",e=>{loadImg(e.target.files[0]);e.target.value="";});
-  $("aiInput").addEventListener("paste",e=>{const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/"));if(f){e.preventDefault();loadImg(f);}});
-  function addMsg(text,cls){
-    const el=document.createElement("div");
-    el.className="ai-msg "+cls;
-    el.textContent=text;
-    $("aiMessages").append(el);
-    $("aiMessages").scrollTop=$("aiMessages").scrollHeight;
-    return el;
+  let ctx=null,roomStarted=false,busy=false,lastSent=0,pendingImg=null;
+  const rendered=new Set();
+
+  function timeLabel(value){
+    const n=Number(value);
+    if(!Number.isFinite(n))return "";
+    return new Date(n).toLocaleTimeString("vi-VN",{
+      timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit"
+    });
   }
+
+  function addMsg(data,key){
+    if(key&&rendered.has(key))return;
+    if(key)rendered.add(key);
+    const box=$("aiMessages");
+    const empty=$("aiEmpty");
+    if(empty)empty.remove();
+
+    const el=document.createElement("div");
+    el.className="ai-msg "+(data.sender==="luna"?"ai-bot":"ai-user");
+
+    const head=document.createElement("div");
+    head.className="ai-msg-head";
+    const who=document.createElement("span");
+    who.textContent=data.sender==="luna"?"🦭 Luna":(data.name||"Thành viên");
+    const time=document.createElement("span");
+    time.className="ai-msg-time";
+    time.textContent=timeLabel(data.createdAt);
+    head.append(who,time);
+    el.append(head);
+
+    if(data.text){
+      const body=document.createElement("div");
+      body.textContent=data.text;
+      el.append(body);
+    }
+    if(data.image){
+      const img=document.createElement("img");
+      img.src=data.image;
+      img.alt="Ảnh gửi trong phòng Luna";
+      img.loading="lazy";
+      img.style.cssText="display:block;max-width:100%;max-height:260px;border-radius:10px;margin-top:8px";
+      el.append(img);
+    }
+    box.append(el);
+    box.scrollTop=box.scrollHeight;
+  }
+
+  function renderPreview(){
+    const p=$("aiImgPreview");
+    p.replaceChildren();
+    if(!pendingImg){p.hidden=true;return;}
+    p.hidden=false;
+    const img=document.createElement("img");
+    img.src=pendingImg;
+    const remove=document.createElement("button");
+    remove.type="button";
+    remove.textContent="×";
+    remove.onclick=()=>{pendingImg=null;renderPreview();};
+    p.append(img,remove);
+  }
+
+  function loadImg(file){
+    if(!file||!file.type.startsWith("image/"))return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const image=new Image();
+      image.onload=()=>{
+        const scale=Math.min(1,768/Math.max(image.width,image.height));
+        const canvas=document.createElement("canvas");
+        canvas.width=Math.round(image.width*scale);
+        canvas.height=Math.round(image.height*scale);
+        canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);
+        pendingImg=canvas.toDataURL("image/jpeg",0.75);
+        renderPreview();
+      };
+      image.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  $("aiAttach").addEventListener("click",()=>$("aiFile").click());
+  $("aiFile").addEventListener("change",e=>{
+    loadImg(e.target.files[0]);e.target.value="";
+  });
+  $("aiInput").addEventListener("paste",e=>{
+    const file=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/"));
+    if(file){e.preventDefault();loadImg(file);}
+  });
+
+  function startRoom(){
+    if(roomStarted||!ctx?.user)return;
+    roomStarted=true;
+    $("aiMessages").replaceChildren();
+    const empty=document.createElement("div");
+    empty.id="aiEmpty";
+    empty.className="ai-msg ai-bot";
+    empty.textContent="Chào cậu! Tớ là Luna của Amino. Đây là phòng công khai, mọi người đều có thể cùng trò chuyện với tớ nha! 💗";
+    $("aiMessages").append(empty);
+
+    const recent=ctx.query(ctx.ref(ctx.db,"lunaChat/messages"),
+      ctx.orderByChild("createdAt"),ctx.limitToLast(100));
+    ctx.onChildAdded(recent,snapshot=>{
+      const data=snapshot.val();
+      if(!data)return;
+      addMsg(data,snapshot.key);
+      if(data.sender==="user"&&data.aiStatus==="pending"){
+        processLunaMessage(snapshot.key).catch(err=>console.error("Luna:",err));
+      }
+    },error=>{
+      console.error("Luna room:",error);
+      addMsg("Không tải được phòng Luna: "+error.message,"ai-bot");
+    });
+  }
+
+  // One device claims each pending message, so Luna does not answer multiple times.
+  async function processLunaMessage(messageKey){
+    const lock=ctx.ref(ctx.db,"lunaChat/processing/"+messageKey);
+    const claim=await ctx.runTransaction(lock,current=>{
+      if(current?.status==="done")return;
+      if(current?.status==="working"&&Date.now()-(Number(current.startedAt)||0)<120000)return;
+      return {status:"working",startedAt:Date.now()};
+    });
+    if(!claim.committed)return;
+
+    try{
+      const recent=ctx.query(ctx.ref(ctx.db,"lunaChat/messages"),
+        ctx.orderByChild("createdAt"),ctx.limitToLast(12));
+      const snap=await ctx.get(recent);
+      const messages=[];
+      snap.forEach(child=>{
+        const m=child.val();
+        if(!m)return;
+        if(m.sender==="user"){
+          let content=m.text||"";
+          if(m.image){
+            content=[
+              {type:"text",text:content||"Hãy mô tả ảnh này."},
+              {type:"image_url",image_url:{url:m.image}}
+            ];
+          }
+          messages.push({role:"user",content});
+        }else if(m.sender==="luna"){
+          messages.push({role:"assistant",content:m.text||""});
+        }
+      });
+
+      const response=await fetch(GPT_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({messages:messages.slice(-12)})
+      });
+      if(!response.ok)throw new Error("HTTP "+response.status);
+      const result=await response.json();
+      const answer=result.text||"Luna chưa trả lời được, cậu thử lại nhé 😅";
+
+      await ctx.set(ctx.push(ctx.ref(ctx.db,"lunaChat/messages")),{
+        sender:"luna",uid:"luna",name:"Luna",text:answer,
+        replyTo:messageKey,createdAt:Date.now()
+      });
+      await ctx.set(ctx.ref(ctx.db,"lunaChat/messages/"+messageKey+"/aiStatus"),"done");
+      await ctx.set(lock,{status:"done",finishedAt:Date.now()});
+    }catch(error){
+      console.error("Luna AI error:",error);
+      await ctx.set(ctx.ref(ctx.db,"lunaChat/messages/"+messageKey+"/aiStatus"),"failed").catch(()=>{});
+      await ctx.set(lock,{status:"failed",error:String(error.message||error),finishedAt:Date.now()}).catch(()=>{});
+    }
+  }
+
+  // Called by the existing Firebase login module after anonymous sign-in succeeds.
+  window.initLunaPublicChat=function(firebaseContext){
+    ctx=firebaseContext;
+    if(!$ ("aiPage").hidden)startRoom();
+  };
+
   $("aiToggle").addEventListener("click",()=>{
     $("chat").hidden=true;
     $("aiPage").hidden=false;
+    startRoom();
     window.scrollTo({top:0,behavior:"auto"});
     $("aiInput").focus();
   });
@@ -4500,46 +4672,31 @@ resize();tick();
     $("chat").hidden=false;
     window.scrollTo({top:0,behavior:"auto"});
   });
-  $("aiClear").addEventListener("click",()=>{
-    history=[];
-    $("aiMessages").replaceChildren();
-    addMsg("Đã xóa cuộc trò chuyện. Hỏi tớ cái mới nhé! 💗","ai-bot");
-  });
+  // A shared public room must not offer a per-user clear-history button.
+  $("aiClear").hidden=true;
+
   $("aiForm").addEventListener("submit",async e=>{
     e.preventDefault();
     const text=$("aiInput").value.trim();
-    const img=pendingImg;if((!text&&!img)||busy)return;
-    if(Date.now()-lastSent<3000){addMsg("Từ từ thôi cậu, đợi vài giây nhé 😅","ai-bot");return;}
-    lastSent=Date.now();busy=true;
-    $("aiSend").disabled=true;
-    $("aiInput").value="";
-    addMsg((img?"🖼️ ":"")+(text||"(ảnh)"),"ai-user");
-    const qtext=text||"Hãy mô tả ảnh này.";
-    history.push({role:"user",content:(img?"[Người dùng gửi kèm 1 ảnh] ":"")+qtext});
-    pendingImg=null;renderPreview();
-    const msgs=history.slice(-12).map(m=>({...m}));
-    if(img)msgs[msgs.length-1]={role:"user",content:[{type:"text",text:qtext},{type:"image_url",image_url:{url:img}}]};
-    const typing=addMsg("Đang nghĩ...","ai-bot ai-typing");
+    const image=pendingImg;
+    if((!text&&!image)||busy)return;
+    if(!ctx?.user){alert("Hãy đăng nhập Amino trước nhé!");return;}
+    if(Date.now()-lastSent<2000)return;
+
+    busy=true;lastSent=Date.now();$("aiSend").disabled=true;
     try{
-      const res=await fetch(GPT_URL,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({messages:msgs})
+      await ctx.set(ctx.push(ctx.ref(ctx.db,"lunaChat/messages")),{
+        sender:"user",uid:ctx.user.uid,
+        name:ctx.displayName||"Thành viên",
+        text,image:image||null,createdAt:Date.now(),aiStatus:"pending"
       });
-      if(!res.ok)throw new Error("HTTP "+res.status);
-      const data=await res.json();
-      const answer=data.text||"Tớ chưa trả lời được 😅";
-      typing.remove();
-      addMsg(answer,"ai-bot");
-      history.push({role:"assistant",content:answer});
-    }catch(err){
-      typing.remove();
-      addMsg("Lỗi rồi: "+err.message,"ai-bot");
-      history.pop();
+      $("aiInput").value="";
+      pendingImg=null;renderPreview();
+    }catch(error){
+      console.error(error);
+      alert("Không gửi được tin nhắn: "+error.message);
     }finally{
-      busy=false;
-      $("aiSend").disabled=false;
-      $("aiInput").focus();
+      busy=false;$("aiSend").disabled=false;$("aiInput").focus();
     }
   });
 })();
