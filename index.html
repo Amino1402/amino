@@ -3160,7 +3160,7 @@ window.addEventListener('resize',()=>{
 function petSpeak(customLine){
   if($('petStage').hidden)return;
   const bubble=$('petBubble');
-  bubble.textContent=customLine||(petIsHungry()?'Cậu ơi, tớ đói bụng mất rồi 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
+  bubble.textContent=customLine||(petIsHungry()?'Cậu ơi, tớ đói bụng mất rồi,lạnh nữa! 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
   bubble.hidden=false;
   clearTimeout(petSpeak.hideTimer);
   petSpeak.hideTimer=setTimeout(()=>{bubble.hidden=true;},10000);
