@@ -56,8 +56,8 @@ html[data-theme="galaxy"] #aboutCard code{background:#0b0922;color:#ffe08a}
 .gx-star{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:var(--c);box-shadow:0 0 calc(var(--s) * 3) var(--c);opacity:var(--o);animation:gxStarTw var(--d) ease-in-out var(--dl) infinite}
 @keyframes gxStarTw{0%,100%{opacity:var(--o);transform:scale(1)}50%{opacity:.12;transform:scale(.55)}}
 #aminoGalaxyFx{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden;contain:strict}
-.gx-meteor{position:absolute;left:var(--x);top:var(--y);width:var(--len);height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(173,160,255,.55) 70%,#fff);filter:drop-shadow(0 0 5px rgba(190,175,255,.95));opacity:0;animation:gxMeteor var(--dur) cubic-bezier(.25,.6,.45,1) forwards}
-.gx-meteor::after{content:"";position:absolute;right:-1px;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px rgba(210,200,255,.95)}
+.gx-meteor{position:absolute;left:var(--x);top:var(--y);width:var(--len);height:3px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(173,160,255,.55) 70%,#fff);filter:drop-shadow(0 0 6px rgba(200,185,255,1)) drop-shadow(0 0 14px rgba(150,130,255,.8));opacity:0;animation:gxMeteor var(--dur) cubic-bezier(.25,.6,.45,1) forwards}
+.gx-meteor::after{content:"";position:absolute;right:-1px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px rgba(210,200,255,.95)}
 @keyframes gxMeteor{0%{opacity:0;transform:rotate(var(--ang)) translateX(0)}12%{opacity:1}72%{opacity:1}100%{opacity:0;transform:rotate(var(--ang)) translateX(var(--dist))}}
 html:not([data-theme="galaxy"]) :is(#aminoGalaxyStars,#aminoGalaxyFx){display:none!important}
 html[data-theme="galaxy"] :is(#aminoWinterFrost,#aminoWinterSnow){display:none!important}
@@ -2973,13 +2973,14 @@ m.className='gx-meteor';
 m.style.setProperty('--ang',(toLeft?145+R()*14:21+R()*14).toFixed(1)+'deg');
 m.style.setProperty('--x',Math.round(toLeft?w*(.35+R()*.7):w*(-.05+R()*.6))+'px');
 m.style.setProperty('--y',Math.round(h*(-.02+R()*.4))+'px');
-m.style.setProperty('--len',Math.round(90+R()*110)+'px');
-m.style.setProperty('--dist',Math.round(280+R()*360)+'px');
-m.style.setProperty('--dur',(0.8+R()*0.8).toFixed(2)+'s');
+m.style.setProperty('--len',Math.round(150+R()*150)+'px');
+m.style.setProperty('--dist',Math.round(380+R()*420)+'px');
+m.style.setProperty('--dur',(1.2+R()*0.9).toFixed(2)+'s');
 m.addEventListener('animationend',()=>m.remove());lay.appendChild(m)};
 const loop=()=>{if(!document.hidden&&document.documentElement.getAttribute('data-theme')==='galaxy'&&!lay.hidden){meteor();if(R()<.22)setTimeout(meteor,250+R()*400)}
-setTimeout(loop,3500+R()*6500)};
-setTimeout(loop,1500)}}
+setTimeout(loop,2500+R()*3500)};
+setTimeout(loop,800);
+new MutationObserver(()=>{if(document.documentElement.getAttribute('data-theme')==='galaxy')setTimeout(meteor,500)}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']})}}
 ];
 const list=document.getElementById('fxList');
 FX.forEach(fx=>{
