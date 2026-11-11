@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -4486,6 +4485,9 @@ resize();tick();
   const GPT_URL="https://autumn-mud-f851.nguyenvandinh-dhcn-2k3.workers.dev";
   const $=id=>document.getElementById(id);
   let ctx=null,roomStarted=false,busy=false,lastSent=0,pendingImg=null;
+  // Mỗi người một phòng riêng: lunaChat/users/<uid>/...
+  const msgsRef=()=>ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/messages");
+  const lockRef=key=>ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/processing/"+key);
   const rendered=new Set();
 
   function timeLabel(value){
@@ -4585,7 +4587,7 @@ resize();tick();
     empty.textContent="Chào cậu! Tớ là Luna của Amino. Cảm ơn cậu đã trò chuyện với tớ nha! 💗";
     $("aiMessages").append(empty);
 
-    const recent=ctx.query(ctx.ref(ctx.db,"lunaChat/messages"),
+    const recent=ctx.query(msgsRef(),
       ctx.orderByChild("createdAt"),ctx.limitToLast(100));
     ctx.onChildAdded(recent,snapshot=>{
       const data=snapshot.val();
@@ -4596,13 +4598,13 @@ resize();tick();
       }
     },error=>{
       console.error("Luna room:",error);
-      addMsg("Không tải được phòng Luna: "+error.message,"ai-bot");
+      addMsg({sender:"luna",text:"Không tải được phòng Luna: "+error.message,createdAt:Date.now()});
     });
   }
 
   // One device claims each pending message, so Luna does not answer multiple times.
   async function processLunaMessage(messageKey){
-    const lock=ctx.ref(ctx.db,"lunaChat/processing/"+messageKey);
+    const lock=lockRef(messageKey);
     const claim=await ctx.runTransaction(lock,current=>{
       if(current?.status==="done")return;
       if(current?.status==="working"&&Date.now()-(Number(current.startedAt)||0)<120000)return;
@@ -4611,7 +4613,7 @@ resize();tick();
     if(!claim.committed)return;
 
     try{
-      const recent=ctx.query(ctx.ref(ctx.db,"lunaChat/messages"),
+      const recent=ctx.query(msgsRef(),
         ctx.orderByChild("createdAt"),ctx.limitToLast(3));
       const snap=await ctx.get(recent);
       const messages=[];
@@ -4641,15 +4643,15 @@ resize();tick();
       const result=await response.json();
       const answer=result.text||"Luna chưa trả lời được, cậu thử lại nhé 😅";
 
-      await ctx.set(ctx.push(ctx.ref(ctx.db,"lunaChat/messages")),{
+      await ctx.set(ctx.push(msgsRef()),{
         sender:"luna",uid:"luna",name:"Luna",text:answer,
         replyTo:messageKey,createdAt:Date.now()
       });
-      await ctx.set(ctx.ref(ctx.db,"lunaChat/messages/"+messageKey+"/aiStatus"),"done");
+      await ctx.set(ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/messages/"+messageKey+"/aiStatus"),"done");
       await ctx.set(lock,{status:"done",finishedAt:Date.now()});
     }catch(error){
       console.error("Luna AI error:",error);
-      await ctx.set(ctx.ref(ctx.db,"lunaChat/messages/"+messageKey+"/aiStatus"),"failed").catch(()=>{});
+      await ctx.set(ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/messages/"+messageKey+"/aiStatus"),"failed").catch(()=>{});
       await ctx.set(lock,{status:"failed",error:String(error.message||error),finishedAt:Date.now()}).catch(()=>{});
     }
   }
@@ -4672,7 +4674,7 @@ resize();tick();
     $("chat").hidden=false;
     window.scrollTo({top:0,behavior:"auto"});
   });
-  // A shared public room must not offer a per-user clear-history button.
+  // Phòng riêng: lịch sử lưu trên Firebase theo từng uid.
   $("aiClear").hidden=true;
 
   $("aiForm").addEventListener("submit",async e=>{
@@ -4685,7 +4687,7 @@ resize();tick();
 
     busy=true;lastSent=Date.now();$("aiSend").disabled=true;
     try{
-      await ctx.set(ctx.push(ctx.ref(ctx.db,"lunaChat/messages")),{
+      await ctx.set(ctx.push(msgsRef()),{
         sender:"user",uid:ctx.user.uid,
         name:ctx.displayName||"Thành viên",
         text,image:image||null,createdAt:Date.now(),aiStatus:"pending"
