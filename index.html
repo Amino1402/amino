@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -432,7 +433,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   </div>
 
   <div class="hsk-library-tools">
-    <input id="hskSearch" type="search" placeholder="Tìm chữ Hán, pinyin hoặc nghĩa tiếng Anh..." autocomplete="off">
+    <input id="hskSearch" type="search" placeholder="Tìm chữ Hán, pinyin hoặc nghĩa tiếng Việt..." autocomplete="off">
     <select id="hskBandFilter" aria-label="Lọc cấp độ HSK">
       <option value="all">Tất cả cấp độ</option>
       <option value="1">HSK 1</option><option value="2">HSK 2</option><option value="3">HSK 3</option>
@@ -456,6 +457,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
       <div class="hsk-traditional" id="hskTraditional"></div>
       <div class="hsk-word-pinyin" id="hskPinyin">nǐ hǎo</div>
       <div class="hsk-word-meaning" id="hskMeaning">Xin chào</div>
+      <div class="hsk-example" id="hskMeaningSource">Đang chuẩn bị nghĩa tiếng Việt...</div>
       <div class="hsk-example" id="hskExample">Nghĩa tham khảo bằng tiếng Anh</div>
       <button id="hskSpeak" type="button" class="hsk-speak">🔊 Nghe phát âm</button>
     </article>
@@ -476,7 +478,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   </section>
 
   <p id="hskSaveStatus" class="hsk-save-status" aria-live="polite">Tiến độ sẽ được đồng bộ theo tài khoản Amino.</p>
-  <p class="hsk-disclaimer">Dữ liệu từ vựng HSK 3.0 theo đề cương thi 2025. Nghĩa tiếng Anh là chú giải học tập, không phải bản dịch chính thức. Nguồn: HearMandarin · CC BY 4.0.</p>
+  <p class="hsk-disclaimer">Danh sách HSK 3.0: HearMandarin. Nghĩa tiếng Việt tham khảo: CVDICT (Phong Phan), CC BY-SA 4.0. Một số từ có thể chưa có nghĩa Việt hoặc cần đối chiếu ngữ cảnh.</p>
 </section>
 
 
@@ -2630,11 +2632,64 @@ $("mapStatus").textContent="Không bật được chia sẻ GPS: "+error.message
 /* ================= PHÒNG HỌC HSK ================= */
 const HSK_DATA_URL="https://hearmandarin.com/datasets/hsk-3-0-words.json";
 const HSK_DATA_CACHE_KEY="amino_hsk30_dataset_2026";
-let HSK_WORDS=[],hskFilteredWords=[],hskIndex=0,hskLearned={},hskCorrect=0,hskTotal=0,hskQuizWord=null,hskQuizAnswered=false,hskLoadedUid="",hskDataPromise=null,hskBandFilter="all",hskSearchQuery="",hskVisibleCount=60;
+const HSK_VI_DICT_URL="https://raw.githubusercontent.com/ph0ngp/CVDICT/main/CVDICT.u8";
+const HSK_VI_CACHE_KEY="amino_hsk_cvdict_vi_2026";
+let HSK_WORDS=[],hskFilteredWords=[],hskIndex=0,hskLearned={},hskCorrect=0,hskTotal=0,hskQuizWord=null,hskQuizAnswered=false,hskLoadedUid="",hskDataPromise=null,hskBandFilter="all",hskSearchQuery="",hskVisibleCount=60,hskViDict={},hskViPromise=null;
 function hskProgressRef(){return ref(db,`hskProgress/${user.uid}`)}
 function hskBandName(band){return Number(band)>=7?"HSK 7–9":"HSK "+band}
 function hskCurrentWords(){return hskFilteredWords}
 function hskCurrentWord(){const list=hskCurrentWords();return list[Math.max(0,Math.min(hskIndex,list.length-1))]||null}
+function hskNormalizePinyin(value){
+ return String(value||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/u:/g,"v").replace(/\s+/g," ").trim();
+}
+function hskParseCvdictLine(line){
+ // CVDICT follows the CC-CEDICT line layout: traditional simplified [pinyin] /Vietnamese meanings/
+ const match=String(line).match(/^(\S+)\s+(\S+)\s+\[([^\]]+)\]\s+\/(.+)\/\s*$/);
+ if(!match)return null;
+ const meanings=match[4].split("/").map(x=>x.trim()).filter(Boolean);
+ if(!meanings.length)return null;
+ return {traditional:match[1],hanzi:match[2],pinyin:hskNormalizePinyin(match[3]),meaning:meanings.join("； ")};
+}
+async function ensureHskVietnameseDictionary(){
+ if(Object.keys(hskViDict).length)return hskViDict;
+ if(hskViPromise)return hskViPromise;
+ hskViPromise=(async()=>{
+  $("hskSaveStatus").textContent="Đang tải từ điển nghĩa tiếng Việt CVDICT...";
+  let raw=null;
+  try{raw=localStorage.getItem(HSK_VI_CACHE_KEY)}catch(e){}
+  if(!raw){
+   const response=await fetch(HSK_VI_DICT_URL,{mode:"cors",cache:"force-cache"});
+   if(!response.ok)throw new Error("Không tải được CVDICT (HTTP "+response.status+").");
+   raw=await response.text();
+   try{localStorage.setItem(HSK_VI_CACHE_KEY,raw)}catch(e){console.warn("Không lưu được cache CVDICT:",e)}
+  }
+  const lines=raw.split(/\r?\n/);
+  for(const line of lines){
+   if(!line||line[0]==="#")continue;
+   const entry=hskParseCvdictLine(line);
+   if(!entry)continue;
+   // Prefer the simplified form and preserve the first dictionary entry for each key.
+   const keys=[entry.hanzi,entry.traditional].filter(Boolean);
+   for(const key of keys)if(!hskViDict[key])hskViDict[key]=entry;
+  }
+  let matched=0;
+  for(const word of HSK_WORDS){
+   const entry=hskViDict[word.hanzi]||hskViDict[word.traditional];
+   if(entry){word.meaningVi=entry.meaning;word.meaningSource="CVDICT";matched++}
+   else{word.meaningVi="";word.meaningSource="Chưa có nghĩa Việt trong từ điển"}
+  }
+  $("hskSaveStatus").textContent="Đã đối chiếu nghĩa tiếng Việt cho "+matched.toLocaleString("vi-VN")+" / "+HSK_WORDS.length.toLocaleString("vi-VN")+" từ HSK.";
+  return hskViDict;
+ })().catch(error=>{
+  hskViPromise=null;
+  $("hskSaveStatus").textContent="Không tải được từ điển tiếng Việt: "+error.message+"; vẫn có thể học bằng chú giải tiếng Anh.";
+  throw error;
+ });
+ return hskViPromise;
+}
+function hskMeaning(word){
+ return word?.meaningVi||word?.meaning||"Chưa có nghĩa tiếng Việt";
+}
 async function ensureHskData(){
  if(HSK_WORDS.length)return;
  if(hskDataPromise)return hskDataPromise;
@@ -2651,7 +2706,7 @@ async function ensureHskData(){
   const rows=Array.isArray(payload)?payload:(Array.isArray(payload.words)?payload.words:[]);
   HSK_WORDS=rows.filter(row=>row&&row.hsk3_band!==null&&row.hsk3_band!==undefined&&String(row.hsk3_band)!=="").map(row=>({
    id:String(row.id),hanzi:String(row.simplified||row.hanzi||row.word||""),traditional:String(row.traditional||""),
-   pinyin:String(row.pinyin||""),meaning:String(row.gloss_en||row.meaning||"Chưa có chú giải"),
+   pinyin:String(row.pinyin||""),meaning:String(row.gloss_en||row.meaning||"Chưa có chú giải"),meaningVi:String(row.meaningVi||""),meaningSource:String(row.meaningSource||""),
    pos:String(row.pos_en||row.pos_zh||""),band:Number(row.hsk3_band),sequence:Number(row.hsk3_seq)||0
   })).filter(word=>word.id&&word.hanzi&&word.band>=1&&word.band<=7)
    .sort((a,b)=>a.band-b.band||a.sequence-b.sequence||a.id.localeCompare(b.id));
@@ -2660,6 +2715,7 @@ async function ensureHskData(){
   $("hskBandSummary").textContent="Đề cương thi HSK 2025 · 7 nhóm cấp";
   $("hskSaveStatus").textContent="Đã tải "+HSK_WORDS.length.toLocaleString("vi-VN")+" mục từ HSK 3.0.";
   renderHskList();renderHskCard();
+  try{await ensureHskVietnameseDictionary();renderHskList();renderHskCard()}catch(dictError){console.warn("Từ điển Việt chưa tải được:",dictError)}
  })().catch(error=>{hskDataPromise=null;$("hskSaveStatus").textContent="Không tải được bộ HSK: "+error.message+" Hãy kiểm tra kết nối Internet rồi mở lại mục HSK.";throw error});
  return hskDataPromise;
 }
@@ -2682,8 +2738,9 @@ function renderHskCard(){
  $("hskCharacter").textContent=word.hanzi;
  $("hskTraditional").textContent=word.traditional&&word.traditional!==word.hanzi?"Phồn thể: "+word.traditional:"";
  $("hskPinyin").textContent=word.pinyin;
- $("hskMeaning").textContent=word.meaning;
- $("hskExample").textContent=word.pos?"Từ loại: "+word.pos:"Nghĩa tham khảo (tiếng Anh)";
+ $("hskMeaning").textContent=hskMeaning(word);
+ $("hskMeaningSource").textContent=word.meaningVi?"Nghĩa tiếng Việt · CVDICT": "Chưa có nghĩa Việt · Chú giải tiếng Anh: "+word.meaning;
+ $("hskExample").textContent=word.pos?"Từ loại: "+word.pos:"";
  renderHskStats();
  document.querySelectorAll(".hsk-word-item").forEach(button=>button.classList.toggle("active",button.dataset.hskId===word.id));
 }
@@ -2696,7 +2753,7 @@ function renderHskList(){
   const button=document.createElement("button");button.type="button";button.className="hsk-word-item";button.dataset.hskId=word.id;
   const main=document.createElement("span");main.className="hsk-word-item-main";
   const hanzi=document.createElement("strong");hanzi.textContent=word.hanzi;
-  const sub=document.createElement("small");sub.textContent=word.pinyin+" · "+word.meaning;
+  const sub=document.createElement("small");sub.textContent=word.pinyin+" · "+hskMeaning(word);
   main.append(hanzi,sub);const band=document.createElement("em");band.textContent=hskBandName(word.band);
   button.append(main,band);button.addEventListener("click",()=>{hskIndex=hskFilteredWords.findIndex(item=>item.id===word.id);renderHskCard();$("hskCardsMode").hidden=false;$("hskQuizMode").hidden=true;document.querySelectorAll(".hsk-mode").forEach(tab=>tab.classList.toggle("active",tab.dataset.hskMode==="cards"));});wrap.append(button);
  });
@@ -2704,7 +2761,7 @@ function renderHskList(){
 }
 function applyHskFilters(){
  const q=hskSearchQuery.trim().toLocaleLowerCase();
- hskFilteredWords=HSK_WORDS.filter(word=>(hskBandFilter==="all"||String(word.band)===hskBandFilter)&&(!q||word.hanzi.toLocaleLowerCase().includes(q)||word.traditional.toLocaleLowerCase().includes(q)||word.pinyin.toLocaleLowerCase().includes(q)||word.meaning.toLocaleLowerCase().includes(q)||word.id.toLocaleLowerCase().includes(q)));
+ hskFilteredWords=HSK_WORDS.filter(word=>(hskBandFilter==="all"||String(word.band)===hskBandFilter)&&(!q||word.hanzi.toLocaleLowerCase().includes(q)||word.traditional.toLocaleLowerCase().includes(q)||word.pinyin.toLocaleLowerCase().includes(q)||(word.meaningVi||"").toLocaleLowerCase().includes(q)||word.meaning.toLocaleLowerCase().includes(q)||word.id.toLocaleLowerCase().includes(q)));
  hskVisibleCount=60;hskIndex=0;renderHskList();renderHskCard();
 }
 function saveHskProgress(){
@@ -2736,9 +2793,9 @@ function nextHskQuiz(){
  const list=hskCurrentWords();if(!list.length)return;
  const candidates=list.filter(word=>word.id!==hskQuizWord?.id);hskQuizWord=candidates[Math.floor(Math.random()*candidates.length)]||list[0];hskQuizAnswered=false;
  $("hskQuizWord").textContent=hskQuizWord.hanzi;$("hskQuizPinyin").textContent=hskQuizWord.pinyin;$("hskQuizNumber").textContent="Lượt "+(hskTotal+1);
- $("hskQuizFeedback").textContent="Chọn nghĩa tiếng Anh phù hợp.";$("hskQuizNext").hidden=true;
+ $("hskQuizFeedback").textContent="Chọn nghĩa tiếng Việt phù hợp.";$("hskQuizNext").hidden=true;
  const wrong=list.filter(word=>word.id!==hskQuizWord.id).sort(()=>Math.random()-.5).slice(0,3);const options=[hskQuizWord,...wrong].sort(()=>Math.random()-.5);const wrap=$("hskQuizOptions");wrap.replaceChildren();
- options.forEach(word=>{const button=document.createElement("button");button.type="button";button.textContent=word.meaning;button.addEventListener("click",()=>{if(hskQuizAnswered)return;hskQuizAnswered=true;hskTotal++;const correct=word.id===hskQuizWord.id;if(correct)hskCorrect++;[...wrap.children].forEach(option=>{option.disabled=true;if(option.textContent===hskQuizWord.meaning)option.classList.add("correct")});if(!correct)button.classList.add("wrong");$("hskQuizFeedback").textContent=correct?"Chính xác! 🎉":"Chưa đúng. Đáp án: "+hskQuizWord.meaning;$("hskQuizNext").hidden=false;renderHskStats();saveHskProgress()});wrap.append(button)});
+ options.forEach(word=>{const button=document.createElement("button");button.type="button";button.textContent=hskMeaning(word);button.addEventListener("click",()=>{if(hskQuizAnswered)return;hskQuizAnswered=true;hskTotal++;const correct=word.id===hskQuizWord.id;if(correct)hskCorrect++;[...wrap.children].forEach(option=>{option.disabled=true;if(option.textContent===hskMeaning(hskQuizWord))option.classList.add("correct")});if(!correct)button.classList.add("wrong");$("hskQuizFeedback").textContent=correct?"Chính xác! 🎉":"Chưa đúng. Đáp án: "+hskQuizWord.meaning;$("hskQuizNext").hidden=false;renderHskStats();saveHskProgress()});wrap.append(button)});
 }
 async function openHskPage(){
  if(!user||!db){alert("Hãy đăng nhập Amino trước nhé.");return;}
