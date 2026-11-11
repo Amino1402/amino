@@ -46,6 +46,7 @@ html[data-theme="galaxy"] .hsk-related-word{background:var(--gx-panel);color:var
 @media(max-width:420px){.hsk-extra-learning{margin-top:14px}.hsk-extra-panel{padding:10px}.hsk-sentence-zh{font-size:15px}}
 
 .hsk-example{max-width:95%;overflow-wrap:anywhere}
+.hsk-example:empty{display:none}
 html[data-theme="rabbit"] .hsk-library-tools input,html[data-theme="rabbit"] .hsk-library-tools select,html[data-theme="rabbit"] .hsk-word-item{background:#fffafd;border-color:#ffd3e4}
 html[data-theme="galaxy"] .hsk-library-tools input,html[data-theme="galaxy"] .hsk-library-tools select,html[data-theme="galaxy"] .hsk-word-item{background:var(--gx-card);color:var(--gx-ink);border-color:var(--gx-edge)}
 @media(max-width:420px){.hsk-library-tools{grid-template-columns:1fr}.hsk-word-list{grid-template-columns:1fr 1fr}.hsk-word-item{padding:7px}}
@@ -437,7 +438,6 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   <div class="hsk-heading">
     <div>
       <h2>📚 Góc học tiếng Trung</h2>
-      <p>Học từ vựng HSK mỗi ngày cùng Amino 💜</p>
     </div>
     <span class="hsk-level-pill" id="hskLevelPill">HSK 3.0 · 1–9</span>
   </div>
@@ -480,7 +480,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
       <div class="hsk-traditional" id="hskTraditional"></div>
       <div class="hsk-word-pinyin" id="hskPinyin">nǐ hǎo</div>
       <div class="hsk-word-meaning" id="hskMeaning">Xin chào</div>
-      <div class="hsk-example" id="hskMeaningSource">Đang chuẩn bị nghĩa tiếng Việt...</div>
+      <div class="hsk-example" id="hskMeaningSource"></div>
       <div class="hsk-example" id="hskExample">Từ loại</div>
       <div class="hsk-extra-learning">
         <section class="hsk-extra-panel" aria-live="polite">
@@ -2777,8 +2777,7 @@ function renderHskExamples(word,examples){
   item.append(zh);
   if(example.pinyin){const py=document.createElement("div");py.className="hsk-sentence-pinyin";py.textContent=example.pinyin;item.append(py)}
   const vi=document.createElement("div");vi.className="hsk-sentence-vi";vi.textContent=example.translation||"Chưa có bản dịch tiếng Việt do cộng đồng đóng góp.";item.append(vi);
-  if(example.id){const link=document.createElement("a");link.className="hsk-sentence-source";link.href="https://tatoeba.org/en/sentences/show/"+encodeURIComponent(example.id);link.target="_blank";link.rel="noopener noreferrer";link.textContent="Xem câu gốc trên Tatoeba ↗";item.append(link)}
-  target.append(item);
+    target.append(item);
  });
 }
 function hskRelatedCandidates(word){
@@ -2868,7 +2867,7 @@ function renderHskCard(){
  $("hskTraditional").textContent=word.traditional&&word.traditional!==word.hanzi?"Phồn thể: "+word.traditional:"";
  $("hskPinyin").textContent=word.pinyin;
  $("hskMeaning").textContent=hskMeaning(word);
- $("hskMeaningSource").textContent=word.meaningVi?"Nghĩa tiếng Việt · CVDICT": "Chưa có nghĩa Việt · Chú giải tiếng Anh: "+word.meaning;
+ $("hskMeaningSource").textContent=word.meaningVi?"":"Chưa có nghĩa Việt · Chú giải tiếng Anh: "+word.meaning;
  $("hskExample").textContent=word.pos?"Từ loại: "+word.pos:"";
  $("hskSentenceList").className="hsk-extra-empty";
  $("hskSentenceList").textContent="Đang tìm câu ví dụ...";
