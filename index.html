@@ -3077,6 +3077,7 @@ finally{petRender();}
 }
 function petMove(){
 if($('petStage').hidden)return;
+if(window.petSceneBusy)return;
 const pet=$('aminoPet');
 const stage=$('petStage');
 const margin=8;
@@ -3114,12 +3115,299 @@ pet.style.left=Math.round(x)+'px';pet.style.top=Math.round(y)+'px';
 });
 function petSpeak(customLine){
 if($('petStage').hidden)return;
+if(window.petSceneBusy&&!customLine)return;
 const bubble=$('petBubble');
 bubble.textContent=customLine||(petIsHungry()?'Cậu ơi, tớ đói bụng mất rồi,lạnh nữa! 🥺':PET_LINES[Math.floor(Math.random()*PET_LINES.length)]);
 bubble.hidden=false;
 clearTimeout(petSpeak.hideTimer);
 petSpeak.hideTimer=setTimeout(()=>{bubble.hidden=true;},10000);
 }
+/* ================= PET FRIENDS: pet của mọi người cùng hiển thị & trò chuyện (KHÔNG AI) =================
+ * (ĐÃ ĐƯỢC GẮN SẴN VÀO index.html) DÁN NGUYÊN KHỐI NÀY ngay SAU hàm petSpeak() (cùng <script type="module"> với initPet),
+ * vì nó dùng chung biến: db, user, ref, set, onValue, runTransaction, $, petData, presenceForMap, displayName, petPixelMarkup.
+ *
+ * Cách hoạt động:
+ *  - Mỗi người ghi thông tin "công khai" của pet (loài, lần ăn cuối, tên) vào petPublic/{uid}.
+ *    (KHÔNG dùng pets/{uid} vì trong đó có addressNote = địa chỉ nhận quà)
+ *  - Ai đang online (presence) và có pet thì hiện pet đó trên màn hình của mọi người.
+ *  - Cứ ~45 giây, MỘT client (đứng đầu danh sách, có transaction chống trùng) ghi 1 "cảnh" vào petScene/current:
+ *    chỉ gồm {id kịch bản, uid pet 0, uid pet 1}. Lời thoại nằm sẵn trong code nên không tốn dữ liệu.
+ *  - Mọi client nhận cảnh → hai pet đi lại gần nhau → lần lượt nói từng câu bằng bong bóng thoại.
+ */
+const FP_MAX=12, FP_SCENE_GAP_MS=45000, FP_WALK_MS=7000, FP_PET_SIZE=56;
+const FP_NAME={'🐱':'Chikawa','🐰':'Usagi','🐶':'Mập','🐹':'Hamster','🦭':'Luna'};
+
+/* a / b: loài của nhân vật 0 / 1 ('*' = loài nào cũng được). same:true = hai pet phải cùng loài.
+ * lines: [người nói (0 hoặc 1), câu thoại].
+ * Placeholder: {A} {B} = TÊN pet (= tên người đăng nhập của uid đó), {SA} {SB} = tên loài (Mập, Usagi...).
+ * Quy ước: người nói 0 gọi bạn là {B}, người nói 1 gọi bạn là {A}. Xưng "tớ/cậu" để khỏi vướng giới tính.
+ * THÊM BAO NHIÊU CẢNH TUỲ Ý, nhớ id không trùng. */
+const FP_SCENES=[
+/* ---------- CHUNG (loài nào cũng được) ---------- */
+{id:'chao',a:'*',b:'*',lines:[[0,'Cả nhà ơi, hôm nay vui không?'],[1,'Vui chứ! Có {A} ở đây mà.'],[0,'Hì hì, cậu cũng dễ thương lắm 💕']]},
+{id:'nhay',a:'*',b:'*',lines:[[0,'{B} ơi, nhảy cùng tớ không?'],[1,'Nhảy gì?'],[0,'Nhảy lên! 1, 2, 3!'],[1,'Hoan hô! 🎉'],[0,'Hết giờ rồi, giờ ngủ thôi.'],[1,'Nhanh vậy... 💤']]},
+{id:'troi-lanh',a:'*',b:'*',lines:[[0,'Hôm nay trời lạnh nhỉ?'],[1,'Ừ, tớ muốn chui vào chăn.'],[0,'Chủ mình đang online đó, đừng ngủ nha.'],[1,'Tớ chỉ nhắm mắt một xíu thôi 💤'],[0,'"Một xíu" của cậu là 3 tiếng đó!']]},
+{id:'nhat-ky',a:'*',b:'*',lines:[[0,'{B} ơi, hôm nay cậu viết nhật ký chưa?'],[1,'Chưa... chẳng biết viết gì.'],[0,'Cứ viết: hôm nay có bạn {A} hỏi thăm.'],[1,'Cậu tự quảng cáo đó hả? 😂'],[0,'Hì, có chút chút.']]},
+{id:'nhac',a:'*',b:'*',lines:[[0,'Tớ muốn nghe nhạc quá 🎵'],[1,'Bật bài nào?'],[0,'Bài nào buồn buồn.'],[1,'Cậu có gì buồn đâu?'],[0,'Buồn vì hết đồ ăn...'],[1,'Vậy bật bài vui đi, tớ chia cậu nửa cái bánh.']]},
+{id:'hsk',a:'*',b:'*',lines:[[0,'{B} ơi, tớ học được từ mới: 你好!'],[1,'Đọc là gì thế?'],[0,'Nǐ hǎo! Nghĩa là xin chào.'],[1,'Nǐ hǎo, {A}!'],[0,'Giỏi quá, thưởng một cái ôm 🤗']]},
+{id:'mua',a:'*',b:'*',lines:[[0,'Ngoài kia mưa hả? ☔'],[1,'Hình như vậy, tớ nghe tí tách.'],[0,'Chủ mình có mang ô không nhỉ?'],[1,'Chắc có. Trừ khi quên.'],[0,'Nhắc chủ giúp tớ nha!']]},
+{id:'locket',a:'*',b:'*',lines:[[0,'Tớ muốn chụp ảnh locket! 📸'],[1,'Chụp gì?'],[0,'Chụp cậu đang ngáp.'],[1,'Không được! Xoá liền!'],[0,'Đẹp lắm mà, xem nè... tách!'],[1,'Á! 😳']]},
+{id:'lam-hoa',a:'*',b:'*',lines:[[0,'{B} ơi, hôm qua tớ lỡ giận cậu...'],[1,'Tớ có để ý đâu.'],[0,'Vậy là tớ giận một mình hả?'],[1,'Ừ, cậu giận hay thật 😂'],[0,'Thôi làm hoà nhé!']]},
+{id:'bi-mat',a:'*',b:'*',lines:[[0,'Tớ kể bí mật cho {B}, đừng nói ai nhé 🤫'],[1,'Ừ, tớ giữ kín.'],[0,'Tớ thích mùi sau cơn mưa.'],[1,'Đó là bí mật á?'],[0,'Ừ, nghe ngầu mà 😎'],[1,'Ngầu thật... cho tớ ké với.']]},
+{id:'thi-chay',a:'*',b:'*',lines:[[0,'Thi chạy đến góc kia không?'],[1,'Chạy!'],[0,'Tớ thắng rồi!'],[1,'Cậu xuất phát trước mà!'],[0,'Đó là chiến thuật 😏']]},
+{id:'dieu-uoc',a:'*',b:'*',lines:[[0,'{B} ơi, nếu có điều ước, cậu ước gì?'],[1,'Ước phòng chat luôn đông vui.'],[0,'Nghe tử tế quá...'],[1,'Còn cậu?'],[0,'Ước không bao giờ đói 🥺'],[1,'Cái đó khó hơn đó.']]},
+{id:'mat-trang',a:'*',b:'*',lines:[[0,'Cậu thấy mặt trăng không? 🌙'],[1,'Tròn quá!'],[0,'Giống cái bánh.'],[1,'Cậu cái gì cũng thấy giống bánh.'],[0,'Vì cái gì cũng ngon mà!']]},
+{id:'hu-doa',a:'*',b:'*',lines:[[0,'Tớ nghe nói có ma ở góc màn hình.'],[1,'Đâu có!'],[0,'Có đó, nó cứ đứng im.'],[1,'Đó là cái cạnh màn hình mà!'],[0,'Ra là vậy... tớ vẫn sợ 😨']]},
+{id:'do-vui',a:'*',b:'*',lines:[[0,'Cái gì càng chia càng nhiều?'],[1,'Hmm... đồ ăn?'],[0,'Sai! Là niềm vui.'],[1,'Thế đồ ăn thì sao?'],[0,'Hết nhanh hơn 😆']]},
+{id:'khen',a:'*',b:'*',lines:[[0,'{B} hôm nay đáng yêu hơn hôm qua.'],[1,'Hôm qua tớ cũng đáng yêu mà!'],[0,'Ừ, hôm nay hơn một chút xíu.'],[1,'Cảm ơn... mà sao nghe như chê?']]},
+{id:'online-lau',a:'*',b:'*',lines:[[0,'{B} online lâu ghê, hết pin chưa?'],[1,'Tớ còn 100% nè.'],[0,'Vậy chủ cậu hết pin chưa?'],[1,'Suỵt! Đừng nhắc, nó sắp ngủ gật rồi 😴']]},
+{id:'mi-tom',a:'*',b:'*',lines:[[0,'Tớ đang nghĩ đến mì tôm.'],[1,'Giờ này á?'],[0,'Giờ nào mà chẳng hợp.'],[1,'Câu này tớ phải ghi lại 📝']]},
+{id:'lan-tron',a:'*',b:'*',lines:[[0,'{B} nhìn tớ lăn tròn nè!'],[1,'Wow!'],[0,'Cậu thử đi!'],[1,'Tớ chóng mặt... á, ngã rồi!'],[0,'Ha ha ha! 🤣']]},
+{id:'no-an',a:'*',b:'*',lines:[[0,'{B} ơi, cậu nợ tớ một cái ôm.'],[1,'Từ bao giờ?'],[0,'Từ lúc cậu vào phòng.'],[1,'Tính lãi chưa?'],[0,'Mỗi phút thêm một cái!'],[1,'Phá sản mất... đây, ôm nè 🤗']]},
+{id:'ke-chuyen',a:'*',b:'*',lines:[[0,'Kể tớ nghe chuyện gì vui đi, {B}.'],[1,'Hôm nay tớ đi ngang cái bánh.'],[0,'Rồi sao?'],[1,'Hết chuyện rồi 😌'],[0,'Chuyện này dở ẹc.'],[1,'Nhưng cái bánh ngon lắm!']]},
+{id:'ngu-gat',a:'*',b:'*',lines:[[0,'Tớ buồn ngủ quá...'],[1,'Mới ngủ lúc nãy mà.'],[0,'Ngủ nữa cũng được... zzz'],[1,'Này! {A}! Dậy đi!'],[0,'Hả? Tớ không ngủ, tớ chỉ nhắm mắt 😪']]},
+{id:'cung-loai',a:'*',b:'*',same:true,lines:[[0,'Nhìn nè, mình cùng loài đó!'],[1,'Vậy mình cùng một nhà luôn hả?'],[0,'Nhưng nhìn cậu to hơn tớ.'],[1,'Cậu mới to!'],[0,'Thôi, cả hai cùng đáng yêu 😂']]},
+{id:'song-sinh',a:'*',b:'*',same:true,lines:[[0,'Ủa, {B} giống tớ y chang!'],[1,'Ơ thật! Cậu là anh em của tớ à?'],[0,'Chắc là song sinh thất lạc rồi!'],[1,'Ôm cái nào! 🤗']]},
+
+/* ---------- THEO TỪNG LOÀI ---------- */
+/* Chikawa 🐱: hay khóc, nhõng nhẽo */
+{id:'keo-roi',a:'🐱',b:'*',lines:[[0,'Huhu, tớ làm rơi cái kẹo rồi...'],[1,'Đừng khóc mà, {A} ơi!'],[0,'Hức... kẹo của tớ...'],[1,'Tớ chia cậu nửa cái nè.'],[0,'{B} là bạn tốt nhất luôn! ✨']]},
+{id:'so-bong',a:'🐱',b:'*',lines:[[0,'{B} ơi, đằng sau có con gì kìa...'],[1,'Đâu?'],[0,'Hu... à, là cái bóng của tớ.'],[1,'Cậu sợ cả bóng mình à?'],[0,'Bóng tớ to hơn tớ mà 🥺']]},
+{id:'om-di',a:'🐱',b:'*',lines:[[0,'Ôm tớ đi mà...'],[1,'Hả?'],[0,'Một cái thôi, chỉ một cái.'],[1,'Rồi rồi... đây.'],[0,'Hihi, thêm một cái nữa nhé?']]},
+/* Usagi 🐰: tinh nghịch */
+{id:'usagi-chay',a:'🐰',b:'*',lines:[[0,'{B} ơi, tớ vừa chạy một vòng cả màn hình!'],[1,'Giỏi thế.'],[0,'Chạy thêm vòng nữa nha, yaha!'],[1,'Cậu có biết mệt không?'],[0,'Không! Mà... mệt rồi 😮‍💨']]},
+{id:'nham-mat',a:'🐰',b:'*',lines:[[0,'{B}, nhắm mắt lại đi.'],[1,'Làm gì?'],[0,'Nhắm đi, tớ có quà.'],[1,'...Quà đâu?'],[0,'Hihi, tớ lừa cậu nhắm mắt thôi!'],[1,'Trời ơi {A}! 😤']]},
+/* Mập 🐶: tham ăn, ngố */
+{id:'doi-bung',a:'🐶',b:'*',lines:[[0,'Tớ đói...'],[1,'Cậu mới ăn xong mà?'],[0,'Đó là bữa trước!'],[1,'Bữa trước là 5 phút trước đó.'],[0,'Thì vẫn là "trước" mà 🥺']]},
+{id:'mui-thom',a:'🐶',b:'*',lines:[[0,'Tớ ngửi thấy mùi gì thơm thơm...'],[1,'Có gì đâu.'],[0,'Có đó, đằng kia! Chạy thôi!'],[1,'Đó là cái bóng đèn mà...'],[0,'Nhưng thơm mà 😢']]},
+{id:'canh-gac',a:'🐶',b:'*',lines:[[0,'Tớ canh cho {B} nè.'],[1,'Canh gì?'],[0,'Canh mọi thứ!'],[1,'Cảm ơn nhé.'],[0,'Mà canh giùm tớ cái bánh kia được không?']]},
+/* Hamster 🐹: nhát, hay giấu hạt */
+{id:'mat-hat',a:'🐹',b:'*',lines:[[0,'{B} ơi, cậu thấy hạt của tớ đâu không?'],[1,'Hạt nào?'],[0,'Hạt tớ giấu... mà quên giấu ở đâu rồi.'],[1,'Vậy sao biết nó mất?'],[0,'Linh cảm của hamster! 🐹']]},
+{id:'xe-100km',a:'🐹',b:'*',lines:[[0,'Tớ vừa chạy 100 km trên bánh xe!'],[1,'Giỏi quá, giờ đến đâu rồi?'],[0,'...Vẫn ở đây.'],[1,'Ha ha ha.'],[0,'Nhưng tớ khoẻ lên rồi nhé! 💪']]},
+/* Luna 🦭: điềm tĩnh, hay triết lý, lười */
+{id:'luna-triet',a:'🦭',b:'*',lines:[[0,'Hôm nay tớ nghĩ ra một triết lý.'],[1,'Gì vậy {A}?'],[0,'Ăn trước, buồn sau.'],[1,'Nghe sâu sắc quá...'],[0,'Tớ biết mà 😎']]},
+{id:'luna-nam',a:'🦭',b:'*',lines:[[0,'Hôm nay tớ định làm một việc.'],[1,'Việc gì?'],[0,'Nằm.'],[1,'Rồi sao nữa?'],[0,'Nằm tiếp 😌'],[1,'Cậu sống hay thật.']]},
+
+/* ---------- THEO CẶP LOÀI ---------- */
+{id:'hat-gau',a:'🐶',b:'🐹',lines:[[0,'{B} ơi, cậu giấu gì trong má đấy?'],[1,'K-không có gì đâu... 😳'],[0,'Tớ ngửi thấy mùi hạt dẻ rồi nha!'],[1,'Đây là hạt dự phòng! Của tớ!'],[0,'Chia tớ một hạt thôi mà 🥺'],[1,'...Một hạt thôi đó.']]},
+{id:'usagi-mach',a:'🐰',b:'🐶',lines:[[0,'{B} ơi, tớ biết bí mật của cậu rồi nha 🤫'],[1,'Bí mật gì cơ?'],[0,'Tối qua cậu ăn vụng cái bánh!'],[1,'Không phải tớ! Là... là gió ăn!'],[0,'Gió làm gì có miệng! Tớ mách đó!'],[1,'Đừng mà, tớ cho cậu nửa cái 😭']]},
+{id:'be-bep',a:'🐶',b:'🐱',lines:[[0,'{B} ơi, tớ ngồi lên cậu được không?'],[1,'Không được! Tớ bẹp mất!'],[0,'Tớ nhẹ lắm mà!'],[1,'Hức... cậu nặng bằng cả cái tủ lạnh!'],[0,'Hừ, tớ buồn rồi đó.'],[1,'Thôi được... ngồi cạnh thôi nha 💗']]},
+{id:'xe-quay',a:'🐹',b:'🐰',lines:[[0,'{B} ơi, thử chạy bánh xe với tớ không?'],[1,'Được chứ! Ai nhanh hơn?'],[0,'Tớ chứ ai! Tớ là chuyên gia mà!'],[1,'Ơ... sao cậu chạy mà không tiến lên?'],[0,'Đó là bí quyết của tớ 🐹💨']]},
+{id:'luna-ca',a:'🦭',b:'🐹',lines:[[1,'{A} ơi, cậu có sợ gì không?'],[0,'Có chứ. Sợ nhất là hết cá.'],[1,'Tớ thì sợ hết hạt...'],[0,'Vậy chúng ta cùng một phe rồi.'],[1,'Cùng một phe! 🤝']]},
+{id:'doi-ca',a:'🐶',b:'🦭',lines:[[0,'{B} ơi, cậu có cá không?'],[1,'Có.'],[0,'Cho tớ xin với!'],[1,'Không cho.'],[0,'Hu hu hu...'],[1,'Đùa thôi. Chia nửa nhé.']]},
+{id:'cung-nhat',a:'🐹',b:'🐱',lines:[[0,'{B} ơi, tớ sợ lắm.'],[1,'Tớ cũng sợ.'],[0,'Vậy mình đứng cạnh nhau nhé?'],[1,'Ừ... nhưng cậu đứng trước đi.'],[0,'Không, cậu đứng trước đi!'],[1,'Hay là mình cùng chạy? 😨']]},
+{id:'doa-chikawa',a:'🐰',b:'🐱',lines:[[0,'{B} ơi, đằng sau cậu có con gì kìa!'],[1,'Hả?! Huhu!'],[0,'Đùa thôi mà!'],[1,'{A} xấu quá!'],[0,'Hì, xin lỗi, tặng cậu cái kẹo nè 🍬'],[1,'...Tha cho lần này.']]},
+{id:'thi-ngu',a:'🐰',b:'🦭',lines:[[0,'{B} ơi, thi xem ai ngủ lâu hơn không?'],[1,'Tớ thắng chắc.'],[0,'Sao cậu chắc vậy?'],[1,'Vì tớ nằm sẵn rồi.'],[0,'Không công bằng! Cậu gian lận! 😤']]},
+{id:'cheo-ban',a:'🦭',b:'🐱',lines:[[0,'{B} ơi, cậu sợ gì nhất?'],[1,'Sợ... hết bánh.'],[0,'Chuyện nhỏ. Tớ sợ nhất là hết ngủ.'],[1,'Cậu ngủ hoài mà?'],[0,'Mới sợ chứ chưa hết 😌']]},
+
+/* ---------- HAI PET CÙNG LOÀI (hay gặp khi nhóm chỉ chọn vài loài) ---------- */
+{id:'chikawa-khoc-theo',a:'🐱',b:'🐱',same:true,lines:[[0,'Huhu...'],[1,'Sao cậu khóc?'],[0,'Tớ thấy {B} khóc nên khóc theo.'],[1,'Tớ có khóc đâu!'],[0,'Vậy tớ khóc nhầm rồi... huhu 🥺'],[1,'Thôi nín đi, ôm nè 🤗']]},
+{id:'chikawa-bong-bong',a:'🐱',b:'🐱',same:true,lines:[[0,'Hai đứa mình ôm nhau cho ấm đi.'],[1,'Ừ, cậu mềm ghê.'],[0,'Cậu cũng vậy!'],[1,'Hai cục bông ôm nhau, chẳng ai thấy gì nữa.'],[0,'Ấm quá... 💗']]},
+{id:'usagi-nhay-cao',a:'🐰',b:'🐰',same:true,lines:[[0,'{B} ơi, thi nhảy cao không?'],[1,'Được! Tớ nhảy cao hơn cậu.'],[0,'Không, tớ cao hơn!'],[1,'Hai đứa cùng nhảy! 1, 2, 3!'],[0,'Ngang nhau... hoà nhé!'],[1,'Hoà! Mà tớ vẫn cao hơn một chút 😏']]},
+{id:'usagi-mua-mim',a:'🐰',b:'🐰',same:true,lines:[[0,'Tớ vừa nghĩ ra một chuyện lớn.'],[1,'Chuyện gì?'],[0,'Tìm xem hôm nay ai chưa ăn.'],[1,'Rồi sao?'],[0,'Rồi... tụi mình ăn giùm! Yaha!'],[1,'Kế hoạch hay nhất từ trước đến giờ 🐰']]},
+{id:'map-chia-banh',a:'🐶',b:'🐶',same:true,lines:[[0,'Có một cái bánh, hai đứa mình chia đôi nhé?'],[1,'Chia đôi! Nửa nào?'],[0,'Nửa to.'],[1,'Tớ cũng muốn nửa to!'],[0,'Vậy... cho cậu cả cái, tớ nhìn thôi 🥺'],[1,'Hả? Ừm... thôi chia đôi thật đi.']]},
+{id:'map-an-vung',a:'🐶',b:'🐶',same:true,lines:[[0,'{B}, người cậu có mùi bánh.'],[1,'Cậu cũng thế!'],[0,'Hai đứa mình đều ăn vụng!'],[1,'Suỵt! Đừng nói chủ nghe.'],[0,'Giao ước nhé, cái bánh sau chia đôi 🤝']]},
+{id:'hamster-kho-hat',a:'🐹',b:'🐹',same:true,lines:[[0,'{B}, cậu giấu hạt ở đâu thế?'],[1,'Không nói đâu!'],[0,'Tớ cũng giấu ở chỗ cậu giấu.'],[1,'Hả? Đó là chỗ của tớ!'],[0,'Ủa, vậy hạt trong đó là của ai?'],[1,'...Của cả hai đứa. Chia đôi nhé.']]},
+{id:'hamster-xe-doi',a:'🐹',b:'🐹',same:true,lines:[[0,'Tớ chạy bên trái nhé.'],[1,'Tớ chạy bên phải.'],[0,'Ủa, cái xe quay ngược rồi?'],[1,'Tại tụi mình chạy ngược nhau!'],[0,'Đổi chiều đi! Một, hai, ba!'],[1,'Á, ngã! 🐹💨']]},
+{id:'luna-nam-doi',a:'🦭',b:'🦭',same:true,lines:[[0,'{B} cũng nằm à?'],[1,'Ừ.'],[0,'Vậy nằm cạnh nhau cho vui.'],[1,'Im lặng cũng là một dạng vui.'],[0,'Cậu hiểu tớ ghê 😌']]},
+{id:'luna-triet-doi',a:'🦭',b:'🦭',same:true,lines:[[0,'Tớ nghĩ: ăn trước, buồn sau.'],[1,'Tớ thì nghĩ: ngủ trước, buồn... mai.'],[0,'Triết lý hay đó.'],[1,'Cảm ơn, tớ nghĩ ra lúc đang nằm.'],[0,'Tụi mình nên mở lớp triết 😎']]},
+
+/* ---------- CÃI NHAU / ĐÁNH NHAU HOẠT HÌNH (cuối cảnh luôn làm hoà) ---------- */
+{id:'cai-banh',a:'*',b:'*',lines:[[0,'Cái bánh này của tớ!'],[1,'Tớ thấy trước mà!'],[0,'Tớ ngửi thấy trước!'],[1,'Ngửi thì không tính!'],[0,'Vậy tớ ăn trước, tính sau!'],[1,'Á! Trả đây! 😤'],[0,'...Hết bánh rồi.'],[1,'Tại cậu hết! 😭']]},
+{id:'ai-be-hon',a:'*',b:'*',lines:[[0,'Cậu nhỏ xíu à.'],[1,'Tớ to hơn cậu!'],[0,'Đứng lại gần coi nào.'],[1,'Đứng thì đứng!'],[0,'Bằng nhau mà.'],[1,'Do cậu kiễng chân!'],[0,'Tớ không kiễng! 😠']]},
+{id:'gianh-cho',a:'*',b:'*',lines:[[0,'Chỗ này của tớ!'],[1,'Tớ tới trước!'],[0,'Tớ ngồi đây từ sáng.'],[1,'Chỗ này có ghi tên cậu à?'],[0,'...Chưa. Tớ sẽ viết liền!'],[1,'Viết đi, tớ chờ 😏']]},
+{id:'danh-bong',a:'*',b:'*',lines:[[0,'Đấu tay đôi nào! Bốp!'],[1,'Á! Chơi xấu!'],[0,'Có luật gì đâu!'],[1,'Bốp! Trả đũa nè!'],[0,'Ui da... hoà nhé?'],[1,'Hoà! Đau quá 😵']]},
+{id:'tranh-chu',a:'*',b:'*',lines:[[0,'Chủ tớ online lâu hơn chủ cậu!'],[1,'Chủ tớ trực cả đêm cơ!'],[0,'Chủ tớ nhắn nhiều hơn!'],[1,'Nhắn toàn "ok" thì tính gì!'],[0,'Ok cũng là một câu trả lời!'],[1,'...Thôi, chủ nào cũng được. Hoà.']]},
+{id:'nhin-gi',a:'*',b:'*',lines:[[0,'Cậu nhìn tớ kiểu gì đó.'],[1,'Tớ nhìn bình thường mà!'],[0,'Bình thường mà sao cười?'],[1,'Tại mặt cậu buồn cười!'],[0,'Cậu mới buồn cười!'],[1,'Thôi... cả hai đều buồn cười 😂']]},
+{id:'tai-ai',a:'*',b:'*',lines:[[0,'Tại cậu hết!'],[1,'Tại cậu chứ!'],[0,'Tại cậu đã bảo tớ!'],[1,'Tại tớ bảo vì cậu hỏi!'],[0,'...Chắc tại cái bánh.'],[1,'Đúng! Tại cái bánh! 🍰']]},
+{id:'doa-mach',a:'*',b:'*',lines:[[0,'Tớ mách chủ đó!'],[1,'Mách đi, tớ cũng mách!'],[0,'Cậu mách gì?'],[1,'Mách cậu ăn vụng!'],[0,'...Cậu thắng. Chia bánh nhé.'],[1,'Thoả thuận! 🤝']]},
+{id:'hon-doi',a:'*',b:'*',lines:[[0,'Hừ, tớ giận cậu rồi.'],[1,'Giận đi.'],[0,'Tớ giận thật đó.'],[1,'Giận bao lâu?'],[0,'Đến khi cậu xin lỗi.'],[1,'Xin lỗi.'],[0,'Hả? Nhanh vậy?'],[1,'Tớ muốn cậu hết giận sớm mà 😂']]}
+];
+const FP_ENVY=['Tớ cũng đói rồi 🥺','Ơ, sao cậu ấy được ăn?','Chia tớ với!','Thơm quá đi...'];
+const FP_HELLO=['Chào cả nhà! 👋','Tớ đến rồi nè!','Ai nhớ tớ không?'];
+
+const FP_CSS=`.fpet{position:absolute;left:12px;top:80px;width:${FP_PET_SIZE}px;height:${FP_PET_SIZE}px;pointer-events:none;transition:left 6.8s cubic-bezier(.42,0,.22,1),top 6.8s cubic-bezier(.42,0,.22,1);filter:drop-shadow(0 7px 5px #17102b44);will-change:left,top}
+.fpet-body{display:block;width:100%;height:100%;font-size:40px;line-height:${FP_PET_SIZE}px;text-align:center;animation:fpetBob 2.4s ease-in-out infinite}
+.fpet-body svg{width:100%;height:100%;overflow:visible}
+.fpet.fwalk .fpet-body{animation:fpetWalk .5s ease-in-out infinite}
+.fpet-tag{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:-4px;font:700 9px Arial,sans-serif;color:#fff;background:rgba(80,40,70,.55);padding:1px 6px;border-radius:99px;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis}
+.fpet-bubble{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:max-content;max-width:min(180px,55vw);padding:7px 10px;border-radius:12px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:11px;font-weight:bold;line-height:1.35;text-align:center;z-index:3}
+.fpet-bubble:not([hidden]){display:block}
+.fpet-bubble:after{content:'';position:absolute;left:50%;top:100%;border:5px solid transparent;border-top-color:#fff;transform:translateX(-50%)}
+.fpet.fpop{animation:fpetPop .5s ease-out}
+.fpet.foff .fpet-body{opacity:.78;animation:none}
+@keyframes fpetBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes fpetWalk{0%,100%{transform:translateY(1px) rotate(-5deg)}50%{transform:translateY(-3px) rotate(5deg)}}
+@keyframes fpetPop{0%{transform:scale(.2);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.fpet-body{animation:none}}`;
+
+const fp={pets:new Map(),pub:{},lastScene:0,busy:false,started:false,recent:[],pubKey:'',firstScene:true};
+const fpM=(want,have)=>want==='*'||want===have;
+
+function fpOnlineUids(){
+ const p=(typeof presenceForMap!=='undefined'&&presenceForMap)||{};
+ return Object.keys(p).filter(uid=>Object.keys((p[uid]||{}).connections||{}).length&&fp.pub[uid]&&fp.pub[uid].petType).sort();
+}
+function fpIsOnline(uid){
+ if(user&&uid===user.uid)return true;
+ const p=(typeof presenceForMap!=='undefined'&&presenceForMap)||{};
+ return Object.keys((p[uid]||{}).connections||{}).length>0;
+}
+/* danh sách pet được hiển thị: TẤT CẢ pet đã có trong petPublic (online hay offline đều hiện) */
+function fpShownUids(){
+ if(!user)return[];
+ let others=Object.keys(fp.pub).filter(u=>u!==user.uid&&fp.pub[u]&&fp.pub[u].petType);
+ others.sort((a,b)=>(fpIsOnline(b)-fpIsOnline(a))||((Number(fp.pub[b].seen)||0)-(Number(fp.pub[a].seen)||0))||(a<b?-1:1));
+ others=others.slice(0,FP_MAX);
+ const me=(fp.pub[user.uid]&&fp.pub[user.uid].petType)?[user.uid]:[];
+ return me.concat(others).sort();
+}
+function fpEl(uid){return user&&uid===user.uid?$('aminoPet'):(fp.pets.get(uid)||{}).el||null}
+function fpBubble(el){return !el?null:(el.id==='aminoPet'?$('petBubble'):el.querySelector('.fpet-bubble'))}
+function fpSay(el,text,dur){
+ const b=fpBubble(el);if(!b)return;
+ b.textContent=text;b.hidden=false;
+ clearTimeout(b._fpT);b._fpT=setTimeout(()=>{b.hidden=true},dur||3000);
+}
+function fpRand(){
+ const s=$('petStage'),w=s.clientWidth,h=s.clientHeight,m=8;
+ return{x:m+Math.random()*Math.max(0,w-FP_PET_SIZE-2*m),y:64+Math.random()*Math.max(0,h-FP_PET_SIZE-64-m)};
+}
+function fpGo(el,x,y){
+ if(!el)return;
+ el.style.left=Math.round(x)+'px';el.style.top=Math.round(y)+'px';
+ if(el.id==='aminoPet'){el.style.right='auto';el.style.bottom='auto';el.classList.remove('pet-jumping','pet-happy','pet-sleeping');el.classList.add('pet-walking');setTimeout(()=>el.classList.remove('pet-walking'),FP_WALK_MS);}
+ else{el.classList.add('fwalk');clearTimeout(el._fpW);el._fpW=setTimeout(()=>el.classList.remove('fwalk'),FP_WALK_MS);}
+}
+function fpCreate(uid,pub,hello){
+ const el=document.createElement('div');
+ el.className='fpet fpop';el.setAttribute('aria-hidden','true');
+ el.innerHTML='<span class="fpet-bubble" hidden></span><span class="fpet-body"></span><span class="fpet-tag"></span>';
+ el.querySelector('.fpet-body').innerHTML=petPixelMarkup(pub.petType);
+ el.querySelector('.fpet-tag').textContent=pub.name||'';
+ $('petStage').appendChild(el);
+ const p=fpRand();el.style.left=Math.round(p.x)+'px';el.style.top=Math.round(p.y)+'px';
+ setTimeout(()=>el.classList.remove('fpop'),600);
+ if(hello)setTimeout(()=>fpSay(el,FP_HELLO[Math.floor(Math.random()*FP_HELLO.length)],2600),700);
+ return{el,type:pub.petType,on:true};
+}
+/* đồng bộ danh sách pet hiển thị theo petPublic (+ presence để biết ai online) */
+function fpSync(){
+ const stage=$('petStage');if(!stage||stage.hidden||!user||!fp.pubLoaded)return;
+ const want=fpShownUids().filter(u=>u!==user.uid);
+ if(!fp.firstSyncAt)fp.firstSyncAt=Date.now();
+ const quiet=Date.now()-fp.firstSyncAt<8000;   // 8 giây đầu không chào, tránh cả đàn chào cùng lúc
+ for(const[uid,o]of fp.pets){
+  const pub=fp.pub[uid];
+  if(!want.includes(uid)||!pub||pub.petType!==o.type){o.el.remove();fp.pets.delete(uid);}
+ }
+ want.forEach(uid=>{
+  const on=fpIsOnline(uid);
+  let o=fp.pets.get(uid);
+  if(!o){o=fpCreate(uid,fp.pub[uid],on&&!quiet);fp.pets.set(uid,o);}
+  else if(on&&!o.on&&!quiet)fpSay(o.el,FP_HELLO[Math.floor(Math.random()*FP_HELLO.length)],2600);
+  o.on=on;o.el.classList.toggle('foff',!on);
+  const tag=o.el.querySelector('.fpet-tag'),n=(fp.pub[uid].name||'')+(on?'':' 💤');
+  if(tag.textContent!==n)tag.textContent=n;
+ });
+}
+/* ghi thông tin công khai của pet mình (chỉ khi đổi loài / lần ăn) */
+function fpPublish(){
+ if(!user||!petData||!petData.petChosen||!petData.petType)return;
+ const nm=String(typeof displayName!=='undefined'&&displayName?displayName:'Khách').slice(0,30);
+ const key=petData.petType+'|'+(Number(petData.lastFedAt)||0)+'|'+nm;
+ if(key===fp.pubKey)return;fp.pubKey=key;
+ set(ref(db,'petPublic/'+user.uid),{petType:petData.petType,lastFedAt:Number(petData.lastFedAt)||0,name:nm,seen:Date.now()}).catch(()=>{fp.pubKey='';});
+}
+/* thỉnh thoảng đi dạo (chỉ trên màn hình mình, không cần đồng bộ) */
+function fpWander(){
+ if(fp.busy||document.hidden)return;
+ fp.pets.forEach(o=>{if(o.on&&Math.random()<.55){const p=fpRand();fpGo(o.el,p.x,p.y);}});
+}
+/* chọn cặp pet + kịch bản phù hợp loài */
+function fpPick(uids){
+ for(let tries=0;tries<14;tries++){
+  const i=Math.floor(Math.random()*uids.length);let j=Math.floor(Math.random()*(uids.length-1));if(j>=i)j++;
+  const u=[uids[i],uids[j]],t=[fp.pub[u[0]].petType,fp.pub[u[1]].petType];
+  const fits=(s,x,y)=>fpM(s.a,t[x])&&fpM(s.b,t[y])&&(!s.same||t[0]===t[1]);
+  let ok=FP_SCENES.filter(s=>!fp.recent.includes(s.id)&&(fits(s,0,1)||fits(s,1,0)));
+  if(!ok.length)continue;
+  const specific=ok.filter(s=>s.a!=='*'||s.b!=='*');
+  if(specific.length&&Math.random()<.7)ok=specific;
+  const s=ok[Math.floor(Math.random()*ok.length)],fwd=fits(s,0,1);
+  fp.recent.push(s.id);if(fp.recent.length>14)fp.recent.shift();
+  return{id:s.id,u0:fwd?u[0]:u[1],u1:fwd?u[1]:u[0]};
+ }
+ return null;
+}
+/* đến lượt mình thì thử đặt cảnh mới (transaction chống 2 người đặt cùng lúc) */
+function fpTick(){
+ if(!user||!petData||!petData.petChosen||document.hidden||fp.busy)return;
+ const online=fpOnlineUids();
+ if(!online.includes(user.uid))return;            // chỉ người đang online mới được đặt cảnh
+ const shown=fpShownUids();
+ if(shown.length<2)return;                         // cần ít nhất 2 pet (kể cả pet của người offline)
+ const rank=online.indexOf(user.uid);
+ if(Date.now()-fp.lastScene<FP_SCENE_GAP_MS+rank*6000)return;
+ const pair=fpPick(shown);if(!pair)return;
+ runTransaction(ref(db,'petScene/current'),cur=>{
+  if(cur&&Date.now()-(Number(cur.at)||0)<FP_SCENE_GAP_MS-5000)return;
+  return{s:pair.id,p0:pair.u0,p1:pair.u1,at:Date.now()};
+ }).catch(()=>{});
+}
+/* phát một cảnh trên màn hình mình */
+function fpPlay(id,u0,u1){
+ const S=FP_SCENES.find(x=>x.id===id);
+ if(!S||fp.busy||document.hidden)return;
+ const e0=fpEl(u0),e1=fpEl(u1),p0=fp.pub[u0],p1=fp.pub[u1];
+ if(!e0||!e1||!p0||!p1)return;
+ fp.busy=true;window.petSceneBusy=(u0===user.uid||u1===user.uid);
+ const st=$('petStage'),w=st.clientWidth,h=st.clientHeight;
+ const cx=Math.min(Math.max(70,Math.random()*w),Math.max(70,w-FP_PET_SIZE-70));
+ const cy=64+Math.random()*Math.max(0,h-FP_PET_SIZE-72);
+ fpGo(e0,cx-36,cy);fpGo(e1,cx+36,cy);
+ const sA=FP_NAME[p0.petType]||'Pet',sB=FP_NAME[p1.petType]||'Pet';
+ const nA=(p0.name||'').trim()||sA,nB=(p1.name||'').trim()||sB;
+ const fmt=t=>t.replace(/\{SA\}/g,sA).replace(/\{SB\}/g,sB).replace(/\{A\}/g,nA).replace(/\{B\}/g,nB);
+ let t=FP_WALK_MS+400;
+ S.lines.forEach(([who,txt])=>{
+  const line=fmt(txt),dur=1700+line.length*55,el=who?e1:e0;
+  setTimeout(()=>fpSay(el,line,dur),t);
+  t+=dur+350;
+ });
+ setTimeout(()=>{fp.busy=false;window.petSceneBusy=false;},t+800);
+}
+function fpInit(){
+ if(fp.started||!user||!db)return;fp.started=true;
+ const st=document.createElement('style');st.textContent=FP_CSS;document.head.appendChild(st);
+ onValue(ref(db,'petPublic'),snap=>{
+  const prev=fp.pub;fp.pub=snap.val()||{};fp.pubLoaded=true;
+  for(const uid in fp.pub){
+   if(uid===user.uid||!prev[uid])continue;
+   const a=Number(fp.pub[uid].lastFedAt)||0,b=Number(prev[uid].lastFedAt)||0;
+   if(a>b+1000&&!fp.busy){
+    fpSay(fpEl(uid),'Ngon quá đi! 😋',2600);
+    const others=[...fp.pets.keys()].filter(x=>x!==uid);
+    if(others.length)setTimeout(()=>fpSay(fpEl(others[Math.floor(Math.random()*others.length)]),FP_ENVY[Math.floor(Math.random()*FP_ENVY.length)],2800),1400);
+   }
+  }
+  fpSync();
+ });
+ onValue(ref(db,'petScene/current'),snap=>{
+  const v=snap.val();
+  if(fp.firstScene){fp.firstScene=false;if(v&&v.at)fp.lastScene=Math.min(Date.now(),Number(v.at));return;}
+  if(!v)return;
+  fp.lastScene=Date.now();
+  fpPlay(v.s,v.p0,v.p1);
+ });
+ fpPublish();
+ setInterval(fpPublish,5000);
+ setInterval(fpSync,4000);
+ setInterval(fpWander,14000);
+ setInterval(fpTick,10000);
+ setInterval(()=>{if(user&&fp.pubKey)update(ref(db,'petPublic/'+user.uid),{seen:Date.now()}).catch(()=>{});},10*60*1000);
+}
+/* ================= HẾT PET FRIENDS ================= */
 $('aminoPet').addEventListener('click',()=>{
 petSpeak(petIsHungry()?'Cậu ơi, tớ đói rồi... cho tớ ăn nhé 🥺':'Cậu ơi! Cậu bấm vào tớ rồi nè, hôm nay cậu thế nào? 💗');
 $('petPanel').hidden=false;
@@ -3192,7 +3480,7 @@ startMapListeners();
 startTypingSync();
 startMusicSync();
 startDiary();
-initPet().catch(e=>console.warn("Pet:",e));
+initPet().then(fpInit).catch(e=>console.warn("Pet:",e));
 const recent=query(
 ref(db,"publicChat/messages"),
 orderByChild("createdAt"),
