@@ -2475,12 +2475,29 @@ if(mapPhotoImageLoads[photoId])return mapPhotoImageLoads[photoId];
 mapPhotoImageLoads[photoId]=(async()=>{
 const snap=await get(ref(db,`mapPhotoImages/${photoId}/image`));
 const image=snap.val();
-if(typeof image!=="string"||!image.startsWith("data:image/"))throw new Error("Không tìm thấy dữ liệu ảnh.");
+if(typeof image!=="string"||!image.startsWith("data:image/")){const missing=new Error("Không tìm thấy dữ liệu ảnh.");missing.code="missing-image";throw missing;}
 mapPhotoImageCache[photoId]=image;
 return image;
 })();
 try{return await mapPhotoImageLoads[photoId];}
 finally{delete mapPhotoImageLoads[photoId];}
+}
+function offerRemoveBrokenMapPhoto(photoId,photo,info){
+const mine=!!(user&&photo&&photo.uid===user.uid);
+if(!mine){
+const note=document.createElement("div");note.style.marginTop="8px";
+note.textContent="Ảnh này bị lưu dở. Người đăng cần xoá ghim rồi đăng lại.";
+info.appendChild(note);return;
+}
+const btn=document.createElement("button");
+btn.type="button";btn.textContent="Xoá ghim lỗi này để đăng lại";
+btn.style.cssText="display:block;margin:10px auto 0;padding:7px 14px;border:0;border-radius:999px;cursor:pointer;font-weight:700";
+btn.addEventListener("click",async()=>{
+btn.disabled=true;
+try{await remove(ref(db,`mapPhotoMeta/${photoId}`));closeMapPhotoFullImage();}
+catch(error){btn.disabled=false;btn.textContent="Không xoá được: "+(error.message||error);}
+});
+info.appendChild(btn);
 }
 async function openMapPhotoFullImage(photoId){
 const photo=mapPhotosData[photoId];if(!photo)return;
@@ -2495,6 +2512,7 @@ imageEl.src=image;
 info.textContent=[photo.name||"Thành viên Amino",mapPhotoTime(photo.createdAt),`${Number(photo.lat).toFixed(5)}, ${Number(photo.lng).toFixed(5)}`,photo.caption||""].filter(Boolean).join(" · ");
 }catch(error){
 info.textContent="Không tải được ảnh: "+(error.message||error);
+if(error&&error.code==="missing-image")offerRemoveBrokenMapPhoto(photoId,photo,info);
 }
 }
 function closeMapPhotoFullImage(){
@@ -2564,9 +2582,10 @@ const createdAt=Date.now();
 const metadata={uid:user.uid,name:displayName,lat:position.lat,lng:position.lng,
 accuracy:position.accuracy,caption:$('mapPhotoCaption').value.trim(),createdAt};
 $('mapPhotoStatus').textContent='Đang lưu thông tin vị trí và ảnh lên Firebase...';
-await set(photoRef,metadata);
-try{await set(ref(db,`mapPhotoImages/${photoId}`),{uid:user.uid,image});}
-catch(imageError){await remove(photoRef);throw imageError;}
+await update(ref(db),{
+[`mapPhotoMeta/${photoId}`]:metadata,
+[`mapPhotoImages/${photoId}`]:{uid:user.uid,image}
+});
 if(aminoMap){aminoMap.setView([position.lat,position.lng],Math.max(aminoMap.getZoom(),16));}
 $('mapPhotoStatus').textContent='Đã lưu ảnh và ghim vị trí thành công!';
 modal.hidden=true;selectedMapPhotoFile=null;fileInput.value='';preview.hidden=true;preview.removeAttribute('src');
