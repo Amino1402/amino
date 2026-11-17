@@ -999,9 +999,12 @@ const old=oldEntry?.images;
 if(Array.isArray(old))images=old;
 else if(old&&typeof old==="object")images=Object.keys(old).sort((a,b)=>Number(a)-Number(b)).map(k=>old[k]);
 if(uid===user?.uid&&oldEntry){
+const hasIndex=(await get(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`))).exists();
+if(!hasIndex){
 const meta={uid,name:oldEntry.name||displayName,text:oldEntry.text||"",photoCount:images.length||Number(oldEntry.photoCount)||0,updatedAt:Number(oldEntry.updatedAt)||Date.now()};
 await set(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`),meta);
 publicDiaryData[uid]??={};publicDiaryData[uid][monthKey]??={};publicDiaryData[uid][monthKey][dateKey]=meta;
+}
 if(images.length)await migrateDiaryEntryImages(uid,dateKey,images);
 }
 }catch(error){console.warn("Không đọc được ảnh nhật ký cũ:",error);}
@@ -1019,8 +1022,10 @@ const verify=await get(imageRef);
 if(!verify.exists())throw new Error("Chưa xác minh được ảnh sau khi chuyển.");
 const legacySnap=await get(ref(db,`diary/${uid}/${monthKey}/${dateKey}`));
 const legacy=legacySnap.val()||{};
-const meta={uid,name:legacy.name||displayName,text:legacy.text||"",photoCount:images.length,updatedAt:legacy.updatedAt||Date.now()};
-await set(ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`),meta);
+const indexRef=ref(db,`diaryIndex/${uid}/${monthKey}/${dateKey}`);
+const existing=(await get(indexRef)).val();
+const meta={uid,name:existing?.name||legacy.name||displayName,text:existing?(existing.text||""):(legacy.text||""),photoCount:images.length,updatedAt:existing?.updatedAt||legacy.updatedAt||Date.now()};
+await set(indexRef,meta);
 await update(ref(db,`diary/${uid}/${monthKey}/${dateKey}`),{images:null,photoCount:images.length});
 await cacheDiaryImages(uid+"/"+dateKey,images);
 return true;
@@ -1030,6 +1035,7 @@ if(!user||!db)return;
 try{
 const snap=await get(ref(db,`diary/${user.uid}`));
 const months=snap.val()||{};
+const indexed=(await get(ref(db,`diaryIndex/${user.uid}`))).val()||{};
 for(const [monthKey,entries] of Object.entries(months)){
 for(const [dateKey,entry] of Object.entries(entries||{})){
 if(!entry)continue;
@@ -1037,7 +1043,7 @@ if(entry.images){
 const images=Array.isArray(entry.images)?entry.images:
 Object.keys(entry.images).sort((a,b)=>Number(a)-Number(b)).map(k=>entry.images[k]);
 if(images.length)await migrateDiaryEntryImages(user.uid,dateKey,images);
-}else{
+}else if(!indexed?.[monthKey]?.[dateKey]){
 const meta={uid:user.uid,name:entry.name||displayName,text:entry.text||"",photoCount:Number(entry.photoCount)||0,updatedAt:Number(entry.updatedAt)||Date.now()};
 await set(ref(db,`diaryIndex/${user.uid}/${monthKey}/${dateKey}`),meta);
 }
