@@ -129,7 +129,19 @@ d.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest(
 </script>
 
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<style id="aiStyle">#aiToggle{width:38px;height:38px;padding:0;font-size:19px;border-radius:50%;display:grid;place-items:center;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#aiPage{margin-top:10px;background:#fff;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}html[data-theme="rabbit"] #aiPage{background:#fff7fb;border:3px solid #ffb8d4;border-radius:28px;box-shadow:0 7px 0 #ffc0d9,0 18px 30px rgba(201,54,115,.16);margin-top:30px}#aiBack{width:38px;height:34px;padding:0;font-size:23px;line-height:1;border-radius:9px;display:inline-grid;place-items:center}#aiPage h2{color:#6750a4}html[data-theme="rabbit"] #aiPage h2{color:#c93673}#aiMessages{height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;border-radius:12px;padding:10px;margin:12px 0;display:flex;flex-direction:column;gap:8px;background:#fafafa}html[data-theme="rabbit"] #aiMessages{border:2px dashed #ffb8d4;background:#fff}.ai-msg{max-width:85%;padding:9px 12px;border-radius:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}.ai-user{align-self:flex-end;background:#6750a4;color:#fff;border-bottom-right-radius:4px}.ai-bot{align-self:flex-start;background:#f1eaff;color:#222;border-bottom-left-radius:4px}html[data-theme="rabbit"] .ai-user{background:#c93673}html[data-theme="rabbit"] .ai-bot{background:#ffe3ef;color:#6b2a4d}.ai-typing{opacity:.6;font-style:italic}#aiForm{display:flex;gap:8px}#aiInput{flex:1;width:100%}#aiAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#aiImgPreview{position:relative;display:inline-block;margin-bottom:8px}#aiImgPreview img{height:70px;border-radius:8px;display:block}#aiImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;line-height:22px}#aiClear{display:none!important}.ai-msg-head{font-size:11px;font-weight:700;margin-bottom:5px;opacity:.82}.ai-msg-time{float:right;font-size:10px;font-weight:400;opacity:.75}</style>
+<style id="aiStyle">#aiToggle{width:38px;height:38px;padding:0;font-size:19px;border-radius:50%;display:grid;place-items:center;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#aiPage{margin-top:10px;background:#fff;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}html[data-theme="rabbit"] #aiPage{background:#fff7fb;border:3px solid #ffb8d4;border-radius:28px;box-shadow:0 7px 0 #ffc0d9,0 18px 30px rgba(201,54,115,.16);margin-top:30px}#aiBack{width:38px;height:34px;padding:0;font-size:23px;line-height:1;border-radius:9px;display:inline-grid;place-items:center}#aiPage h2{color:#6750a4}html[data-theme="rabbit"] #aiPage h2{color:#c93673}#aiMessages{height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;border-radius:12px;padding:10px;margin:12px 0;display:flex;flex-direction:column;gap:8px;background:#fafafa}html[data-theme="rabbit"] #aiMessages{border:2px dashed #ffb8d4;background:#fff}.ai-msg{max-width:85%;padding:9px 12px;border-radius:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}.ai-user{align-self:flex-end;background:#6750a4;color:#fff;border-bottom-right-radius:4px}.ai-bot{align-self:flex-start;background:#f1eaff;color:#222;border-bottom-left-radius:4px}html[data-theme="rabbit"] .ai-user{background:#c93673}html[data-theme="rabbit"] .ai-bot{background:#ffe3ef;color:#6b2a4d}.ai-typing{opacity:.6;font-style:italic}#aiForm{display:flex;gap:8px}#aiInput{flex:1;width:100%}#aiAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#aiImgPreview{position:relative;display:inline-block;margin-bottom:8px}#aiImgPreview img{height:70px;border-radius:8px;display:block}#aiImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;line-height:22px}#aiClear{display:none!important}.ai-msg-head{font-size:11px;font-weight:700;margin-bottom:5px;opacity:.82}.ai-msg-time{float:right;font-size:10px;font-weight:400;opacity:.75}
+#mapSearchForm{display:flex;gap:8px;margin:10px 0 6px}
+#mapSearchInput{flex:1;width:100%}
+#mapSearchBtn{flex-shrink:0}
+#mapSearchResults{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px;max-height:240px;overflow-y:auto;overscroll-behavior:contain}
+#mapSearchResults[hidden]{display:none}
+.map-search-item{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:12px;background:var(--t5);color:#333;border:1px solid var(--t14);font-size:13px;line-height:1.4;box-shadow:none}
+.map-search-item strong{display:block;color:var(--t0);margin-bottom:2px}
+.map-search-empty{font-size:12px;color:#777;padding:8px 2px}
+.map-search-popup button{margin-top:6px;padding:7px 12px;font-size:12px;border-radius:999px}
+html[data-theme="galaxy"] .map-search-item{background:var(--gx-card);color:var(--gx-ink);border-color:var(--gx-edge)}
+html[data-theme="galaxy"] .map-search-empty{color:var(--gx-dim)}
+</style>
 <style id="aboutStyle">#menuBtn{position:fixed;right:62px;top:14px;z-index:10040;width:42px;height:42px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:22px;line-height:1;cursor:pointer;background:rgba(255,255,255,.92);color:var(--t0);border:1px solid #cfd6e4;box-shadow:0 3px 10px #0002;-webkit-tap-highlight-color:transparent}html[data-theme="rabbit"] #menuBtn{border:2px solid #ff9cc6;box-shadow:0 3px 0 #ffc0d9}#menuPanel{position:fixed;right:62px;top:64px;z-index:10050;min-width:220px;padding:8px;border-radius:14px;background:#fff;border:1px solid var(--t4);box-shadow:0 8px 26px #0003;display:grid;gap:6px}#menuPanel[hidden]{display:none}#menuPanel button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;background:var(--t5);color:var(--t0);border:0;font-size:14px;font-weight:600;cursor:pointer}#menuPanel #menuFx{display:flex;justify-content:space-between;align-items:center}#fxList{display:grid;gap:6px;margin-left:6px;padding-left:8px;border-left:3px solid var(--t4)}#fxList[hidden]{display:none}#menuPanel button.fx-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid var(--t4)}.fx-state{font-size:12px;padding:2px 9px;border-radius:999px;background:#e4e4ea;color:#666}#menuPanel button.fx-row[aria-pressed="true"] .fx-state{background:var(--t0);color:#fff}@media(max-width:600px){#menuBtn{right:54px;top:10px;width:38px;height:38px;font-size:20px}#menuPanel{right:54px;top:56px}}#aboutModal{position:fixed;inset:0;z-index:10060;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px}#aboutModal[hidden]{display:none}#aboutCard{position:relative;width:100%;max-width:480px;max-height:88vh;overflow:auto;background:#fff;color:#333;border-radius:16px;padding:20px 18px 18px;box-shadow:0 10px 34px #0004;border:1px solid var(--t4)}#aboutCard h2{margin:0 36px 4px 0;font-size:19px;color:var(--t0)}#aboutCard .about-sub{margin:0 0 12px;font-size:13px;color:#666}#aboutCard ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}#aboutCard li{font-weight:500;padding:9px 11px;border-radius:10px;background:var(--t5);font-size:14px;line-height:1.5;overflow-wrap:anywhere}#aboutCard li b{color:var(--t0)}#aboutCard code{background:#fff;padding:1px 5px;border-radius:5px;font-size:12px}#aboutClose{position:absolute;right:10px;top:10px;width:32px;height:32px;padding:0;border-radius:50%;font-size:20px;line-height:1;display:grid;place-items:center}</style>
 
 <style id="hskStyle">
@@ -405,6 +417,11 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   <button id="mapBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
   <h2>🗺️ Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
+  <form id="mapSearchForm" autocomplete="off">
+    <input id="mapSearchInput" type="search" maxlength="120" placeholder="🔍 Tìm địa điểm, địa chỉ..." required>
+    <button id="mapSearchBtn" type="submit">Tìm</button>
+  </form>
+  <div id="mapSearchResults" hidden></div>
   <div id="routeToolbar" aria-label="Dẫn đường">
     <div id="routeHint" aria-live="polite">Nhấn giữ một điểm trên bản đồ để chọn điểm đến và xem đường đi.</div>
     <div id="routeButtons">
@@ -3031,9 +3048,120 @@ function setupHskControls(){
  $("hskQuizNext").addEventListener("click",nextHskQuiz);
 }
 
+/* ================= TÌM KIẾM ĐỊA ĐIỂM TRÊN BẢN ĐỒ ================= */
+let mapSearchMarker=null,mapSearchBusy=false,mapSearchReady=false;
+function clearMapSearchMarker(){
+if(mapSearchMarker&&aminoMap)aminoMap.removeLayer(mapSearchMarker);
+mapSearchMarker=null;
+}
+function showMapSearchPlace(place){
+ensureAminoMap();
+if(!aminoMap)return;
+const lat=Number(place.lat),lng=Number(place.lon);
+if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
+clearMapSearchMarker();
+const popup=document.createElement("div");
+popup.className="map-search-popup";
+const title=document.createElement("div");
+title.className="map-popup-name";
+title.textContent=place.display_name||"Địa điểm";
+const go=document.createElement("button");
+go.type="button";
+go.textContent="🛵 Chỉ đường tới đây";
+go.addEventListener("click",()=>{
+aminoMap.closePopup();
+setRouteDestination({lat,lng});
+});
+popup.append(title,go);
+mapSearchMarker=L.marker([lat,lng],{
+icon:L.divIcon({className:"",html:'<div class="route-destination-marker">🔎</div>',iconSize:[34,38],iconAnchor:[17,35]})
+}).addTo(aminoMap).bindPopup(popup);
+const bb=Array.isArray(place.boundingbox)?place.boundingbox.map(Number):[];
+if(bb.length===4&&bb.every(Number.isFinite)&&(Math.abs(bb[1]-bb[0])>0.0005||Math.abs(bb[3]-bb[2])>0.0005)){
+aminoMap.fitBounds([[bb[0],bb[2]],[bb[1],bb[3]]],{padding:[30,30],maxZoom:17});
+}else{
+aminoMap.setView([lat,lng],17);
+}
+mapSearchMarker.openPopup();
+}
+function renderMapSearchResults(items){
+const box=$("mapSearchResults");
+box.replaceChildren();
+box.hidden=false;
+if(!items.length){
+const empty=document.createElement("div");
+empty.className="map-search-empty";
+empty.textContent="Không tìm thấy địa điểm phù hợp. Thử từ khóa khác nhé.";
+box.append(empty);
+return;
+}
+for(const place of items){
+const parts=String(place.display_name||"").split(",");
+const btn=document.createElement("button");
+btn.type="button";
+btn.className="map-search-item";
+const name=document.createElement("strong");
+name.textContent=place.name||parts[0]||"Địa điểm";
+const addr=document.createElement("span");
+addr.textContent=place.display_name||"";
+btn.append(name,addr);
+btn.addEventListener("click",()=>{
+showMapSearchPlace(place);
+box.hidden=true;
+});
+box.append(btn);
+}
+}
+async function searchMapPlaces(term){
+if(mapSearchBusy)return;
+mapSearchBusy=true;
+const btn=$("mapSearchBtn");
+btn.disabled=true;
+btn.textContent="Đang tìm...";
+try{
+const params=new URLSearchParams({
+format:"jsonv2",q:term,limit:"6",addressdetails:"0","accept-language":"vi"
+});
+const response=await fetch("https://nominatim.openstreetmap.org/search?"+params.toString());
+if(!response.ok)throw new Error("HTTP "+response.status);
+const data=await response.json();
+renderMapSearchResults(Array.isArray(data)?data:[]);
+if(Array.isArray(data)&&data.length===1){
+showMapSearchPlace(data[0]);
+$("mapSearchResults").hidden=true;
+}
+}catch(error){
+console.warn("Tìm địa điểm lỗi:",error);
+const box=$("mapSearchResults");
+box.replaceChildren();
+box.hidden=false;
+const err=document.createElement("div");
+err.className="map-search-empty";
+err.textContent="Không tìm được lúc này: "+(error.message||error)+". Kiểm tra mạng rồi thử lại.";
+box.append(err);
+}finally{
+mapSearchBusy=false;
+btn.disabled=false;
+btn.textContent="Tìm";
+}
+}
+function setupMapSearch(){
+if(mapSearchReady)return;
+mapSearchReady=true;
+$("mapSearchForm")?.addEventListener("submit",event=>{
+event.preventDefault();
+const term=$("mapSearchInput").value.trim();
+if(term)searchMapPlaces(term);
+});
+$("mapSearchInput")?.addEventListener("input",()=>{
+if(!$("mapSearchInput").value.trim())$("mapSearchResults").hidden=true;
+});
+}
+/* ================= HẾT TÌM KIẾM ĐỊA ĐIỂM ================= */
 function setupMapControls(){
 setupMotorbikeRouteControls();
 setupMapPhotoControls();
+setupMapSearch();
 const mapToggle=$("mapToggle");
 const mapBack=$("mapBack");
 if(mapToggle){
