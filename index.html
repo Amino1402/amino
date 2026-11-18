@@ -3112,6 +3112,32 @@ box.hidden=true;
 box.append(btn);
 }
 }
+async function fetchJsonTimeout(url,ms){
+const ctrl=new AbortController();
+const timer=setTimeout(()=>ctrl.abort(),ms);
+try{
+const response=await fetch(url,{signal:ctrl.signal});
+if(!response.ok)throw new Error("HTTP "+response.status);
+return await response.json();
+}finally{clearTimeout(timer);}
+}
+async function searchNominatim(term){
+const params=new URLSearchParams({format:"jsonv2",q:term,limit:"6",addressdetails:"0","accept-language":"vi"});
+const data=await fetchJsonTimeout("https://nominatim.openstreetmap.org/search?"+params.toString(),8000);
+return Array.isArray(data)?data:[];
+}
+async function searchPhoton(term){
+const params=new URLSearchParams({q:term,limit:"6"});
+if(aminoMap){const c=aminoMap.getCenter();params.set("lat",String(c.lat));params.set("lon",String(c.lng));}
+const data=await fetchJsonTimeout("https://photon.komoot.io/api/?"+params.toString(),10000);
+return (data.features||[]).map(f=>{
+const pr=f.properties||{},co=f.geometry?.coordinates||[];
+const label=[pr.name,pr.housenumber&&pr.street?pr.street+" "+pr.housenumber:pr.street,pr.district,pr.city,pr.state,pr.country].filter(Boolean).join(", ");
+const ex=pr.extent;
+return {name:pr.name,display_name:label||"Địa điểm",lat:co[1],lon:co[0],
+boundingbox:Array.isArray(ex)&&ex.length===4?[ex[3],ex[1],ex[0],ex[2]]:null};
+}).filter(x=>Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lon)));
+}
 async function searchMapPlaces(term){
 if(mapSearchBusy)return;
 mapSearchBusy=true;
@@ -3119,25 +3145,24 @@ const btn=$("mapSearchBtn");
 btn.disabled=true;
 btn.textContent="Đang tìm...";
 try{
-const params=new URLSearchParams({
-format:"jsonv2",q:term,limit:"6",addressdetails:"0","accept-language":"vi"
-});
-const response=await fetch("https://nominatim.openstreetmap.org/search?"+params.toString());
-if(!response.ok)throw new Error("HTTP "+response.status);
-const data=await response.json();
-renderMapSearchResults(Array.isArray(data)?data:[]);
-if(Array.isArray(data)&&data.length===1){
+let data=null,lastError=null;
+for(const provider of [searchNominatim,searchPhoton]){
+try{data=await provider(term);break;}
+catch(error){lastError=error;console.warn("Nguồn tìm kiếm lỗi:",provider.name,error);}
+}
+if(data===null)throw lastError||new Error("Không kết nối được");
+renderMapSearchResults(data);
+if(data.length===1){
 showMapSearchPlace(data[0]);
 $("mapSearchResults").hidden=true;
 }
 }catch(error){
-console.warn("Tìm địa điểm lỗi:",error);
 const box=$("mapSearchResults");
 box.replaceChildren();
 box.hidden=false;
 const err=document.createElement("div");
 err.className="map-search-empty";
-err.textContent="Không tìm được lúc này: "+(error.message||error)+". Kiểm tra mạng rồi thử lại.";
+err.textContent="Không tìm được lúc này ("+(error.message||error)+"). Hãy tắt VPN/chặn quảng cáo hoặc đổi mạng rồi thử lại.";
 box.append(err);
 }finally{
 mapSearchBusy=false;
