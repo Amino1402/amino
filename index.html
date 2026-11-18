@@ -2086,6 +2086,64 @@ activeTileLayer.on("load",()=>{tileErrors=0;});
 showTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
 maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
+/* ---- Chuyển giữa bản đồ đường phố và ảnh vệ tinh (Esri World Imagery) ---- */
+const satImagery=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{
+maxZoom:19,maxNativeZoom:18,zIndex:1,
+attribution:'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+const satLabels=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{
+maxZoom:19,maxNativeZoom:18,zIndex:2,attribution:'Labels &copy; Esri'
+});
+const satelliteLayer=L.layerGroup([satImagery,satLabels]);
+let satelliteOn=false,satBtn=null,satErrors=0;
+function updateSatBtn(){
+if(!satBtn)return;
+satBtn.textContent=satelliteOn?"🗺️ Bản đồ":"🛰️ Vệ tinh";
+satBtn.setAttribute("aria-pressed",String(satelliteOn));
+satBtn.title=satelliteOn?"Quay lại bản đồ đường phố":"Xem ảnh vệ tinh";
+}
+function setSatellite(on,save){
+if(on===satelliteOn)return;
+satelliteOn=on;
+if(on){
+if(activeTileLayer&&aminoMap.hasLayer(activeTileLayer))aminoMap.removeLayer(activeTileLayer);
+satelliteLayer.addTo(aminoMap);
+}else{
+aminoMap.removeLayer(satelliteLayer);
+if(activeTileLayer)activeTileLayer.addTo(aminoMap);
+else showTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'});
+}
+updateSatBtn();
+if(save){try{localStorage.setItem("aminoMapSatellite",on?"1":"0");}catch(_){}}
+}
+satImagery.on("tileerror",()=>{
+satErrors++;
+if(satErrors>=6&&satelliteOn){
+satErrors=0;
+$("mapStatus").textContent="Không tải được ảnh vệ tinh, đã quay lại bản đồ thường.";
+setSatellite(false,false);
+}
+});
+satImagery.on("load",()=>{satErrors=0;});
+const satControl=L.control({position:"topright"});
+satControl.onAdd=()=>{
+const box=document.createElement("div");
+box.className="leaflet-bar";
+const btn=document.createElement("button");
+btn.type="button";
+btn.style.cssText="display:block;padding:8px 12px;border:0;border-radius:4px;background:#fff;color:#6750a4;font:700 13px system-ui,sans-serif;cursor:pointer;white-space:nowrap";
+btn.addEventListener("click",()=>setSatellite(!satelliteOn,true));
+L.DomEvent.disableClickPropagation(box);
+L.DomEvent.on(box,"pointerdown",L.DomEvent.stopPropagation);
+satBtn=btn;
+box.appendChild(btn);
+updateSatBtn();
+return box;
+};
+satControl.addTo(aminoMap);
+let wantSatellite=true;
+try{wantSatellite=localStorage.getItem("aminoMapSatellite")!=="0";}catch(_){}
+if(wantSatellite)setSatellite(true,false);
 const mapElement=aminoMap.getContainer();
 let holdTimer=null,holdStart=null,holdTriggered=false;
 const cancelHold=()=>{if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}holdStart=null;};
