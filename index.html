@@ -71,7 +71,7 @@ html[data-theme="galaxy"] :is(input,textarea):focus{outline:none;border-color:#d
 html[data-theme="galaxy"] ::placeholder{color:#8580bd}
 :where(html[data-theme="galaxy"]) button{background:linear-gradient(180deg,#7b5cff,#4a30c4);color:#fff;border:1px solid rgba(215,205,255,.45);box-shadow:0 0 12px rgba(123,92,255,.45)}
 html[data-theme="galaxy"] button:focus-visible{outline:2px solid #fff;outline-offset:2px}
-html[data-theme="galaxy"] #passwordError,html[data-theme="galaxy"] #musicError{color:#ff9aa8}
+html[data-theme="galaxy"] #musicError{color:#ff9aa8}
 html[data-theme="galaxy"] :where(#status,#chatStatus,.song-channel,.hint,#onlineEmpty,.diary-weekdays,.entry-time,#diarySaveStatus,#mapMembersSummary,.map-member-status,.map-photo-card small,.map-photo-empty,#mapMeetingSummary,.map-meeting-muted,.map-meeting-empty,.pet-small,#aboutCard .about-sub,.message-time,.system-time,.amino-toast-time,.wx-hour small,.wx-day small,#wxUpdated){color:var(--gx-dim)}
 html[data-theme="galaxy"] :where(.sender,.online-heading,.music-heading,#typingIndicator,#syncStatus,.diary-page-title){color:var(--gx-hi)}
 html[data-theme="galaxy"] .typing-draft{color:var(--gx-ink)}
@@ -213,7 +213,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 <ul>
 <li><b>Phòng chat chung:</b> nhắn tin với mọi người, thấy ai đang online, ai đang gõ, và có thông báo hệ thống khi ai đó vào hoặc ra.</li>
 <li><b>Luna 🦭:</b> bot AI, nhắn riêng được, gửi cả ảnh để Luna mô tả. Mỗi người một phòng riêng, mọi nười không thể xem được tin nhắn của người khác với Luna.</li>
-<li><b>Nhật ký:</b> mỗi ngày một bài kèm ảnh, xem theo lịch tháng, không thể sửa đổi khi kết thúc ngày. À cứ cho là amino ngốc nên để lộ mọi thứ đi. password mink để luôn ở html nên ai cũng xem đc. Ctrl+U, Ctrl+F, gõ password, tìm đến dòng này (chatPassword").value!==, Vì public mà đây là mục riêng tư nên Uid được cấp quyền (diaryAccess) mới vào xem được.</li>
+<li><b>Nhật ký:</b> mỗi ngày một bài kèm ảnh, xem theo lịch tháng, không thể sửa đổi khi kết thúc ngày, đây là mục riêng tư nên Uid được cấp quyền (diaryAccess) mới vào xem được.</li>
 <li><b>Bản đồ:</b> chia sẻ vị trí thật với nhau, chỉ đường, hẹn gặp, ghim ảnh lên bản đồ.</li>
 <li><b>Góc học HSK:</b> học từ vựng tiếng Trung bằng flashcard, nghe phát âm, làm trắc nghiệm và đồng bộ tiến độ theo tài khoản Amino.</li>
 <li><b>Nguồn dữ liệu HSK:</b> Danh sách HSK 3.0: HearMandarin. Nghĩa tiếng Việt: CVDICT (Phong Phan), CC BY-SA 4.0. Câu ví dụ: Tatoeba, CC BY 2.0.</li>
@@ -230,9 +230,6 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 
 <section id="login">
 <div class="rb-peek" aria-hidden="true"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'><g transform='rotate(-9 40 56)'><animateTransform attributeName='transform' type='rotate' values='-9 40 56;-17 40 56;-3 40 56;-12 40 56;-9 40 56' keyTimes='0;.3;.6;.8;1' calcMode='spline' keySplines='.4 0 .6 1;.4 0 .6 1;.4 0 .6 1;.4 0 .6 1' dur='2.6s' repeatCount='indefinite'/><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g transform='rotate(9 80 56)'><animateTransform attributeName='transform' type='rotate' values='9 80 56;2 80 56;18 80 56;8 80 56;9 80 56' keyTimes='0;.3;.6;.8;1' calcMode='spline' keySplines='.4 0 .6 1;.4 0 .6 1;.4 0 .6 1;.4 0 .6 1' dur='3.1s' repeatCount='indefinite'/><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><circle cx='47' cy='72' r='2' fill='#fff'/></g><g><ellipse cx='75' cy='74' rx='5.5' ry='5.5' fill='#5a2a45'><animate attributeName='ry' values='5.5;5.5;.5;.5;5.5;5.5' keyTimes='0;.84;.88;.93;.97;1' dur='3s' repeatCount='indefinite'/></ellipse><circle cx='77' cy='72' r='2' fill='#fff'><animate attributeName='opacity' values='1;1;0;0;1;1' keyTimes='0;.84;.88;.93;.97;1' dur='3s' repeatCount='indefinite'/></circle></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></svg></div>
-  <p>Nhập mật khẩu để vào Amino Chat</p>
-  <input id="chatPassword" type="password" placeholder="Nhập mật khẩu">
-  <p id="passwordError" aria-live="polite"></p>
   <h3>Chào mừng đến Amino Chat!</h3>
   <p>Nhập tên của bạn để vào phòng chat cùng Amino nhé.</p>
   <input id="name" maxlength="24" placeholder="Tên hiển thị của bạn">
@@ -3677,11 +3674,6 @@ catch(e){$('petAddressStatus').textContent='Không lưu được: '+e.message;}
 });
 /* ================= END EVENT NUOI PET 20/10 ================= */
 $("enter").addEventListener("click",async()=>{
-$("passwordError").textContent="";
-if($("chatPassword").value!=="1409"){
-$("passwordError").textContent="Mật khẩu không đúng!";
-return;
-}
 displayName=$("name").value.trim();
 if(!displayName){
 $("status").textContent="Cậu nhập tên trước nhé.";
@@ -3783,9 +3775,6 @@ console.error(error);
 $("status").textContent="Lỗi kết nối: "+(error.code||error.message);
 $("enter").disabled=false;
 }
-});
-$("chatPassword").addEventListener("keydown",e=>{
-if(e.key==="Enter")$("enter").click();
 });
 $("name").addEventListener("keydown",e=>{
 if(e.key==="Enter")$("enter").click();
