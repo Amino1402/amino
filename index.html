@@ -61,10 +61,10 @@ html[data-theme="galaxy"] .hsk-library-tools input,html[data-theme="galaxy"] .hs
 html[data-theme="galaxy"]{color-scheme:dark;--t0:#8466ff;--t1:#2a2060;--t2:#1f1850;--t3:#8b7bff;--t4:#4a3d8f;--t5:#1d1646;--t6:#3b2f7a;--t7:#2a1f60;--t8:#3a2d78;--t9:#6a58d8;--t10:#2c2266;--t11:#150f3a;--t12:#ffd27a;--t13:#120d33;--t14:#2c2266;--t15:#3a2f7c;--t16:#a898f5;--gx-ink:#ebe9ff;--gx-dim:#a9a4d6;--gx-hi:#d4c9ff;--gx-edge:rgba(196,181,255,.55);--gx-panel:rgba(11,9,38,.86);--gx-card:rgba(30,22,76,.72);--gx-glow:rgba(139,123,255,.45)}
 html[data-theme="galaxy"] *{scrollbar-color:#6a58d8 #100d2c}
 html[data-theme="galaxy"] body{color:var(--gx-ink);min-height:100vh;background:radial-gradient(ellipse 80% 60% at 12% 8%,rgba(118,64,210,.40),transparent 62%),radial-gradient(ellipse 70% 55% at 88% 28%,rgba(52,76,196,.32),transparent 62%),radial-gradient(ellipse 90% 60% at 50% 108%,rgba(140,54,178,.36),transparent 62%),linear-gradient(180deg,#04051a 0%,#090a2a 48%,#140a33 100%);background-attachment:fixed}
-html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage,#aiPage){position:relative;background:var(--gx-panel);color:var(--gx-ink);border:1px solid var(--gx-edge);border-radius:18px;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 0 22px var(--gx-glow),inset 0 0 26px rgba(120,100,255,.10);animation:gxEdge 5s ease-in-out infinite}
+html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage){position:relative;background:var(--gx-panel);color:var(--gx-ink);border:1px solid var(--gx-edge);border-radius:18px;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 0 22px var(--gx-glow),inset 0 0 26px rgba(120,100,255,.10);animation:gxEdge 5s ease-in-out infinite}
 @keyframes gxEdge{0%,100%{border-color:rgba(196,181,255,.40);box-shadow:0 0 0 1px rgba(255,255,255,.04),0 0 16px rgba(139,123,255,.30),inset 0 0 26px rgba(120,100,255,.08)}50%{border-color:rgba(238,232,255,.95);box-shadow:0 0 0 1px rgba(255,255,255,.10),0 0 30px rgba(160,140,255,.62),inset 0 0 30px rgba(130,110,255,.16)}}
-html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage,#aiPage)::before{content:"\2726";position:absolute;top:-10px;right:20px;color:#fff;font-size:19px;line-height:1;text-shadow:0 0 6px #fff,0 0 14px #a898f5,0 0 24px #7b5cff;pointer-events:none;animation:gxSparkle 3.2s ease-in-out infinite}
-html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage,#aiPage)::after{content:"\2727";position:absolute;bottom:-9px;left:24px;color:#fff;font-size:15px;line-height:1;text-shadow:0 0 6px #fff,0 0 14px #a898f5;pointer-events:none;animation:gxSparkle 4.1s ease-in-out 1.2s infinite}
+html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage)::before{content:"\2726";position:absolute;top:-10px;right:20px;color:#fff;font-size:19px;line-height:1;text-shadow:0 0 6px #fff,0 0 14px #a898f5,0 0 24px #7b5cff;pointer-events:none;animation:gxSparkle 3.2s ease-in-out infinite}
+html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage)::after{content:"\2727";position:absolute;bottom:-9px;left:24px;color:#fff;font-size:15px;line-height:1;text-shadow:0 0 6px #fff,0 0 14px #a898f5;pointer-events:none;animation:gxSparkle 4.1s ease-in-out 1.2s infinite}
 @keyframes gxSparkle{0%,100%{opacity:.35;transform:scale(.7) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(25deg)}}
 html[data-theme="galaxy"] :is(input,textarea){background:rgba(8,6,32,.92);color:var(--gx-ink);border:1px solid rgba(196,181,255,.5);border-radius:10px}
 html[data-theme="galaxy"] :is(input,textarea):focus{outline:none;border-color:#d4c9ff;box-shadow:0 0 0 3px rgba(139,123,255,.35),0 0 14px rgba(180,160,255,.5)}
@@ -78,11 +78,11 @@ html[data-theme="galaxy"] .typing-draft{color:var(--gx-ink)}
 html[data-theme="galaxy"] #messages{border:1px solid var(--gx-edge);border-radius:12px;background-image:linear-gradient(rgba(7,5,28,.62),rgba(7,5,28,.62)),url("./chat-bg.jpg");box-shadow:inset 0 0 20px rgba(120,100,255,.18)}
 html[data-theme="galaxy"] .message{background:rgba(26,19,68,.80);color:var(--gx-ink);border:1px solid rgba(196,181,255,.5);border-left:4px solid #ffe08a;box-shadow:0 0 10px rgba(150,130,255,.25)}
 html[data-theme="galaxy"] .system-message{background:rgba(66,50,150,.50);color:var(--gx-hi);border:1px solid rgba(196,181,255,.35)}
-html[data-theme="galaxy"] :is(#onlinePanel,#musicPanel,#diaryToggle,#photoToggle,#mapToggle,#aiToggle,#aiAttach,#diaryGate,#diaryViews,#diaryViewsToggle,#routeToolbar,#mapMeetingPanel,#mapPhotoToolbar,#mapPhotoSection,#mapPhotoDialog,#mapMeetingHistorySection,#aiMessages,#diaryPrivateUid,#diaryDeniedDetails,#petBubble,#petCard,#petRewardCard,#aminoWeatherCard,#aboutCard){background:var(--gx-card);color:var(--gx-ink);border:1px solid var(--gx-edge);box-shadow:0 0 14px rgba(139,123,255,.28)}
+html[data-theme="galaxy"] :is(#onlinePanel,#musicPanel,#diaryToggle,#photoToggle,#mapToggle,#diaryGate,#diaryViews,#diaryViewsToggle,#routeToolbar,#mapMeetingPanel,#mapPhotoToolbar,#mapPhotoSection,#mapPhotoDialog,#mapMeetingHistorySection,#diaryPrivateUid,#diaryDeniedDetails,#petBubble,#petCard,#petRewardCard,#aminoWeatherCard,#aboutCard){background:var(--gx-card);color:var(--gx-ink);border:1px solid var(--gx-edge);box-shadow:0 0 14px rgba(139,123,255,.28)}
 html[data-theme="galaxy"] :where(.online-user,.song,.typing-user,.diary-day,.public-entry,.diary-view-item,.map-member-button,.map-photo-card,.map-meeting-item,.ai-bot,.diary-image-thumb,.wx-stat,.wx-hour,.wx-day,.pet-choice,.diary-strip-top button,.diary-photo-month button){background:var(--gx-card);color:var(--gx-ink);border-color:rgba(196,181,255,.35)}
 html[data-theme="galaxy"] .pet-choice.active{background:#3b2a86;border-color:#ffd27a}
 html[data-theme="galaxy"] #petProgress{background:#2a2160}
-html[data-theme="galaxy"] :is(#petCard h2,#petPoints,#petRewardCard h2,#mapPhotoSection h3,#mapPhotoDialog h3,#mapPhotoStatus,#aiPage h2){color:var(--gx-hi)}
+html[data-theme="galaxy"] :is(#petCard h2,#petPoints,#petRewardCard h2,#mapPhotoSection h3,#mapPhotoDialog h3,#mapPhotoStatus){color:var(--gx-hi)}
 html[data-theme="galaxy"] .wx-tabs button:not(.active){background:#2a2160;color:var(--gx-hi);box-shadow:none}
 html[data-theme="galaxy"] .amino-toast{background:rgba(20,15,58,.86);border-color:var(--gx-edge);color:var(--gx-ink)}
 html[data-theme="galaxy"] .amino-toast-copy strong{color:var(--gx-hi)}
@@ -103,7 +103,7 @@ html[data-theme="galaxy"] #aboutCard code{background:#0b0922;color:#ffe08a}
 @keyframes gxMeteor{0%{opacity:0;transform:rotate(var(--ang)) translateX(0)}12%{opacity:1}72%{opacity:1}100%{opacity:0;transform:rotate(var(--ang)) translateX(var(--dist))}}
 html:not([data-theme="galaxy"]) :is(#aminoGalaxyStars,#aminoGalaxyFx){display:none!important}
 html[data-theme="galaxy"] :is(#aminoWinterFrost,#aminoWinterSnow){display:none!important}
-@media(prefers-reduced-motion:reduce){html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage,#aiPage),html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage,#aiPage)::before,html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage,#aiPage)::after,.gx-star{animation:none}}
+@media(prefers-reduced-motion:reduce){html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage),html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage)::before,html[data-theme="galaxy"] :is(#login,#chat,#diaryPage,#mapPage)::after,.gx-star{animation:none}}
 html[data-theme="galaxy"] :is(#status,#chatStatus,#onlineEmpty,#diarySaveStatus,#mapMembersSummary,#mapMeetingSummary,#wxUpdated){color:var(--gx-dim)}
 html[data-theme="galaxy"] :is(#syncStatus,#typingIndicator){color:var(--gx-hi)}
 </style>
@@ -129,19 +129,6 @@ d.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest(
 </script>
 
 <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<style id="aiStyle">#aiToggle{width:38px;height:38px;padding:0;font-size:19px;border-radius:50%;display:grid;place-items:center;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#aiPage{margin-top:10px;background:#fff;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001}html[data-theme="rabbit"] #aiPage{background:#fff7fb;border:3px solid #ffb8d4;border-radius:28px;box-shadow:0 7px 0 #ffc0d9,0 18px 30px rgba(201,54,115,.16);margin-top:30px}#aiBack{width:38px;height:34px;padding:0;font-size:23px;line-height:1;border-radius:9px;display:inline-grid;place-items:center}#aiPage h2{color:#6750a4}html[data-theme="rabbit"] #aiPage h2{color:#c93673}#aiMessages{height:55vh;min-height:260px;overflow:auto;border:1px solid #ddd;border-radius:12px;padding:10px;margin:12px 0;display:flex;flex-direction:column;gap:8px;background:#fafafa}html[data-theme="rabbit"] #aiMessages{border:2px dashed #ffb8d4;background:#fff}.ai-msg{max-width:85%;padding:9px 12px;border-radius:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}.ai-user{align-self:flex-end;background:#6750a4;color:#fff;border-bottom-right-radius:4px}.ai-bot{align-self:flex-start;background:#f1eaff;color:#222;border-bottom-left-radius:4px}html[data-theme="rabbit"] .ai-user{background:#c93673}html[data-theme="rabbit"] .ai-bot{background:#ffe3ef;color:#6b2a4d}.ai-typing{opacity:.6;font-style:italic}#aiForm{display:flex;gap:8px}#aiInput{flex:1;width:100%}#aiAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#aiImgPreview{position:relative;display:inline-block;margin-bottom:8px}#aiImgPreview img{height:70px;border-radius:8px;display:block}#aiImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;line-height:22px}#aiClear{display:none!important}.ai-msg-head{font-size:11px;font-weight:700;margin-bottom:5px;opacity:.82}.ai-msg-time{float:right;font-size:10px;font-weight:400;opacity:.75}
-#mapSearchForm{display:flex;gap:8px;margin:10px 0 6px}
-#mapSearchInput{flex:1;width:100%}
-#mapSearchBtn{flex-shrink:0}
-#mapSearchResults{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px;max-height:240px;overflow-y:auto;overscroll-behavior:contain}
-#mapSearchResults[hidden]{display:none}
-.map-search-item{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:12px;background:var(--t5);color:#333;border:1px solid var(--t14);font-size:13px;line-height:1.4;box-shadow:none}
-.map-search-item strong{display:block;color:var(--t0);margin-bottom:2px}
-.map-search-empty{font-size:12px;color:#777;padding:8px 2px}
-.map-search-popup button{margin-top:6px;padding:7px 12px;font-size:12px;border-radius:999px}
-html[data-theme="galaxy"] .map-search-item{background:var(--gx-card);color:var(--gx-ink);border-color:var(--gx-edge)}
-html[data-theme="galaxy"] .map-search-empty{color:var(--gx-dim)}
-</style>
 <style id="aboutStyle">#menuBtn{position:fixed;right:62px;top:14px;z-index:10040;width:42px;height:42px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:22px;line-height:1;cursor:pointer;background:rgba(255,255,255,.92);color:var(--t0);border:1px solid #cfd6e4;box-shadow:0 3px 10px #0002;-webkit-tap-highlight-color:transparent}html[data-theme="rabbit"] #menuBtn{border:2px solid #ff9cc6;box-shadow:0 3px 0 #ffc0d9}#menuPanel{position:fixed;right:62px;top:64px;z-index:10050;min-width:220px;padding:8px;border-radius:14px;background:#fff;border:1px solid var(--t4);box-shadow:0 8px 26px #0003;display:grid;gap:6px}#menuPanel[hidden]{display:none}#menuPanel button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;background:var(--t5);color:var(--t0);border:0;font-size:14px;font-weight:600;cursor:pointer}#menuPanel #menuFx{display:flex;justify-content:space-between;align-items:center}#fxList{display:grid;gap:6px;margin-left:6px;padding-left:8px;border-left:3px solid var(--t4)}#fxList[hidden]{display:none}#menuPanel button.fx-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid var(--t4)}.fx-state{font-size:12px;padding:2px 9px;border-radius:999px;background:#e4e4ea;color:#666}#menuPanel button.fx-row[aria-pressed="true"] .fx-state{background:var(--t0);color:#fff}@media(max-width:600px){#menuBtn{right:54px;top:10px;width:38px;height:38px;font-size:20px}#menuPanel{right:54px;top:56px}}#aboutModal{position:fixed;inset:0;z-index:10060;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px}#aboutModal[hidden]{display:none}#aboutCard{position:relative;width:100%;max-width:480px;max-height:88vh;overflow:auto;background:#fff;color:#333;border-radius:16px;padding:20px 18px 18px;box-shadow:0 10px 34px #0004;border:1px solid var(--t4)}#aboutCard h2{margin:0 36px 4px 0;font-size:19px;color:var(--t0)}#aboutCard .about-sub{margin:0 0 12px;font-size:13px;color:#666}#aboutCard ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}#aboutCard li{font-weight:500;padding:9px 11px;border-radius:10px;background:var(--t5);font-size:14px;line-height:1.5;overflow-wrap:anywhere}#aboutCard li b{color:var(--t0)}#aboutCard code{background:#fff;padding:1px 5px;border-radius:5px;font-size:12px}#aboutClose{position:absolute;right:10px;top:10px;width:32px;height:32px;padding:0;border-radius:50%;font-size:20px;line-height:1;display:grid;place-items:center}</style>
 
 <style id="hskStyle">
@@ -196,6 +183,8 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 @media(max-width:420px){.hsk-heading h2{font-size:18px}.hsk-card-actions button{font-size:11px}.hsk-stats{gap:6px 10px}.hsk-quiz-options{grid-template-columns:1fr 1fr}}
 </style>
 
+<style id="lunaInlineStyle">#messages .message.luna-msg{background:#eafaf1;border:1px solid #bfe8cf;border-left:4px solid #15803d}#messages .message.luna-msg .sender{color:#15803d}html[data-theme="rabbit"] #messages .message.luna-msg{background:#ffe3ef;border:1px solid #ffb8d4;border-left:4px solid #c93673}html[data-theme="rabbit"] #messages .message.luna-msg .sender{color:#c93673}html[data-theme="galaxy"] #messages .message.luna-msg{background:rgba(18,64,66,.82);color:var(--gx-ink);border:1px solid rgba(126,224,176,.5);border-left:4px solid #7ee0b0}html[data-theme="galaxy"] #messages .message.luna-msg .sender{color:#7ee0b0}</style>
+<style id="chatImgStyle">#chatAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#chatImgPreview{position:relative;display:inline-block;margin:6px 0}#chatImgPreview img{height:70px;border-radius:8px;display:block}#chatImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;color:#fff;border:0;line-height:1}#chatImgPreview[hidden]{display:none}.msg-img{display:block;max-width:100%;max-height:260px;border-radius:10px;margin-top:6px;cursor:zoom-in}#imgLightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;z-index:99999;cursor:zoom-out}#imgLightbox img{max-width:94vw;max-height:92vh;border-radius:8px}</style>
 </head>
 <body>
 <button id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false" title="Menu">☰</button>
@@ -212,7 +201,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 <p class="about-sub">Giới thiệu nhanh các tính năng của web.</p>
 <ul>
 <li><b>Phòng chat chung:</b> nhắn tin với mọi người, thấy ai đang online, ai đang gõ, và có thông báo hệ thống khi ai đó vào hoặc ra.</li>
-<li><b>Luna 🦭:</b> bot AI, nhắn riêng được, gửi cả ảnh để Luna mô tả. Mỗi người một phòng riêng, mọi nười không thể xem được tin nhắn của người khác với Luna.</li>
+<li><b>Luna 🦭:</b> bot AI nằm ngay trong phòng chat chung, gõ <b>@luna</b> kèm câu hỏi là Luna trả lời, mọi người đều thấy.</li>
 <li><b>Nhật ký:</b> mỗi ngày một bài kèm ảnh, xem theo lịch tháng, không thể sửa đổi khi kết thúc ngày, đây là mục riêng tư nên Uid được cấp quyền (diaryAccess) mới vào xem được.</li>
 <li><b>Bản đồ:</b> chia sẻ vị trí thật với nhau, chỉ đường, hẹn gặp, ghim ảnh lên bản đồ.</li>
 <li><b>Góc học HSK:</b> học từ vựng tiếng Trung bằng flashcard, nghe phát âm, làm trắc nghiệm và đồng bộ tiến độ theo tài khoản Amino.</li>
@@ -245,15 +234,17 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
     <button id="photoToggle" type="button" aria-label="Chụp ảnh lưu vào nhật ký" title="Chụp ảnh">📸</button>
     <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">🗺️</button>
     <button id="hskToggle" type="button" aria-label="Mở phòng học HSK" title="Học tiếng Trung HSK">📚</button>
-    <button id="aiToggle" type="button" aria-label="Trò chuyện với Luna" title="Trò chuyện với Luna">🦭</button>
   </div>
   <div id="chatLayout">
     <div id="chatMain">
       <div id="aminoToastStack" aria-live="polite" aria-label="Thông báo Amino"></div>
       <div class="rb-anchor" aria-hidden="true"><div class="rb-peek" aria-hidden="true"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'><g transform='rotate(-9 40 56)'><animateTransform attributeName='transform' type='rotate' values='-9 40 56;-17 40 56;-3 40 56;-12 40 56;-9 40 56' keyTimes='0;.3;.6;.8;1' calcMode='spline' keySplines='.4 0 .6 1;.4 0 .6 1;.4 0 .6 1;.4 0 .6 1' dur='2.6s' repeatCount='indefinite'/><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g transform='rotate(9 80 56)'><animateTransform attributeName='transform' type='rotate' values='9 80 56;2 80 56;18 80 56;8 80 56;9 80 56' keyTimes='0;.3;.6;.8;1' calcMode='spline' keySplines='.4 0 .6 1;.4 0 .6 1;.4 0 .6 1;.4 0 .6 1' dur='3.1s' repeatCount='indefinite'/><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><circle cx='47' cy='72' r='2' fill='#fff'/></g><g><ellipse cx='75' cy='74' rx='5.5' ry='5.5' fill='#5a2a45'><animate attributeName='ry' values='5.5;5.5;.5;.5;5.5;5.5' keyTimes='0;.84;.88;.93;.97;1' dur='3s' repeatCount='indefinite'/></ellipse><circle cx='77' cy='72' r='2' fill='#fff'><animate attributeName='opacity' values='1;1;0;0;1;1' keyTimes='0;.84;.88;.93;.97;1' dur='3s' repeatCount='indefinite'/></circle></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/></svg></div><svg class='rb-paws' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 14'><ellipse cx='16' cy='7' rx='9' ry='6' fill='#fff' stroke='#f06ca9' stroke-width='2.4'/><ellipse cx='60' cy='7' rx='9' ry='6' fill='#fff' stroke='#f06ca9' stroke-width='2.4'/></svg></div>
       <div id="messages"></div>
+      <div id="chatImgPreview" hidden></div>
       <form id="composer">
-        <input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu..." autocomplete="off" required>
+        <button id="chatAttach" type="button" title="Gửi ảnh" aria-label="Gửi ảnh">📎</button>
+        <input id="chatFile" type="file" accept="image/*" hidden>
+        <input id="message" maxlength="1000" placeholder="Nhập tin nhắn ở đây nè cậu... (gõ @luna để hỏi Luna)" autocomplete="off">
         <button type="submit">Gửi</button>
       </form>
       <div id="typingIndicator" aria-live="polite"></div>
@@ -530,22 +521,6 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 
 
 
-<section id="aiPage" hidden>
-  <button id="aiBack" type="button" aria-label="Quay lại phòng chat">←</button>
-  <h2>🦭 Phòng trò chuyện Luna</h2>
-  <p id="aiPublicNotice" style="font-size:12px;color:#9875a9;margin:4px 0 5px">💜bản demo, hạn chế gửi ảnh .</p>
-  <div id="aiMessages" aria-live="polite">
-    <div class="ai-msg ai-bot">Chào cậu! Tớ là Luna của Amino, cậu muốn hỏi gì nào? 💗</div>
-  </div>
-  <div id="aiImgPreview" hidden></div>
-  <form id="aiForm">
-    <button id="aiAttach" type="button" title="Gửi ảnh" aria-label="Gửi ảnh">📎</button>
-    <input id="aiFile" type="file" accept="image/*" hidden>
-    <input id="aiInput" maxlength="800" placeholder="Nhắn gì đó cho Luna... (có thể dán ảnh)" autocomplete="off">
-    <button id="aiSend" type="submit">Gửi</button>
-  </form>
-  <button id="aiClear" type="button">🗑️ Xóa cuộc trò chuyện</button>
-</section>
 
 <div id="mapPhotoModal" hidden>
   <div id="mapPhotoDialog" role="dialog" aria-modal="true" aria-labelledby="mapPhotoDialogTitle">
@@ -3028,7 +3003,7 @@ function nextHskQuiz(){
 }
 async function openHskPage(){
  if(!user||!db){alert("Hãy đăng nhập Amino trước nhé.");return;}
- $("chat").hidden=true;$("diaryPage").hidden=true;$("photoPage").hidden=true;$("mapPage").hidden=true;$("aiPage").hidden=true;$("hskPage").hidden=false;window.scrollTo({top:0,behavior:"auto"});
+ $("chat").hidden=true;$("diaryPage").hidden=true;$("photoPage").hidden=true;$("mapPage").hidden=true;$("hskPage").hidden=false;window.scrollTo({top:0,behavior:"auto"});
  try{await ensureHskData();await loadHskProgress()}catch(error){console.error("HSK load error:",error)}
 }
 function setupHskControls(){
@@ -3401,12 +3376,6 @@ db=getDatabase(app);
 }
 const result=await signInAnonymously(auth);
 user=result.user;
-if(window.initLunaPublicChat){
-window.initLunaPublicChat({
-db,user,displayName,ref,push,set,get,query,orderByChild,
-limitToLast,onChildAdded,runTransaction
-});
-}
 await setMyLocationSharingStatus(false);
 $("login").hidden=true;
 $("chat").hidden=false;
@@ -3445,7 +3414,7 @@ time.textContent=formatTime(data.createdAt);
 box.append(text,time);
 return box;
 }
-box.className="message";
+box.className="message"+(data.bot==="luna"?" luna-msg":"");
 const sender=document.createElement("span");
 sender.className="sender";
 sender.textContent=data.name||"Khách";
@@ -3457,8 +3426,18 @@ header.className="message-header";
 header.append(sender,time);
 const body=document.createElement("div");
 body.className="message-body";
-body.textContent=data.text||"";
+body.textContent=(data.image&&data.text==="📷")?"":(data.text||"");
 box.append(header,body);
+if(typeof data.image==="string"&&data.image.startsWith("data:image/")){
+const img=document.createElement("img");
+img.className="msg-img";img.src=data.image;img.alt="Ảnh trong chat";img.loading="lazy";
+img.addEventListener("click",()=>{
+const box2=document.createElement("div");box2.id="imgLightbox";
+const big=document.createElement("img");big.src=data.image;box2.append(big);
+box2.addEventListener("click",()=>box2.remove());document.body.append(box2);
+});
+body.after(img);
+}
 return box;
 };
 const chatError=error=>{
@@ -3491,16 +3470,78 @@ $("enter").disabled=false;
 $("name").addEventListener("keydown",e=>{
 if(e.key==="Enter")$("enter").click();
 });
+/* GỬI ẢNH TRONG CHAT CHUNG */
+let chatPendingImg=null;
+function renderChatPreview(){
+const p=$("chatImgPreview");p.replaceChildren();
+if(!chatPendingImg){p.hidden=true;return;}
+p.hidden=false;
+const img=document.createElement("img");img.src=chatPendingImg;
+const x=document.createElement("button");x.type="button";x.textContent="×";x.setAttribute("aria-label","Bỏ ảnh");
+x.onclick=()=>{chatPendingImg=null;renderChatPreview();};
+p.append(img,x);
+}
+function loadChatImg(file){
+if(!file||!file.type.startsWith("image/"))return;
+const reader=new FileReader();
+reader.onload=()=>{
+const image=new Image();
+image.onload=()=>{
+const scale=Math.min(1,720/Math.max(image.width,image.height));
+const c=document.createElement("canvas");
+c.width=Math.round(image.width*scale);c.height=Math.round(image.height*scale);
+c.getContext("2d").drawImage(image,0,0,c.width,c.height);
+let q=.72,data=c.toDataURL("image/jpeg",q);
+while(data.length>280000&&q>.35){q-=.1;data=c.toDataURL("image/jpeg",q);}
+if(data.length>280000){$("chatStatus").textContent="Ảnh quá nặng, cậu chọn ảnh khác nhé.";return;}
+chatPendingImg=data;renderChatPreview();
+};
+image.src=reader.result;
+};
+reader.readAsDataURL(file);
+}
+$("chatAttach").addEventListener("click",()=>$("chatFile").click());
+$("chatFile").addEventListener("change",e=>{loadChatImg(e.target.files[0]);e.target.value="";});
+$("message").addEventListener("paste",e=>{
+const f=[...(e.clipboardData?.files||[])].find(x=>x.type.startsWith("image/"));
+if(f){e.preventDefault();loadChatImg(f);}
+});
+/* LUNA AI TRONG CHAT CHUNG: gõ @luna ... */
+const GPT_URL="https://autumn-mud-f851.nguyenvandinh-dhcn-2k3.workers.dev";
+let lunaBusy=false,lunaLast=0;const lunaHistory=[];
+async function askLuna(raw,image){
+if(lunaBusy||Date.now()-lunaLast<4000){$("chatStatus").textContent="Luna đang bận, cậu đợi xíu nhé 🦭";return;}
+lunaBusy=true;lunaLast=Date.now();
+$("chatStatus").textContent="🦭 Luna đang trả lời...";
+const q=raw.replace(/@luna\b/ig,"").replace(/\s+/g," ").trim()||"Chào Luna!";
+const entry={role:"user",content:image?[{type:"text",text:q==="Chào Luna!"?"Hãy mô tả ảnh này.":q},{type:"image_url",image_url:{url:image}}]:q};
+lunaHistory.push(entry);
+try{
+const res=await fetch(GPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:lunaHistory.slice(-3)})});
+if(!res.ok)throw new Error("HTTP "+res.status);
+const data=await res.json();
+const answer=String(data.text||"Luna chưa trả lời được, cậu thử lại nhé 😅").slice(0,1000);
+entry.content=image?(q+" [kèm ảnh]"):q;
+lunaHistory.push({role:"assistant",content:answer});
+await set(push(ref(db,"publicChat/messages")),{uid:user.uid,name:"🦭 Luna",bot:"luna",text:answer,createdAt:Date.now()});
+$("chatStatus").textContent="Đã kết nối.";
+}catch(e){
+const i=lunaHistory.indexOf(entry);if(i>=0)lunaHistory.splice(i,1);
+$("chatStatus").textContent="Luna không trả lời được: "+(e.message||e);
+}finally{lunaBusy=false;}
+}
 /* GỬI TIN NHẮN */
 $("composer").addEventListener("submit",async event=>{
 event.preventDefault();
-const text=$("message").value.trim();
-if(!text||!user)return;
+const typed=$("message").value.trim();
+const image=chatPendingImg;
+if((!typed&&!image)||!user)return;
+const text=typed||"📷";
 const button=$("composer").querySelector('button[type="submit"]');
 button.disabled=true;
 try{
 await set(push(ref(db,"publicChat/messages")),{
-uid:user.uid,name:displayName,text,createdAt:Date.now()
+uid:user.uid,name:displayName,text,createdAt:Date.now(),...(image?{image}:{})
 });
 floatHearts();
 clearTimeout(typingWriteTimer);
@@ -3508,7 +3549,9 @@ clearTimeout(typingClearTimer);
 lastTypingText="";
 await set(myTypingRef(),null).catch(()=>{});
 $("message").value="";
+chatPendingImg=null;renderChatPreview();
 $("message").focus();
+if(/(^|\s)@luna\b/i.test(typed))askLuna(typed,image);
 }catch(error){
 $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
 }finally{
@@ -4047,207 +4090,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close
 })();
 </script>
 
-<script>
-(()=>{
-const GPT_URL="https://autumn-mud-f851.nguyenvandinh-dhcn-2k3.workers.dev";
-const $=id=>document.getElementById(id);
-let ctx=null,roomStarted=false,busy=false,lastSent=0,pendingImg=null;
-const msgsRef=()=>ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/messages");
-const lockRef=key=>ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/processing/"+key);
-const rendered=new Set();
-function timeLabel(value){
-const n=Number(value);
-if(!Number.isFinite(n))return "";
-return new Date(n).toLocaleTimeString("vi-VN",{
-timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit"
-});
-}
-function addMsg(data,key){
-if(key&&rendered.has(key))return;
-if(key)rendered.add(key);
-const box=$("aiMessages");
-const empty=$("aiEmpty");
-if(empty)empty.remove();
-const el=document.createElement("div");
-el.className="ai-msg "+(data.sender==="luna"?"ai-bot":"ai-user");
-const head=document.createElement("div");
-head.className="ai-msg-head";
-const who=document.createElement("span");
-who.textContent=data.sender==="luna"?"🦭 Luna":(data.name||"Thành viên");
-const time=document.createElement("span");
-time.className="ai-msg-time";
-time.textContent=timeLabel(data.createdAt);
-head.append(who,time);
-el.append(head);
-if(data.text){
-const body=document.createElement("div");
-body.textContent=data.text;
-el.append(body);
-}
-if(data.image){
-const img=document.createElement("img");
-img.src=data.image;
-img.alt="Ảnh gửi trong phòng Luna";
-img.loading="lazy";
-img.style.cssText="display:block;max-width:100%;max-height:260px;border-radius:10px;margin-top:8px";
-el.append(img);
-}
-box.append(el);
-box.scrollTop=box.scrollHeight;
-}
-function renderPreview(){
-const p=$("aiImgPreview");
-p.replaceChildren();
-if(!pendingImg){p.hidden=true;return;}
-p.hidden=false;
-const img=document.createElement("img");
-img.src=pendingImg;
-const remove=document.createElement("button");
-remove.type="button";
-remove.textContent="×";
-remove.onclick=()=>{pendingImg=null;renderPreview();};
-p.append(img,remove);
-}
-function loadImg(file){
-if(!file||!file.type.startsWith("image/"))return;
-const reader=new FileReader();
-reader.onload=()=>{
-const image=new Image();
-image.onload=()=>{
-const scale=Math.min(1,768/Math.max(image.width,image.height));
-const canvas=document.createElement("canvas");
-canvas.width=Math.round(image.width*scale);
-canvas.height=Math.round(image.height*scale);
-canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);
-pendingImg=canvas.toDataURL("image/jpeg",0.75);
-renderPreview();
-};
-image.src=reader.result;
-};
-reader.readAsDataURL(file);
-}
-$("aiAttach").addEventListener("click",()=>$("aiFile").click());
-$("aiFile").addEventListener("change",e=>{
-loadImg(e.target.files[0]);e.target.value="";
-});
-$("aiInput").addEventListener("paste",e=>{
-const file=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/"));
-if(file){e.preventDefault();loadImg(file);}
-});
-function startRoom(){
-if(roomStarted||!ctx?.user)return;
-roomStarted=true;
-$("aiMessages").replaceChildren();
-const empty=document.createElement("div");
-empty.id="aiEmpty";
-empty.className="ai-msg ai-bot";
-empty.textContent="Chào cậu! Tớ là Luna của Amino. Cảm ơn cậu đã trò chuyện với tớ nha! 💗";
-$("aiMessages").append(empty);
-const recent=ctx.query(msgsRef(),
-ctx.orderByChild("createdAt"),ctx.limitToLast(100));
-ctx.onChildAdded(recent,snapshot=>{
-const data=snapshot.val();
-if(!data)return;
-addMsg(data,snapshot.key);
-if(data.sender==="user"&&data.aiStatus==="pending"){
-processLunaMessage(snapshot.key).catch(err=>console.error("Luna:",err));
-}
-},error=>{
-console.error("Luna room:",error);
-addMsg({sender:"luna",text:"Không tải được phòng Luna: "+error.message,createdAt:Date.now()});
-});
-}
-async function processLunaMessage(messageKey){
-const lock=lockRef(messageKey);
-const claim=await ctx.runTransaction(lock,current=>{
-if(current?.status==="done")return;
-if(current?.status==="working"&&Date.now()-(Number(current.startedAt)||0)<120000)return;
-return {status:"working",startedAt:Date.now()};
-});
-if(!claim.committed)return;
-try{
-const recent=ctx.query(msgsRef(),
-ctx.orderByChild("createdAt"),ctx.limitToLast(3));
-const snap=await ctx.get(recent);
-const messages=[];
-snap.forEach(child=>{
-const m=child.val();
-if(!m)return;
-if(m.sender==="user"){
-let content=m.text||"";
-if(m.image){
-content=[
-{type:"text",text:content||"Hãy mô tả ảnh này."},
-{type:"image_url",image_url:{url:m.image}}
-];
-}
-messages.push({role:"user",content});
-}else if(m.sender==="luna"){
-messages.push({role:"assistant",content:m.text||""});
-}
-});
-const response=await fetch(GPT_URL,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({messages:messages.slice(-3)})
-});
-if(!response.ok)throw new Error("HTTP "+response.status);
-const result=await response.json();
-const answer=result.text||"Luna chưa trả lời được, cậu thử lại nhé 😅";
-await ctx.set(ctx.push(msgsRef()),{
-sender:"luna",uid:"luna",name:"Luna",text:answer,
-replyTo:messageKey,createdAt:Date.now()
-});
-await ctx.set(ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/messages/"+messageKey+"/aiStatus"),"done");
-await ctx.set(lock,{status:"done",finishedAt:Date.now()});
-}catch(error){
-console.error("Luna AI error:",error);
-await ctx.set(ctx.ref(ctx.db,"lunaChat/users/"+ctx.user.uid+"/messages/"+messageKey+"/aiStatus"),"failed").catch(()=>{});
-await ctx.set(lock,{status:"failed",error:String(error.message||error),finishedAt:Date.now()}).catch(()=>{});
-}
-}
-window.initLunaPublicChat=function(firebaseContext){
-ctx=firebaseContext;
-if(!$ ("aiPage").hidden)startRoom();
-};
-$("aiToggle").addEventListener("click",()=>{
-$("chat").hidden=true;
-$("aiPage").hidden=false;
-startRoom();
-window.scrollTo({top:0,behavior:"auto"});
-$("aiInput").focus();
-});
-$("aiBack").addEventListener("click",()=>{
-$("aiPage").hidden=true;
-$("chat").hidden=false;
-window.scrollTo({top:0,behavior:"auto"});
-});
-$("aiClear").hidden=true;
-$("aiForm").addEventListener("submit",async e=>{
-e.preventDefault();
-const text=$("aiInput").value.trim();
-const image=pendingImg;
-if((!text&&!image)||busy)return;
-if(!ctx?.user){alert("Hãy đăng nhập Amino trước nhé!");return;}
-if(Date.now()-lastSent<2000)return;
-busy=true;lastSent=Date.now();$("aiSend").disabled=true;
-try{
-await ctx.set(ctx.push(msgsRef()),{
-sender:"user",uid:ctx.user.uid,
-name:ctx.displayName||"Thành viên",
-text,image:image||null,createdAt:Date.now(),aiStatus:"pending"
-});
-$("aiInput").value="";
-pendingImg=null;renderPreview();
-}catch(error){
-console.error(error);
-alert("Không gửi được tin nhắn: "+error.message);
-}finally{
-busy=false;$("aiSend").disabled=false;$("aiInput").focus();
-}
-});
-})();
-</script>
 <script>
 (()=>{const m=document.getElementById('aboutModal'),mb=document.getElementById('menuBtn'),mp=document.getElementById('menuPanel'),c=document.getElementById('aboutClose');
 const menu=v=>{mp.hidden=!v;mb.setAttribute('aria-expanded',String(v));mb.textContent=v?'\u00D7':'\u2630'};
