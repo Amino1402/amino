@@ -185,57 +185,6 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 
 <style id="lunaInlineStyle">#messages .message.luna-msg{background:#eafaf1;border:1px solid #bfe8cf;border-left:4px solid #15803d}#messages .message.luna-msg .sender{color:#15803d}html[data-theme="rabbit"] #messages .message.luna-msg{background:#ffe3ef;border:1px solid #ffb8d4;border-left:4px solid #c93673}html[data-theme="rabbit"] #messages .message.luna-msg .sender{color:#c93673}html[data-theme="galaxy"] #messages .message.luna-msg{background:rgba(18,64,66,.82);color:var(--gx-ink);border:1px solid rgba(126,224,176,.5);border-left:4px solid #7ee0b0}html[data-theme="galaxy"] #messages .message.luna-msg .sender{color:#7ee0b0}</style>
 <style id="chatImgStyle">#chatAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#chatImgPreview{position:relative;display:inline-block;margin:6px 0}#chatImgPreview img{height:70px;border-radius:8px;display:block}#chatImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;color:#fff;border:0;line-height:1}#chatImgPreview[hidden]{display:none}.msg-img{display:block;max-width:100%;max-height:260px;border-radius:10px;margin-top:6px;cursor:zoom-in}#imgLightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;z-index:99999;cursor:zoom-out}#imgLightbox img{max-width:94vw;max-height:92vh;border-radius:8px}.luna-wait .dots:after{content:"";animation:lunaDots 1.2s steps(4,end) infinite}@keyframes lunaDots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}</style>
-<style id="loveStyle">
-#loveToggle{width:38px;height:38px;padding:0;font-size:19px;border-radius:50%;display:grid;place-items:center;background:#ffe3ef;color:#c93673;border:1px solid #ffb8d4}
-#loveModal{position:fixed;inset:0;z-index:10061;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px}
-#loveModal[hidden],#loveView[hidden],#loveListWrap[hidden],#loveFormWrap[hidden],#loveResult[hidden],#lovePhotoBtn[hidden],.lv-env[hidden],.lv-content[hidden]{display:none!important}
-#loveCard{position:relative;width:100%;max-width:480px;max-height:90vh;overflow:auto;background:#fff;color:#333;border-radius:16px;padding:20px 18px;box-shadow:0 10px 34px #0004;box-sizing:border-box}
-#loveClose{position:absolute;top:8px;right:10px;width:32px;height:32px;padding:0;border-radius:50%;font-size:20px;line-height:1}
-#loveCard h2{margin:0 0 6px;font-size:20px}
-#loveCard label{display:block;font-size:13px;font-weight:600;margin-top:6px}
-#loveCard input,#loveCard textarea,#loveCard select{width:100%;box-sizing:border-box;padding:9px;border:1px solid #d8cdfa;border-radius:10px;font:inherit;font-weight:400;margin:4px 0 8px;background:#fff;color:#333}
-#loveCard textarea{resize:vertical}
-.love-sub{font-size:13px;color:#666;margin:0 0 12px}.love-empty{font-size:13px;color:#888}
-.love-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.love-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.love-row{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #eee}
-.love-row-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.love-row button{padding:5px 10px;font-size:13px}
-#loveNew{margin-top:12px}
-#loveFormStatus{font-size:13px;color:#b42318;min-height:18px;margin:8px 0 0}
-#lovePhotoThumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
-.love-thumb{position:relative}.love-thumb img{height:64px;border-radius:8px;display:block}
-.love-thumb button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;padding:0;border-radius:50%;background:#b42318;color:#fff;border:0;line-height:1}
-#loveQR{display:block;margin:6px auto 10px;max-width:100%;border:1px solid #eee;border-radius:10px}
-html[data-theme="galaxy"] #loveCard{background:#1b1740;color:#eae6ff}
-html[data-theme="galaxy"] #loveCard input,html[data-theme="galaxy"] #loveCard textarea,html[data-theme="galaxy"] #loveCard select{background:#120f2e;color:#eae6ff;border-color:#4b3f8f}
-html[data-theme="galaxy"] .love-sub,html[data-theme="galaxy"] .love-empty{color:#b9b2e6}
-html[data-theme="galaxy"] .love-row{border-color:#3a3070}
-body.love-only>*:not(#loveView){display:none!important}
-#loveView{position:fixed;inset:0;z-index:2147483000;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--lv-bg);color:var(--lv-ink)}
-#loveView.lv-hong{--lv-bg:linear-gradient(160deg,#ffd9e8,#ff9bc2 55%,#ff6fa8);--lv-card:rgba(255,255,255,.8);--lv-ink:#5b1a3a;--lv-ac:#c93673}
-#loveView.lv-tim{--lv-bg:linear-gradient(160deg,#e9ddff,#a78bfa 55%,#6d4bd6);--lv-card:rgba(255,255,255,.82);--lv-ink:#2d1b69;--lv-ac:#6750a4}
-#loveView.lv-dem{--lv-bg:linear-gradient(160deg,#14061f,#4a0f35 55%,#a3154f);--lv-card:rgba(25,8,35,.62);--lv-ink:#ffe7f1;--lv-ac:#ff8fb8}
-.lv-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
-.lv-stage{position:relative;z-index:2;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px 40px;box-sizing:border-box}
-.lv-msg-center{text-align:center;font-size:18px}
-.lv-close{position:fixed;top:12px;right:12px;z-index:5;padding:8px 14px;border-radius:999px;background:#fff;color:#333;border:0;box-shadow:0 2px 10px #0003}
-.lv-env{background:var(--lv-card);color:var(--lv-ink);border:0;border-radius:24px;padding:34px 28px;max-width:320px;box-shadow:0 12px 40px #0003;cursor:pointer;animation:lvPulse 2s ease-in-out infinite}
-.lv-env-icon{font-size:64px}.lv-env-text{font-size:20px;font-weight:700;margin:10px 0 4px}.lv-env-hint{font-size:13px;opacity:.7}
-.lv-content{width:100%;max-width:520px;background:var(--lv-card);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:22px;padding:26px 20px;box-shadow:0 12px 40px #0003;text-align:center;box-sizing:border-box;animation:lvIn .8s ease both}
-.lv-title{margin:0 0 6px;font-size:26px;color:var(--lv-ac)}.lv-names{margin:0 0 14px;font-size:15px;opacity:.85}
-.lv-counter{margin:8px 0 16px}.lv-pre{font-size:14px;opacity:.8}.lv-days{font-size:64px;font-weight:800;line-height:1.05;color:var(--lv-ac)}
-.lv-unit{font-size:16px;font-weight:600}.lv-hms{font-size:13px;opacity:.75;margin-top:4px}
-.lv-photos{position:relative;width:220px;height:260px;margin:14px auto 18px}
-.lv-photo{position:absolute;inset:0;margin:auto;max-width:100%;max-height:100%;object-fit:contain;background:#fff;padding:8px 8px 22px;border-radius:4px;box-shadow:0 6px 18px #0004;opacity:0;transform:rotate(-3deg);transition:opacity .8s}
-.lv-photo:nth-child(even){transform:rotate(3deg)}.lv-photo.on{opacity:1}
-.lv-msg{white-space:pre-wrap;text-align:left;line-height:1.65;font-size:16px;min-height:1.65em;word-break:break-word}
-.lv-foot{margin-top:20px;font-size:12px;opacity:.75}.lv-foot a{color:var(--lv-ac)}
-@keyframes lvIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes lvPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-@media (prefers-reduced-motion:reduce){.lv-env,.lv-content{animation:none}.lv-photo{transition:none}}
-</style>
-
 </head>
 <body>
 <button id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false" title="Menu">☰</button>
@@ -261,47 +210,11 @@ body.love-only>*:not(#loveView){display:none!important}
 <li><b>Chụp ảnh:</b> Nó như locket, còn chưa bt về locket thì phải chịu. </li>
 <li><b>PET :</b> chọn Chikawa, Usagi, Mập, Hamster hoặc Luna để nuôi,( pet giúp che tin nhắn sau mỗi phút)khi lớn thì...</li>
 <li><b>Thời tiết:</b> dự báo 24 giờ và 7 ngày, kèm cảnh nền 3D đổi theo trời, ai tinh tế thấy amino khá tâm huyết cho mục này, có niều thứ nhỏ nhặt bên trong.</li>
-<li><b>Trang tình yêu 💌:</b> tạo một trang có thư, hiệu ứng, ảnh và bộ đếm ngày, lấy mã QR, ai quét là mở ra trang đó.</li>
 <li><b>Hai giao diện:</b> Thỏ (hồng) và Đông (tím, có tuyết), bấm nút để đổi.</li>
 </ul>
 </div>
 </div>
 <div class="rb-mascot" aria-hidden="true"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 136'><g transform='rotate(-9 40 56)'><animateTransform attributeName='transform' type='rotate' values='-9 40 56;-17 40 56;-3 40 56;-12 40 56;-9 40 56' keyTimes='0;.3;.6;.8;1' calcMode='spline' keySplines='.4 0 .6 1;.4 0 .6 1;.4 0 .6 1;.4 0 .6 1' dur='2.6s' repeatCount='indefinite'/><ellipse cx='40' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='40' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><g transform='rotate(9 80 56)'><animateTransform attributeName='transform' type='rotate' values='9 80 56;2 80 56;18 80 56;8 80 56;9 80 56' keyTimes='0;.3;.6;.8;1' calcMode='spline' keySplines='.4 0 .6 1;.4 0 .6 1;.4 0 .6 1;.4 0 .6 1' dur='3.1s' repeatCount='indefinite'/><ellipse cx='80' cy='30' rx='13' ry='30' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='80' cy='34' rx='6.5' ry='20' fill='#ffc2d9'/></g><ellipse cx='44' cy='128' rx='11' ry='6' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='76' cy='128' rx='11' ry='6' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='60' cy='110' rx='27' ry='20' fill='#fff' stroke='#f06ca9' stroke-width='3'/><path d='M60 120 C49 112 52 104 60 109 C68 104 71 112 60 120Z' fill='#ff8fbd'/><ellipse cx='60' cy='72' rx='38' ry='31' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='36' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><ellipse cx='84' cy='84' rx='7' ry='4.5' fill='#ff8fbd' opacity='.55'/><g><circle cx='45' cy='74' r='5.5' fill='#5a2a45'/><circle cx='47' cy='72' r='2' fill='#fff'/></g><g><ellipse cx='75' cy='74' rx='5.5' ry='5.5' fill='#5a2a45'><animate attributeName='ry' values='5.5;5.5;.5;.5;5.5;5.5' keyTimes='0;.84;.88;.93;.97;1' dur='3s' repeatCount='indefinite'/></ellipse><circle cx='77' cy='72' r='2' fill='#fff'><animate attributeName='opacity' values='1;1;0;0;1;1' keyTimes='0;.84;.88;.93;.97;1' dur='3s' repeatCount='indefinite'/></circle></g><ellipse cx='60' cy='80' rx='3' ry='2' fill='#ff6fa8'/><path d='M54 85 Q57 89 60 85 Q63 89 66 85' stroke='#c93673' stroke-width='2' fill='none' stroke-linecap='round'/><ellipse cx='46' cy='104' rx='7' ry='5' fill='#fff' stroke='#f06ca9' stroke-width='3'/><ellipse cx='74' cy='104' rx='7' ry='5' fill='#fff' stroke='#f06ca9' stroke-width='3'/></svg></div>
-<div id="loveModal" hidden>
-<div id="loveCard" role="dialog" aria-modal="true" aria-labelledby="loveHeading">
-<button id="loveClose" type="button" aria-label="Đóng">×</button>
-<h2 id="loveHeading">💌 Trang tình yêu</h2>
-<div id="loveListWrap">
-<p class="love-sub">Tạo một trang có hiệu ứng, thư và bộ đếm ngày, rồi lấy mã QR. Ai quét mã là mở ra trang của cậu.</p>
-<div id="loveList"></div>
-<button id="loveNew" type="button">+ Tạo trang mới</button>
-</div>
-<div id="loveFormWrap" hidden>
-<label>Người gửi<input id="loveFrom" maxlength="24" placeholder="Tên của cậu"></label>
-<label>Gửi cho ai<input id="loveTo" maxlength="40" placeholder="Tên người nhận"></label>
-<label>Tiêu đề (không bắt buộc)<input id="loveTitle" maxlength="60" placeholder="Ví dụ: Gửi em"></label>
-<label>Ngày bắt đầu (để đếm ngày, không bắt buộc)<input id="loveStart" type="date"></label>
-<label>Lời nhắn<textarea id="loveMsg" maxlength="1500" rows="6" placeholder="Viết điều cậu muốn nói..."></textarea></label>
-<div class="love-two">
-<label>Màu nền<select id="loveTheme"><option value="hong">Hồng</option><option value="tim">Tím</option><option value="dem">Đêm</option></select></label>
-<label>Hiệu ứng<select id="loveEffect"><option value="tim">Trái tim bay</option><option value="sao">Sao lấp lánh</option><option value="canhhoa">Cánh hoa rơi</option></select></label>
-</div>
-<div id="lovePhotoThumbs"></div>
-<button id="lovePhotoBtn" type="button">📷 Thêm ảnh (tối đa 3)</button>
-<input id="lovePhotoFile" type="file" accept="image/*" multiple hidden>
-<p id="loveFormStatus" aria-live="polite"></p>
-<div class="love-actions"><button id="lovePreview" type="button">Xem thử</button><button id="loveSave" type="button">Lưu và lấy QR</button><button id="loveCancel" type="button">Quay lại</button></div>
-</div>
-<div id="loveResult" hidden>
-<p class="love-sub">Xong rồi! Quét mã này hoặc gửi link cho người nhận.</p>
-<canvas id="loveQR" width="300" height="300"></canvas>
-<input id="loveLinkBox" readonly aria-label="Link trang tình yêu">
-<div class="love-actions"><button id="loveCopy" type="button">Copy link</button><button id="loveDownload" type="button">Tải mã QR</button><button id="loveOpenLink" type="button">Mở thử</button><button id="loveBack" type="button">Về danh sách</button></div>
-</div>
-</div>
-</div>
-<div id="loveView" hidden></div>
-
 <main>
 
 <section id="login">
@@ -321,7 +234,6 @@ body.love-only>*:not(#loveView){display:none!important}
     <button id="photoToggle" type="button" aria-label="Chụp ảnh lưu vào nhật ký" title="Chụp ảnh">📸</button>
     <button id="mapToggle" type="button" aria-label="Mở bản đồ" title="Bản đồ GPS">🗺️</button>
     <button id="hskToggle" type="button" aria-label="Mở phòng học HSK" title="Học tiếng Trung HSK">📚</button>
-    <button id="loveToggle" type="button" aria-label="Tạo trang tình yêu" title="Trang tình yêu + mã QR">💌</button>
   </div>
   <div id="chatLayout">
     <div id="chatMain">
@@ -677,10 +589,6 @@ document.head.appendChild(tag);
 })();
 </script>
 
-<script>
-/* qrcode-generator 2.0.4 (MIT) - Kazuhiko Arase */
-var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
-</script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
@@ -3452,278 +3360,6 @@ try{await update(petRef(),{addressNote:note,addressNoteUpdatedAt:Date.now()});$(
 catch(e){$('petAddressStatus').textContent='Không lưu được: '+e.message;}
 });
 /* ================= END EVENT NUOI PET 20/10 ================= */
-/* ================= TRANG TÌNH YÊU: tạo trang + mã QR, quét QR là mở ================= */
-const loveEl=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;};
-let loveRaf=0,loveStopFn=null,loveTimer=0,loveTypeTimer=0,lovePhotoTimer=0;
-let lovePhotos=[],loveEditing=null,loveListUnsub=null;
-const LOVE_THEMES=["hong","tim","dem"],LOVE_EFFECTS=["tim","sao","canhhoa"];
-async function loveEnsureFirebase(){
-if(!app){app=initializeApp(firebaseConfig);auth=getAuth(app);db=getDatabase(app);}
-if(!auth.currentUser)await signInAnonymously(auth);
-return auth.currentUser;
-}
-function loveLink(id){return location.origin+location.pathname+"?love="+encodeURIComponent(id);}
-function loveStopAll(){
-if(loveStopFn){loveStopFn();loveStopFn=null;}
-clearInterval(loveTimer);clearInterval(loveTypeTimer);clearInterval(lovePhotoTimer);
-}
-function loveStartFx(canvas,effect){
-const ctx=canvas.getContext("2d");
-const sets={tim:["💗","💖","💕","❤️","💘"],sao:["✨","⭐","🌟","💫"],canhhoa:["🌸","🌷","🌺","🌼"]};
-const chars=sets[effect]||sets.tim;
-const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-const dpr=Math.min(devicePixelRatio||1,2);
-let w=0,h=0;
-const resize=()=>{w=canvas.clientWidth;h=canvas.clientHeight;canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);};
-resize();addEventListener("resize",resize);
-const dir=effect==="tim"?-1:1;
-const n=reduce?10:Math.max(14,Math.min(34,Math.round(w/16)));
-const mk=init=>({x:Math.random()*w,y:init?Math.random()*h:(dir<0?h+30:-30),s:14+Math.random()*22,v:.4+Math.random()*1.1,ph:Math.random()*6.28,c:chars[Math.floor(Math.random()*chars.length)],r:Math.random()*6.28,a:.45+Math.random()*.5});
-const ps=Array.from({length:n},()=>mk(true));
-let t=0;
-const frame=()=>{
-t+=.02;ctx.clearRect(0,0,w,h);
-for(const p of ps){
-p.y+=dir*p.v*(reduce?.4:1);p.x+=Math.sin(t+p.ph)*.5;p.r+=.01;
-ctx.globalAlpha=effect==="sao"?p.a*(.6+.4*Math.sin(t*3+p.ph)):p.a;
-ctx.font=p.s+"px serif";ctx.save();ctx.translate(p.x,p.y);
-if(effect==="canhhoa")ctx.rotate(p.r);
-ctx.fillText(p.c,0,0);ctx.restore();
-if(dir<0?p.y<-40:p.y>h+40)Object.assign(p,mk(false));
-}
-ctx.globalAlpha=1;loveRaf=requestAnimationFrame(frame);
-};
-frame();
-loveStopFn=()=>{cancelAnimationFrame(loveRaf);removeEventListener("resize",resize);};
-}
-function loveTick(box,start){
-const diff=start-Date.now(),ms=Math.abs(diff);
-box.querySelector(".lv-pre").textContent=diff>0?"Còn":"Đã bên nhau";
-box.querySelector(".lv-days").textContent=Math.floor(ms/864e5);
-box.querySelector(".lv-hms").textContent=Math.floor(ms%864e5/36e5)+" giờ "+Math.floor(ms%36e5/6e4)+" phút "+Math.floor(ms%6e4/1e3)+" giây";
-}
-function loveShow(d,opts={}){
-loveStopAll();
-const v=$("loveView");v.replaceChildren();
-v.className="lv-"+(LOVE_THEMES.includes(d.theme)?d.theme:"hong");
-v.hidden=false;
-const canvas=loveEl("canvas","lv-fx");
-const stage=loveEl("div","lv-stage");
-v.append(canvas,stage);
-if(opts.preview){
-const close=loveEl("button","lv-close","✕ Đóng xem thử");close.type="button";
-close.addEventListener("click",()=>{loveStopAll();v.hidden=true;v.replaceChildren();});
-v.append(close);
-}
-const env=loveEl("button","lv-env");env.type="button";
-env.append(loveEl("div","lv-env-icon","💌"),loveEl("div","lv-env-text","Có một bức thư gửi "+d.to),loveEl("div","lv-env-hint","Chạm để mở"));
-stage.append(env);
-const content=loveEl("div","lv-content");content.hidden=true;
-if(d.title)content.append(loveEl("h1","lv-title",d.title));
-content.append(loveEl("p","lv-names","Gửi "+d.to+", từ "+d.from));
-const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d.startDate||"");
-let counter=null,startMs=0;
-if(m){
-startMs=new Date(+m[1],+m[2]-1,+m[3]).getTime();
-counter=loveEl("div","lv-counter");
-counter.append(loveEl("div","lv-pre"),loveEl("div","lv-days"),loveEl("div","lv-unit","ngày"),loveEl("div","lv-hms"));
-content.append(counter);
-}
-const photos=Object.values(d.photos||{}).filter(x=>typeof x==="string"&&x.startsWith("data:image/"));
-let photoWrap=null;
-if(photos.length){
-photoWrap=loveEl("div","lv-photos");
-photos.forEach((src,i)=>{const im=loveEl("img","lv-photo"+(i===0?" on":""));im.src=src;im.alt="Ảnh kỷ niệm";photoWrap.append(im);});
-content.append(photoWrap);
-}
-const msg=loveEl("div","lv-msg");content.append(msg);
-if(!opts.preview){
-const foot=loveEl("div","lv-foot");
-foot.append(document.createTextNode("Tạo bằng Amino 💜 · "));
-const a=loveEl("a",null,"Tạo trang của riêng cậu");a.href=location.pathname;
-foot.append(a);content.append(foot);
-}
-stage.append(content);
-env.addEventListener("click",()=>{
-env.hidden=true;content.hidden=false;
-loveStartFx(canvas,LOVE_EFFECTS.includes(d.effect)?d.effect:"tim");
-if(counter){loveTick(counter,startMs);loveTimer=setInterval(()=>loveTick(counter,startMs),1000);}
-if(photoWrap&&photos.length>1){
-let i=0;const imgs=[...photoWrap.children];
-lovePhotoTimer=setInterval(()=>{imgs[i].classList.remove("on");i=(i+1)%imgs.length;imgs[i].classList.add("on");},3500);
-}
-const text=String(d.message||"");let k=0;
-const step=Math.max(15,Math.min(60,6000/Math.max(1,text.length)));
-const finish=()=>{clearInterval(loveTypeTimer);msg.textContent=text;};
-loveTypeTimer=setInterval(()=>{k++;msg.textContent=text.slice(0,k);if(k>=text.length)clearInterval(loveTypeTimer);},step);
-msg.addEventListener("click",finish);
-});
-}
-/* ---- QR ---- */
-function loveDrawQR(canvas,text){
-const qr=qrcode(0,"M");qr.addData(text);qr.make();
-const n=qr.getModuleCount(),scale=Math.max(3,Math.floor(300/(n+8))),size=(n+8)*scale;
-canvas.width=size;canvas.height=size;
-const c=canvas.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,size,size);c.fillStyle="#2b1245";
-for(let r=0;r<n;r++)for(let q=0;q<n;q++)if(qr.isDark(r,q))c.fillRect((q+4)*scale,(r+4)*scale,scale,scale);
-}
-/* ---- ảnh ---- */
-function loveLoadImg(file){
-return new Promise((resolve,reject)=>{
-if(!file||!file.type.startsWith("image/"))return reject(new Error("Không phải ảnh"));
-const reader=new FileReader();
-reader.onload=()=>{
-const image=new Image();
-image.onload=()=>{
-const sc=Math.min(1,720/Math.max(image.width,image.height));
-const c=document.createElement("canvas");c.width=Math.round(image.width*sc);c.height=Math.round(image.height*sc);
-c.getContext("2d").drawImage(image,0,0,c.width,c.height);
-let q=.72,data=c.toDataURL("image/jpeg",q);
-while(data.length>240000&&q>.35){q-=.1;data=c.toDataURL("image/jpeg",q);}
-data.length>290000?reject(new Error("Ảnh quá nặng")):resolve(data);
-};
-image.onerror=()=>reject(new Error("Không đọc được ảnh"));
-image.src=reader.result;
-};
-reader.onerror=()=>reject(new Error("Không đọc được ảnh"));
-reader.readAsDataURL(file);
-});
-}
-function loveRenderThumbs(){
-const box=$("lovePhotoThumbs");box.replaceChildren();
-lovePhotos.forEach((src,i)=>{
-const w=loveEl("div","love-thumb");const im=document.createElement("img");im.src=src;im.alt="";
-const x=loveEl("button",null,"×");x.type="button";x.setAttribute("aria-label","Bỏ ảnh");
-x.addEventListener("click",()=>{lovePhotos.splice(i,1);loveRenderThumbs();});
-w.append(im,x);box.append(w);
-});
-$("lovePhotoBtn").hidden=lovePhotos.length>=3;
-}
-/* ---- form ---- */
-function loveShowPane(name){
-$("loveListWrap").hidden=name!=="list";$("loveFormWrap").hidden=name!=="form";$("loveResult").hidden=name!=="result";
-}
-function loveFillForm(d){
-$("loveFrom").value=d?.from||displayName||"";$("loveTo").value=d?.to||"";$("loveTitle").value=d?.title||"";
-$("loveStart").value=d?.startDate||"";$("loveMsg").value=d?.message||"";
-$("loveTheme").value=LOVE_THEMES.includes(d?.theme)?d.theme:"hong";
-$("loveEffect").value=LOVE_EFFECTS.includes(d?.effect)?d.effect:"tim";
-lovePhotos=Object.values(d?.photos||{}).filter(x=>typeof x==="string"&&x.startsWith("data:image/"));
-loveRenderThumbs();$("loveFormStatus").textContent="";
-}
-function loveCollect(){
-const from=$("loveFrom").value.trim()||displayName||"Ẩn danh";
-const to=$("loveTo").value.trim(),message=$("loveMsg").value.trim();
-if(!to){$("loveFormStatus").textContent="Cậu nhập tên người nhận nhé.";return null;}
-if(!message){$("loveFormStatus").textContent="Cậu viết lời nhắn nhé.";return null;}
-const d={from:from.slice(0,24),to:to.slice(0,40),message:message.slice(0,1500),theme:$("loveTheme").value,effect:$("loveEffect").value};
-const title=$("loveTitle").value.trim();if(title)d.title=title.slice(0,60);
-const start=$("loveStart").value;if(/^\d{4}-\d{2}-\d{2}$/.test(start))d.startDate=start;
-if(lovePhotos.length)d.photos=lovePhotos.slice(0,3);
-return d;
-}
-async function loveSave(){
-const d=loveCollect();if(!d||!user)return;
-$("loveSave").disabled=true;$("loveFormStatus").textContent="Đang lưu...";
-try{
-const id=loveEditing?.id||push(ref(db,"lovePages")).key;
-const now=Date.now();
-const doc={uid:user.uid,...d,createdAt:loveEditing?.createdAt||now};
-if(loveEditing)doc.updatedAt=now;
-await set(ref(db,"lovePages/"+id),doc);
-await set(ref(db,`loveMine/${user.uid}/${id}`),{title:d.title||("Gửi "+d.to),to:d.to,createdAt:doc.createdAt});
-loveShowResult(id);
-}catch(e){$("loveFormStatus").textContent="Không lưu được: "+(e.message||e);}
-finally{$("loveSave").disabled=false;}
-}
-function loveShowResult(id){
-const link=loveLink(id);
-$("loveLinkBox").value=link;
-loveDrawQR($("loveQR"),link);
-$("loveResult").dataset.id=id;
-$("loveResult").dataset.link=link;
-loveShowPane("result");
-}
-function loveStartListWatch(){
-if(loveListUnsub){loveListUnsub();loveListUnsub=null;}
-const box=$("loveList");
-loveListUnsub=onValue(ref(db,"loveMine/"+user.uid),snap=>{
-box.replaceChildren();
-const items=Object.entries(snap.val()||{}).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
-if(!items.length){box.append(loveEl("p","love-empty","Cậu chưa tạo trang nào. Bấm nút bên dưới để tạo trang đầu tiên."));return;}
-for(const [id,it] of items){
-const row=loveEl("div","love-row");
-row.append(loveEl("span","love-row-title",it.title||("Gửi "+it.to)));
-const bQR=loveEl("button",null,"QR");bQR.type="button";bQR.addEventListener("click",()=>loveShowResult(id));
-const bEdit=loveEl("button",null,"Sửa");bEdit.type="button";
-bEdit.addEventListener("click",async()=>{
-try{const s=await get(ref(db,"lovePages/"+id));if(!s.exists())return;
-loveEditing={id,createdAt:s.val().createdAt};loveFillForm(s.val());loveShowPane("form");}catch(e){alert("Không mở được: "+(e.message||e));}
-});
-const bDel=loveEl("button",null,"Xóa");bDel.type="button";
-bDel.addEventListener("click",async()=>{
-if(!confirm("Xóa trang này? Mã QR đã gửi đi sẽ không mở được nữa."))return;
-try{await remove(ref(db,"lovePages/"+id));await remove(ref(db,`loveMine/${user.uid}/${id}`));}catch(e){alert("Không xóa được: "+(e.message||e));}
-});
-row.append(bQR,bEdit,bDel);box.append(row);
-}
-});
-}
-function loveOpenModal(){
-if(!user)return;
-$("loveModal").hidden=false;loveShowPane("list");loveStartListWatch();
-}
-function loveCloseModal(){
-$("loveModal").hidden=true;
-if(loveListUnsub){loveListUnsub();loveListUnsub=null;}
-}
-function loveSetup(){
-$("loveToggle").addEventListener("click",loveOpenModal);
-$("loveClose").addEventListener("click",loveCloseModal);
-$("loveModal").addEventListener("click",e=>{if(e.target===$("loveModal"))loveCloseModal();});
-$("loveNew").addEventListener("click",()=>{loveEditing=null;loveFillForm(null);loveShowPane("form");});
-$("loveCancel").addEventListener("click",()=>loveShowPane("list"));
-$("lovePhotoBtn").addEventListener("click",()=>$("lovePhotoFile").click());
-$("lovePhotoFile").addEventListener("change",async e=>{
-const files=[...e.target.files].slice(0,3-lovePhotos.length);e.target.value="";
-for(const f of files){
-try{lovePhotos.push(await loveLoadImg(f));}catch(err){$("loveFormStatus").textContent=err.message;}
-}
-loveRenderThumbs();
-});
-$("lovePreview").addEventListener("click",()=>{const d=loveCollect();if(d)loveShow(d,{preview:true});});
-$("loveSave").addEventListener("click",loveSave);
-$("loveBack").addEventListener("click",()=>loveShowPane("list"));
-$("loveCopy").addEventListener("click",async()=>{
-const link=$("loveResult").dataset.link;
-try{await navigator.clipboard.writeText(link);$("loveCopy").textContent="Đã copy ✓";}
-catch(e){$("loveLinkBox").select();$("loveCopy").textContent="Chọn rồi copy nhé";}
-setTimeout(()=>$("loveCopy").textContent="Copy link",1800);
-});
-$("loveDownload").addEventListener("click",()=>{
-$("loveQR").toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="amino-love-qr.png";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);});
-});
-$("loveOpenLink").addEventListener("click",()=>window.open($("loveResult").dataset.link,"_blank","noopener"));
-}
-async function loveBoot(id){
-const v=$("loveView");v.className="lv-hong";v.hidden=false;
-v.replaceChildren(loveEl("div","lv-stage lv-msg-center","Đang mở thư... 💌"));
-try{
-await loveEnsureFirebase();
-const snap=await get(ref(db,"lovePages/"+id));
-if(!snap.exists()){v.replaceChildren(loveEl("div","lv-stage lv-msg-center","Không tìm thấy bức thư này 💔"));return;}
-loveShow(snap.val());
-}catch(e){
-v.replaceChildren(loveEl("div","lv-stage lv-msg-center","Không mở được thư: "+(e.message||e)));
-}
-}
-loveSetup();
-{
-const loveParam=new URLSearchParams(location.search).get("love");
-if(loveParam&&/^[-\w]{15,30}$/.test(loveParam)){document.body.classList.add("love-only");loveBoot(loveParam);}
-}
-/* ================= HẾT TRANG TÌNH YÊU ================= */
-
 $("enter").addEventListener("click",async()=>{
 displayName=$("name").value.trim();
 if(!displayName){
@@ -3880,7 +3516,6 @@ $("chatStatus").textContent="";
 const wait=document.createElement("div");wait.className="message luna-msg luna-wait";
 wait.innerHTML='<div class="message-header"><span class="sender">🦭 Luna</span></div><div class="message-body">đang gõ<span class="dots"></span></div>';
 messages.append(wait);messages.scrollTop=messages.scrollHeight;
-const t0=performance.now();let tAI=0;
 const ctl=new AbortController(),killer=setTimeout(()=>ctl.abort(),30000);
 const q=raw.replace(/@luna\b/ig,"").replace(/\s+/g," ").trim()||"Chào Luna!";
 const entry={role:"user",content:image?[{type:"text",text:q==="Chào Luna!"?"Hãy mô tả ảnh này.":q},{type:"image_url",image_url:{url:image}}]:q};
@@ -3889,15 +3524,12 @@ try{
 const res=await fetch(GPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:ctl.signal,body:JSON.stringify({messages:lunaHistory.slice(-3)})});
 if(!res.ok)throw new Error("HTTP "+res.status);
 const data=await res.json();
-tAI=performance.now()-t0;
 const answer=String(data.text||"Luna chưa trả lời được, cậu thử lại nhé 😅").slice(0,1000);
 entry.content=image?(q+" [kèm ảnh]"):q;
 lunaHistory.push({role:"assistant",content:answer});
 clearTimeout(killer);wait.remove();
 await set(push(ref(db,"publicChat/messages")),{uid:user.uid,name:"🦭 Luna",bot:"luna",text:answer,createdAt:Date.now()});
-const tAll=performance.now()-t0;
-console.log("Luna: AI "+tAI.toFixed(0)+"ms, tổng "+tAll.toFixed(0)+"ms");
-$("chatStatus").textContent="🦭 AI trả lời sau "+(tAI/1000).toFixed(1)+"s, hiện lên chat sau "+(tAll/1000).toFixed(1)+"s";
+$("chatStatus").textContent="Đã kết nối.";
 }catch(e){
 const i=lunaHistory.indexOf(entry);if(i>=0)lunaHistory.splice(i,1);
 clearTimeout(killer);wait.remove();
