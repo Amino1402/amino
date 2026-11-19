@@ -184,7 +184,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 </style>
 
 <style id="lunaInlineStyle">#messages .message.luna-msg{background:#eafaf1;border:1px solid #bfe8cf;border-left:4px solid #15803d}#messages .message.luna-msg .sender{color:#15803d}html[data-theme="rabbit"] #messages .message.luna-msg{background:#ffe3ef;border:1px solid #ffb8d4;border-left:4px solid #c93673}html[data-theme="rabbit"] #messages .message.luna-msg .sender{color:#c93673}html[data-theme="galaxy"] #messages .message.luna-msg{background:rgba(18,64,66,.82);color:var(--gx-ink);border:1px solid rgba(126,224,176,.5);border-left:4px solid #7ee0b0}html[data-theme="galaxy"] #messages .message.luna-msg .sender{color:#7ee0b0}</style>
-<style id="chatImgStyle">#chatAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#chatImgPreview{position:relative;display:inline-block;margin:6px 0}#chatImgPreview img{height:70px;border-radius:8px;display:block}#chatImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;color:#fff;border:0;line-height:1}#chatImgPreview[hidden]{display:none}.msg-img{display:block;max-width:100%;max-height:260px;border-radius:10px;margin-top:6px;cursor:zoom-in}#imgLightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;z-index:99999;cursor:zoom-out}#imgLightbox img{max-width:94vw;max-height:92vh;border-radius:8px}</style>
+<style id="chatImgStyle">#chatAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#chatImgPreview{position:relative;display:inline-block;margin:6px 0}#chatImgPreview img{height:70px;border-radius:8px;display:block}#chatImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;color:#fff;border:0;line-height:1}#chatImgPreview[hidden]{display:none}.msg-img{display:block;max-width:100%;max-height:260px;border-radius:10px;margin-top:6px;cursor:zoom-in}#imgLightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;z-index:99999;cursor:zoom-out}#imgLightbox img{max-width:94vw;max-height:92vh;border-radius:8px}.luna-wait .dots:after{content:"";animation:lunaDots 1.2s steps(4,end) infinite}@keyframes lunaDots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}</style>
 </head>
 <body>
 <button id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false" title="Menu">☰</button>
@@ -3512,22 +3512,28 @@ let lunaBusy=false,lunaLast=0;const lunaHistory=[];
 async function askLuna(raw,image){
 if(lunaBusy||Date.now()-lunaLast<4000){$("chatStatus").textContent="Luna đang bận, cậu đợi xíu nhé 🦭";return;}
 lunaBusy=true;lunaLast=Date.now();
-$("chatStatus").textContent="🦭 Luna đang trả lời...";
+$("chatStatus").textContent="";
+const wait=document.createElement("div");wait.className="message luna-msg luna-wait";
+wait.innerHTML='<div class="message-header"><span class="sender">🦭 Luna</span></div><div class="message-body">đang gõ<span class="dots"></span></div>';
+messages.append(wait);messages.scrollTop=messages.scrollHeight;
+const ctl=new AbortController(),killer=setTimeout(()=>ctl.abort(),30000);
 const q=raw.replace(/@luna\b/ig,"").replace(/\s+/g," ").trim()||"Chào Luna!";
 const entry={role:"user",content:image?[{type:"text",text:q==="Chào Luna!"?"Hãy mô tả ảnh này.":q},{type:"image_url",image_url:{url:image}}]:q};
 lunaHistory.push(entry);
 try{
-const res=await fetch(GPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:lunaHistory.slice(-3)})});
+const res=await fetch(GPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:ctl.signal,body:JSON.stringify({messages:lunaHistory.slice(-3)})});
 if(!res.ok)throw new Error("HTTP "+res.status);
 const data=await res.json();
 const answer=String(data.text||"Luna chưa trả lời được, cậu thử lại nhé 😅").slice(0,1000);
 entry.content=image?(q+" [kèm ảnh]"):q;
 lunaHistory.push({role:"assistant",content:answer});
+clearTimeout(killer);wait.remove();
 await set(push(ref(db,"publicChat/messages")),{uid:user.uid,name:"🦭 Luna",bot:"luna",text:answer,createdAt:Date.now()});
 $("chatStatus").textContent="Đã kết nối.";
 }catch(e){
 const i=lunaHistory.indexOf(entry);if(i>=0)lunaHistory.splice(i,1);
-$("chatStatus").textContent="Luna không trả lời được: "+(e.message||e);
+clearTimeout(killer);wait.remove();
+$("chatStatus").textContent=e.name==="AbortError"?"Luna phản hồi lâu quá, cậu thử lại nhé 🦭":"Luna không trả lời được: "+(e.message||e);
 }finally{lunaBusy=false;}
 }
 /* GỬI TIN NHẮN */
@@ -3540,9 +3546,11 @@ const text=typed||"📷";
 const button=$("composer").querySelector('button[type="submit"]');
 button.disabled=true;
 try{
-await set(push(ref(db,"publicChat/messages")),{
+const sending=set(push(ref(db,"publicChat/messages")),{
 uid:user.uid,name:displayName,text,createdAt:Date.now(),...(image?{image}:{})
 });
+if(/(^|\s)@luna\b/i.test(typed))askLuna(typed,image);
+await sending;
 floatHearts();
 clearTimeout(typingWriteTimer);
 clearTimeout(typingClearTimer);
@@ -3551,7 +3559,6 @@ await set(myTypingRef(),null).catch(()=>{});
 $("message").value="";
 chatPendingImg=null;renderChatPreview();
 $("message").focus();
-if(/(^|\s)@luna\b/i.test(typed))askLuna(typed,image);
 }catch(error){
 $("chatStatus").textContent="Gửi tin nhắn lỗi: "+error.message;
 }finally{
