@@ -746,7 +746,11 @@ for(;;){
 const pass=await askAminoPassword(title,error);
 if(pass===null)return false;
 try{
-await set(ref(db,`unlocks/${user.uid}/${kind}`),{pass:pass,at:serverTimestamp()});
+const unlockRef=ref(db,`unlocks/${user.uid}/${kind}`);
+try{await set(unlockRef,{pass:pass,at:serverTimestamp()});}
+catch(first){
+if(/^\d+$/.test(pass)){await set(unlockRef,{pass:Number(pass),at:serverTimestamp()});}else{throw first;}
+}
 aminoUnlockUntil[kind]=Date.now()+AMINO_UNLOCK_TTL;
 return true;
 }catch(e){
