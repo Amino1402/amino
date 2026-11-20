@@ -522,6 +522,14 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 
 
 
+<div id="aminoPassModal" hidden style="position:fixed;inset:0;z-index:20000;background:rgba(20,10,30,.6);display:flex;align-items:center;justify-content:center;padding:16px">
+  <div role="dialog" aria-modal="true" aria-labelledby="aminoPassTitle" style="width:min(340px,100%);background:#fff;color:#333;border-radius:16px;padding:18px;box-shadow:0 12px 40px #0006;text-align:center">
+    <h3 id="aminoPassTitle" style="margin:0 0 10px;color:#6750a4">Nhập mật khẩu</h3>
+    <input id="aminoPassInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Mật khẩu" style="width:100%;margin:6px 0">
+    <div id="aminoPassError" style="min-height:20px;color:#b42318;font-size:13px;margin:4px 0 8px"></div>
+    <div style="display:flex;gap:8px"><button id="aminoPassOk" type="button" style="flex:1">Mở khóa</button><button id="aminoPassCancel" type="button" style="flex:1;background:#64748b">Hủy</button></div>
+  </div>
+</div>
 <div id="mapPhotoModal" hidden>
   <div id="mapPhotoDialog" role="dialog" aria-modal="true" aria-labelledby="mapPhotoDialogTitle">
     <h3 id="mapPhotoDialogTitle">📸 Lưu khoảnh khắc tại đây</h3>
@@ -714,6 +722,39 @@ if(hasImages)addAminoToast(`diary:${uid}:${dateKey}:image:${Number(entry.photoCo
 }
 }
 }
+/* ===== MẬT KHẨU NHẬT KÝ / BẢN ĐỒ (kiểm tra bằng Firebase Rules) ===== */
+const AMINO_UNLOCK_TTL=43200000-120000;
+const aminoUnlockUntil={diary:0,maps:0};
+function askAminoPassword(title,errorText){
+return new Promise(resolve=>{
+const modal=document.getElementById("aminoPassModal"),input=document.getElementById("aminoPassInput"),err=document.getElementById("aminoPassError"),ok=document.getElementById("aminoPassOk"),cancel=document.getElementById("aminoPassCancel");
+document.getElementById("aminoPassTitle").textContent=title;
+err.textContent=errorText||"";input.value="";modal.hidden=false;
+setTimeout(()=>input.focus(),50);
+const done=v=>{modal.hidden=true;ok.onclick=null;cancel.onclick=null;input.onkeydown=null;resolve(v);};
+ok.onclick=()=>{const v=input.value.trim();if(!v){err.textContent="Nhập mật khẩu nhé.";return;}done(v);};
+cancel.onclick=()=>done(null);
+input.onkeydown=e=>{if(e.key==="Enter")ok.onclick();};
+});
+}
+async function ensureUnlock(kind){
+if(!user||!db)return false;
+if(Date.now()<aminoUnlockUntil[kind])return true;
+const title=kind==="diary"?"📔 Nhập mật khẩu để vào Nhật ký":"🗺️ Nhập mật khẩu để vào Bản đồ";
+let error="";
+for(;;){
+const pass=await askAminoPassword(title,error);
+if(pass===null)return false;
+try{
+await set(ref(db,`unlocks/${user.uid}/${kind}`),{pass:pass,at:serverTimestamp()});
+aminoUnlockUntil[kind]=Date.now()+AMINO_UNLOCK_TTL;
+return true;
+}catch(e){
+error=/permission/i.test(String(e&&e.code||"")+String(e&&e.message||""))?"Sai mật khẩu, thử lại nhé.":"Lỗi: "+((e&&e.message)||e);
+}
+}
+}
+/* ===== HẾT MẬT KHẨU ===== */
 function syncMapAminoToasts(records){
 for(const [key,meeting] of Object.entries(records||{})){
 if(!meeting)continue;
@@ -1423,7 +1464,7 @@ await startDiaryVisit(diarySelectedDate);
 $("diarySaveStatus").textContent="Nhật ký tự động lưu.";
 }
 async function activateDiaryAccess(){
-if(!user||!db||!diaryAccessAllowed)return;
+if(!user||!db||!diaryAccessAllowed||Date.now()>=aminoUnlockUntil.diary)return;
 diaryPageUnlocked=true;
 $("diaryGate").hidden=true;
 $("diaryContent").hidden=false;
@@ -1797,7 +1838,9 @@ saveButton.disabled=false;
 function startDiary(){
 if(diaryStarted)return;
 diaryStarted=true;
-$("photoToggle").addEventListener("click",()=>{
+$("photoToggle").addEventListener("click",async()=>{
+if(!diaryAccessAllowed){alert("UID này chưa được cấp quyền nhật ký.");return;}
+if(!(await ensureUnlock("diary")))return;
 $("chat").hidden=true;
 $("diaryPage").hidden=true;
 $("mapPage").hidden=true;
@@ -1813,9 +1856,18 @@ $("diaryToggle").addEventListener("click",async()=>{
 $("chat").hidden=true;
 $("photoPage").hidden=true;
 $("diaryPage").hidden=false;
-$("diaryGate").hidden=diaryAccessAllowed;
-$("diaryContent").hidden=!diaryAccessAllowed;
+$("diaryGate").hidden=false;
+$("diaryContent").hidden=true;
 if(diaryAccessAllowed){
+$("diaryAccessStatus").textContent="";
+if(!(await ensureUnlock("diary"))){
+$("diaryPage").hidden=true;
+$("chat").hidden=false;
+window.scrollTo({top:0,behavior:"auto"});
+return;
+}
+$("diaryGate").hidden=true;
+$("diaryContent").hidden=false;
 await activateDiaryAccess();
 }else{
 showDiaryAccessDenied();
@@ -2669,7 +2721,8 @@ syncMapAminoToasts(mapMeetingHistoryData);
 renderMapMeetingHistory();
 },error=>console.warn("Không đọc được lịch sử gặp nhau:",error));
 }
-function openMapPage(){
+async function openMapPage(){
+if(!(await ensureUnlock("maps")))return;
 $("chat").hidden=true;
 $("diaryPage").hidden=true;
 $("photoPage").hidden=true;
@@ -3376,7 +3429,7 @@ db=getDatabase(app);
 }
 const result=await signInAnonymously(auth);
 user=result.user;
-await setMyLocationSharingStatus(false);
+try{await remove(ref(db,`unlocks/${user.uid}`));}catch(e){}
 $("login").hidden=true;
 $("chat").hidden=false;
 $("welcome").textContent="Xin chào, "+displayName+" 💜";
@@ -3385,7 +3438,6 @@ startPresence();
 startSystemMessageCleanup();
 setupMapControls();
 setupHskControls();
-startMapListeners();
 startTypingSync();
 startMusicSync();
 startDiary();
