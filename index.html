@@ -72,17 +72,17 @@ html[data-theme="galaxy"] ::placeholder{color:#8580bd}
 :where(html[data-theme="galaxy"]) button{background:linear-gradient(180deg,#7b5cff,#4a30c4);color:#fff;border:1px solid rgba(215,205,255,.45);box-shadow:0 0 12px rgba(123,92,255,.45)}
 html[data-theme="galaxy"] button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 html[data-theme="galaxy"] #musicError{color:#ff9aa8}
-html[data-theme="galaxy"] :where(#status,#chatStatus,.song-channel,.hint,#onlineEmpty,.diary-weekdays,.entry-time,#diarySaveStatus,#mapMembersSummary,.map-member-status,.map-photo-card small,.map-photo-empty,#mapMeetingSummary,.map-meeting-muted,.map-meeting-empty,#aboutCard .about-sub,.message-time,.system-time,.amino-toast-time,.wx-hour small,.wx-day small,#wxUpdated){color:var(--gx-dim)}
+html[data-theme="galaxy"] :where(#status,#chatStatus,.song-channel,.hint,#onlineEmpty,.diary-weekdays,.entry-time,#diarySaveStatus,#mapMembersSummary,.map-member-status,.map-photo-card small,.map-photo-empty,#mapMeetingSummary,.map-meeting-muted,.map-meeting-empty,.pet-small,#aboutCard .about-sub,.message-time,.system-time,.amino-toast-time,.wx-hour small,.wx-day small,#wxUpdated){color:var(--gx-dim)}
 html[data-theme="galaxy"] :where(.sender,.online-heading,.music-heading,#typingIndicator,#syncStatus,.diary-page-title){color:var(--gx-hi)}
 html[data-theme="galaxy"] .typing-draft{color:var(--gx-ink)}
 html[data-theme="galaxy"] #messages{border:1px solid var(--gx-edge);border-radius:12px;background-image:linear-gradient(rgba(7,5,28,.62),rgba(7,5,28,.62)),url("./chat-bg.jpg");box-shadow:inset 0 0 20px rgba(120,100,255,.18)}
 html[data-theme="galaxy"] .message{background:rgba(26,19,68,.80);color:var(--gx-ink);border:1px solid rgba(196,181,255,.5);border-left:4px solid #ffe08a;box-shadow:0 0 10px rgba(150,130,255,.25)}
 html[data-theme="galaxy"] .system-message{background:rgba(66,50,150,.50);color:var(--gx-hi);border:1px solid rgba(196,181,255,.35)}
 html[data-theme="galaxy"] :is(#onlinePanel,#musicPanel,#diaryToggle,#photoToggle,#mapToggle,#diaryGate,#diaryViews,#diaryViewsToggle,#routeToolbar,#mapMeetingPanel,#mapPhotoToolbar,#mapPhotoSection,#mapPhotoDialog,#mapMeetingHistorySection,#diaryPrivateUid,#diaryDeniedDetails,#aminoWeatherCard,#aboutCard){background:var(--gx-card);color:var(--gx-ink);border:1px solid var(--gx-edge);box-shadow:0 0 14px rgba(139,123,255,.28)}
-html[data-theme="galaxy"] :where(.online-user,.song,.typing-user,.diary-day,.public-entry,.diary-view-item,.map-member-button,.map-photo-card,.map-meeting-item,.ai-bot,.diary-image-thumb,.wx-stat,.wx-hour,.wx-day,.diary-strip-top button,.diary-photo-month button){background:var(--gx-card);color:var(--gx-ink);border-color:rgba(196,181,255,.35)}
-
-
-html[data-theme="galaxy"] :is(#mapPhotoSection h3,#mapPhotoDialog h3,#mapPhotoStatus){color:var(--gx-hi)}
+html[data-theme="galaxy"] :where(.online-user,.song,.typing-user,.diary-day,.public-entry,.diary-view-item,.map-member-button,.map-photo-card,.map-meeting-item,.ai-bot,.diary-image-thumb,.wx-stat,.wx-hour,.wx-day,.pet-choice,.diary-strip-top button,.diary-photo-month button){background:var(--gx-card);color:var(--gx-ink);border-color:rgba(196,181,255,.35)}
+html[data-theme="galaxy"] .pet-choice.active{background:#3b2a86;border-color:#ffd27a}
+html[data-theme="galaxy"] #petProgress{background:#2a2160}
+html[data-theme="galaxy"] :is(#mapPhotoSection h3,#mapPhotoSection h3,#mapPhotoDialog h3,#mapPhotoStatus){color:var(--gx-hi)}
 html[data-theme="galaxy"] .wx-tabs button:not(.active){background:#2a2160;color:var(--gx-hi);box-shadow:none}
 html[data-theme="galaxy"] .amino-toast{background:rgba(20,15,58,.86);border-color:var(--gx-edge);color:var(--gx-ink)}
 html[data-theme="galaxy"] .amino-toast-copy strong{color:var(--gx-hi)}
@@ -208,6 +208,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 <li><b>Nguồn dữ liệu HSK:</b> Danh sách HSK 3.0: HearMandarin. Nghĩa tiếng Việt: CVDICT (Phong Phan), CC BY-SA 4.0. Câu ví dụ: Tatoeba, CC BY 2.0.</li>
 <li><b>Nhạc chung:</b> cả phòng nghe cùng một bài, đồng bộ theo thời gian thực.</li>
 <li><b>Chụp ảnh:</b> Nó như locket, còn chưa bt về locket thì phải chịu. </li>
+<li><b>PET :</b> chọn Chikawa, Usagi, Mập, Hamster hoặc Luna để nuôi,( pet giúp che tin nhắn sau mỗi phút)khi lớn thì...</li>
 <li><b>Thời tiết:</b> dự báo 24 giờ và 7 ngày, kèm cảnh nền 3D đổi theo trời, ai tinh tế thấy amino khá tâm huyết cho mục này, có niều thứ nhỏ nhặt bên trong.</li>
 <li><b>Hai giao diện:</b> Thỏ (hồng) và Đông (tím, có tuyết), bấm nút để đổi.</li>
 </ul>
@@ -266,6 +267,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
         <div id="playerWrap" hidden><div id="player"></div></div>
         <div id="syncStatus" aria-live="polite">Đang chờ bài hát đầu tiên.</div>
       </section>
+    </div>
     </div>
   </div>
 </section>
@@ -535,8 +537,6 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   <img id="mapPhotoFullImage" alt="Ảnh check in phóng to">
   <div id="mapPhotoFullInfo"></div>
 </div>
-
-
 </main>
 
 <script>
@@ -1470,8 +1470,4 @@ function moveDiaryCameraGallery(direction){
 if(!diaryCameraGalleryItems.length)return;const next=diaryCameraGalleryIndex+direction;
 if(next<0||next>=diaryCameraGalleryItems.length)return;diaryCameraGalleryIndex=next;renderDiaryCameraGallery();
 }
-function handleDiaryGalleryTouchStart(event){diaryCameraGalleryTouchY=event.touches?.[0]?.clientY??null;}
-function handleDiaryGalleryTouchEnd(event){
-if(diaryCameraGalleryTouchY===null)return;const endY=event.changedTouches?.[0]?.clientY;
-const delta=diaryCameraGalleryTouchY-(endY??diaryCameraGalleryTouchY);diaryCameraGalleryTouchY=null;
-if(Math.abs(delta)>45)moveDiaryCamera
+function handleDiaryGalleryTouchStart(event){diaryCamera
