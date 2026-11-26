@@ -3402,11 +3402,15 @@ last=m.index+m[1].length;
 }
 if(last<text.length)parent.append(document.createTextNode(text.slice(last)));
 }
+function notesAuthor(){return String(typeof displayName==="string"&&displayName?displayName:"Thành viên").slice(0,24)}
 async function notesPush(note){
 note.pending=!notesCloud;
 if(notesCloud){
-try{await set(ref(db,`notes/${note.id}`),{text:note.text,at:note.at});note.pending=false}
-catch(error){note.pending=true;notesSetStatus("Không đồng bộ được: "+(error.message||error))}
+try{
+if(!note.name)note.name=notesAuthor();
+await set(ref(db,`notes/${note.id}`),{text:note.text,at:note.at,name:note.name});
+note.pending=false;
+}catch(error){note.pending=true;notesSetStatus("Không đồng bộ được: "+(error.message||error))}
 }
 notesWriteLocal();
 }
@@ -3423,7 +3427,7 @@ const body=document.createElement("div");body.className="notes-text";
 notesLinkify(body,String(note.text||""));
 const meta=document.createElement("div");meta.className="notes-meta";
 const when=document.createElement("span");
-when.textContent=note.at?new Date(note.at).toLocaleString("vi-VN"):"";
+when.textContent=(note.name?note.name+" · ":"")+(note.at?new Date(note.at).toLocaleString("vi-VN"):"");
 meta.append(when);
 card.append(body,meta);box.append(card);
 });
@@ -3466,32 +3470,40 @@ window.addEventListener("pagehide",notesLeave);
 $("notesBack").addEventListener("click",async()=>{
 await notesFlush();
 notesCurrent=null;
-$("notesPage").hidden=true;$("chat").hidden=false;
+notesStopLive();$("notesPage").hidden=true;$("chat").hidden=false;
 window.scrollTo({top:0,behavior:"auto"});
 });
+let notesUnsub=null;
+function notesStopLive(){if(notesUnsub){try{notesUnsub()}catch(_){}notesUnsub=null}notesCloud=false}
 async function notesSyncCloud(){
-notesCloud=false;
+notesStopLive();
 if(!user||!db){notesSetStatus("Đang lưu trên máy này.");return;}
 try{
-const allowed=(await get(ref(db,`notesAccess/${user.uid}`))).val()===true;
-if(!allowed){
-notesSetStatus("Đang lưu trên máy này. Muốn đồng bộ nhiều máy: trong Firebase tạo notesAccess/"+user.uid+" = true");
-return;
-}
 const val=(await get(ref(db,"notes"))).val()||{};
-const cloud=Object.entries(val).map(([id,v])=>({id,text:String(v&&v.text||""),at:Number(v&&v.at)||0,pending:false}));
-const ids=new Set(cloud.map(n=>n.id));
+const ids=new Set(Object.keys(val));
 const pend=notesList.filter(n=>n.pending!==false&&!ids.has(n.id));
 if(pend.length){
 const up={};
-pend.forEach(n=>{up[`notes/${n.id}`]={text:n.text,at:n.at}});
+pend.forEach(n=>{up[`notes/${n.id}`]={text:n.text,at:n.at,name:n.name||notesAuthor()}});
 await update(ref(db),up);
 pend.forEach(n=>{n.pending=false});
-cloud.push(...pend);
 }
-notesList=cloud;notesCloud=true;notesWriteLocal();
-notesSetStatus("☁ Đã đồng bộ giữa các máy được cấp quyền.");
+notesCloud=true;
+notesUnsub=onValue(ref(db,"notes"),snap=>{
+const v=snap.val()||{};
+const cloud=Object.entries(v).map(([id,x])=>({id,text:String(x&&x.text||""),at:Number(x&&x.at)||0,name:String(x&&x.name||""),pending:false}));
+if(notesCurrent){
+const i=cloud.findIndex(n=>n.id===notesCurrent.id);
+if(i>=0)cloud[i]=notesCurrent;else cloud.push(notesCurrent);
+}
+notesList=cloud;notesWriteLocal();notesRender();
+},error=>{
+notesCloud=false;
+notesSetStatus("Mất kết nối ghi chú ("+(error.code||error.message||error)+"). Đang dùng bản lưu trên máy.");
+});
+notesSetStatus("☁ Ghi chú dùng chung: mọi người trong phòng đều xem và sửa được.");
 }catch(error){
+notesCloud=false;
 notesSetStatus("Chưa đồng bộ được ("+(error.code||error.message||error)+"). Đang dùng bản lưu trên máy.");
 }
 }
