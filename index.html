@@ -133,8 +133,8 @@ d.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest(
 
 <style id="hskStyle">
 #hskToggle{width:38px;height:38px;padding:0;font-size:19px;border-radius:50%;display:grid;place-items:center;background:#f1edff;color:#6750a4;border:1px solid #d8cdfa}
-#hskPage{margin-top:10px;background:#fff;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001;color:#292536}
-#hskBack{width:38px;height:34px;padding:0;font-size:23px;line-height:1;border-radius:9px;display:inline-grid;place-items:center;margin-bottom:10px}
+#hskPage,#notesPage{margin-top:10px;background:#fff;padding:18px;border-radius:14px;box-shadow:0 2px 10px #0001;color:#292536}
+#hskBack,#notesBack{width:38px;height:34px;padding:0;font-size:23px;line-height:1;border-radius:9px;display:inline-grid;place-items:center;margin-bottom:10px}
 .hsk-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 16px}
 .hsk-heading h2{margin:0;color:#6750a4;font-size:21px}
 .hsk-heading p{margin:5px 0 0;color:#777;font-size:13px}
@@ -172,11 +172,11 @@ d.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest(
 #hskQuizNext{width:100%;border-radius:10px}
 .hsk-save-status,.hsk-disclaimer{font-size:11px;color:#8b8293;line-height:1.5;margin:12px 2px 0}
 .hsk-disclaimer{padding:10px;border-radius:10px;background:#faf8fc}
-html[data-theme="rabbit"] #hskPage{background:#fff7fb;border:3px solid #ffb8d4;border-radius:26px;box-shadow:0 7px 0 #ffc0d9,0 18px 30px rgba(201,54,115,.14)}
+html[data-theme="rabbit"] #hskPage,html[data-theme="rabbit"] #notesPage{background:#fff7fb;border:3px solid #ffb8d4;border-radius:26px;box-shadow:0 7px 0 #ffc0d9,0 18px 30px rgba(201,54,115,.14)}
 html[data-theme="rabbit"] .hsk-heading h2{color:#c93673}
 html[data-theme="rabbit"] .hsk-level-pill,html[data-theme="rabbit"] .hsk-mode-tabs button.active{background:#c93673;color:#fff}
 html[data-theme="rabbit"] .hsk-word-card{background:linear-gradient(145deg,#fff,#fff2f8);border-color:#ffd0e3}
-html[data-theme="galaxy"] #hskPage{background:var(--gx-panel);color:var(--gx-ink);border:1px solid var(--gx-edge);box-shadow:0 0 22px var(--gx-glow),inset 0 0 26px rgba(120,100,255,.10)}
+html[data-theme="galaxy"] #hskPage,html[data-theme="galaxy"] #notesPage{background:var(--gx-panel);color:var(--gx-ink);border:1px solid var(--gx-edge);box-shadow:0 0 22px var(--gx-glow),inset 0 0 26px rgba(120,100,255,.10)}
 html[data-theme="galaxy"] .hsk-progress-card,html[data-theme="galaxy"] .hsk-word-card,html[data-theme="galaxy"] .hsk-quiz-options button{background:var(--gx-card);color:var(--gx-ink);border-color:var(--gx-edge)}
 html[data-theme="galaxy"] .hsk-heading h2,html[data-theme="galaxy"] .hsk-word-character,html[data-theme="galaxy"] .hsk-word-meaning,html[data-theme="galaxy"] .hsk-quiz-word{color:var(--gx-hi)}
 html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
@@ -185,6 +185,20 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 
 <style id="lunaInlineStyle">#messages .message.luna-msg{background:#eafaf1;border:1px solid #bfe8cf;border-left:4px solid #15803d}#messages .message.luna-msg .sender{color:#15803d}html[data-theme="rabbit"] #messages .message.luna-msg{background:#ffe3ef;border:1px solid #ffb8d4;border-left:4px solid #c93673}html[data-theme="rabbit"] #messages .message.luna-msg .sender{color:#c93673}html[data-theme="galaxy"] #messages .message.luna-msg{background:rgba(18,64,66,.82);color:var(--gx-ink);border:1px solid rgba(126,224,176,.5);border-left:4px solid #7ee0b0}html[data-theme="galaxy"] #messages .message.luna-msg .sender{color:#7ee0b0}</style>
 <style id="chatImgStyle">#chatAttach{padding:0 12px;background:#eafaf1;color:#15803d;border:1px solid #bfe8cf}#chatImgPreview{position:relative;display:inline-block;margin:6px 0}#chatImgPreview img{height:70px;border-radius:8px;display:block}#chatImgPreview button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:50%;background:#b42318;color:#fff;border:0;line-height:1}#chatImgPreview[hidden]{display:none}.msg-img{display:block;max-width:100%;max-height:260px;border-radius:10px;margin-top:6px;cursor:zoom-in}#imgLightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;z-index:99999;cursor:zoom-out}#imgLightbox img{max-width:94vw;max-height:92vh;border-radius:8px}.luna-wait .dots:after{content:"";animation:lunaDots 1.2s steps(4,end) infinite}@keyframes lunaDots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}</style>
+<style id="notesStyle">
+#notesPage h2{margin:2px 0 4px}
+#notesPage .notes-hint{margin:0 0 10px;font-size:13px;opacity:.75}
+#notesInput{width:100%;box-sizing:border-box;min-height:84px;resize:vertical;padding:10px;font:inherit;border-radius:10px;border:1px solid var(--t4)}
+#notesPage .notes-actions{display:flex;gap:8px;margin:8px 0 14px}
+#notesList{display:grid;gap:10px}
+#notesPage .notes-item{padding:11px 12px;border-radius:12px;background:var(--t5);border:1px solid var(--t4)}
+#notesPage .notes-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45}
+#notesPage .notes-text a{color:var(--t0);font-weight:700;text-decoration:underline;word-break:break-all}
+#notesPage .notes-meta{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;opacity:.85}
+#notesPage .notes-meta span{flex:1}
+#notesPage .notes-meta button{padding:4px 10px;font-size:12px}
+#notesPage .notes-empty{padding:18px;text-align:center;opacity:.7}
+</style>
 </head>
 <body>
 <button id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false" title="Menu">☰</button>
@@ -432,6 +446,18 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 </section>
 
 
+<section id="notesPage" hidden>
+  <button id="notesBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
+  <h2>📝 Ghi chú</h2>
+  <p class="notes-hint">Viết ghi chú hoặc dán link vào đây. Bấm vào link để mở.</p>
+  <p class="notes-hint" id="notesStatus"></p>
+  <textarea id="notesInput" maxlength="2000" placeholder="Ghi chú hoặc link (https://...)"></textarea>
+  <div class="notes-actions">
+    <button id="notesSave" type="button">Lưu ghi chú</button>
+    <button id="notesCancel" type="button" hidden>Hủy sửa</button>
+  </div>
+  <div id="notesList"></div>
+</section>
 <section id="hskPage" hidden>
   <button id="hskBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
   <div class="hsk-heading">
@@ -3353,11 +3379,138 @@ $("chatStatus").textContent=e.name==="AbortError"?"Luna phản hồi lâu quá, 
 }finally{lunaBusy=false;}
 }
 /* GỬI TIN NHẮN */
+/* GHI CHÚ RIÊNG: gõ 1414 trong khung chat để mở. Lưu trên máy; nếu UID được cấp quyền trong notesAccess thì đồng bộ Firebase (chỉ tải 1 lần khi mở trang) */
+const NOTES_KEY="amino_notes_v1";
+let notesEditId=null,notesCloud=false,notesList=[];
+function notesReadLocal(){try{const a=JSON.parse(localStorage.getItem(NOTES_KEY)||"[]");return Array.isArray(a)?a:[]}catch(_){return[]}}
+function notesWriteLocal(){try{localStorage.setItem(NOTES_KEY,JSON.stringify(notesList))}catch(_){}}
+function notesSetStatus(text){const el=$("notesStatus");if(el)el.textContent=text||""}
+function notesLinkify(parent,text){
+const re=/(https?:\/\/[^\s<>"']+)/g;let last=0,m;
+while((m=re.exec(text))){
+if(m.index>last)parent.append(document.createTextNode(text.slice(last,m.index)));
+let url=m[1],tail="";
+const t=url.match(/[.,;:!?)\]]+$/);
+if(t){tail=t[0];url=url.slice(0,-tail.length)}
+const a=document.createElement("a");
+a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=url;
+parent.append(a);
+if(tail)parent.append(document.createTextNode(tail));
+last=m.index+m[1].length;
+}
+if(last<text.length)parent.append(document.createTextNode(text.slice(last)));
+}
+function notesResetEditor(){notesEditId=null;$("notesInput").value="";$("notesSave").textContent="Lưu ghi chú";$("notesCancel").hidden=true}
+async function notesPush(note){
+note.pending=!notesCloud;
+if(notesCloud){
+try{await set(ref(db,`notes/${note.id}`),{text:note.text,at:note.at});note.pending=false}
+catch(error){note.pending=true;notesSetStatus("Không đồng bộ được: "+(error.message||error))}
+}
+notesWriteLocal();
+}
+async function notesDelete(id){
+notesList=notesList.filter(n=>n.id!==id);
+notesWriteLocal();
+if(notesCloud){try{await remove(ref(db,`notes/${id}`))}catch(error){notesSetStatus("Không xóa được trên Firebase: "+(error.message||error))}}
+}
+function notesRender(){
+const box=$("notesList");
+box.replaceChildren();
+if(!notesList.length){
+const empty=document.createElement("div");empty.className="notes-empty";empty.textContent="Chưa có ghi chú nào.";
+box.append(empty);return;
+}
+[...notesList].sort((a,b)=>(b.at||0)-(a.at||0)).forEach(note=>{
+const card=document.createElement("div");card.className="notes-item";
+const body=document.createElement("div");body.className="notes-text";
+notesLinkify(body,String(note.text||""));
+const meta=document.createElement("div");meta.className="notes-meta";
+const when=document.createElement("span");
+when.textContent=note.at?new Date(note.at).toLocaleString("vi-VN"):"";
+const edit=document.createElement("button");edit.type="button";edit.textContent="Sửa";
+edit.addEventListener("click",()=>{
+notesEditId=note.id;$("notesInput").value=note.text;
+$("notesSave").textContent="Cập nhật";$("notesCancel").hidden=false;
+$("notesInput").focus();window.scrollTo({top:0,behavior:"smooth"});
+});
+const del=document.createElement("button");del.type="button";del.textContent="Xóa";
+del.addEventListener("click",async()=>{
+if(!confirm("Xóa ghi chú này?"))return;
+if(notesEditId===note.id)notesResetEditor();
+await notesDelete(note.id);
+notesRender();
+});
+meta.append(when,edit,del);
+card.append(body,meta);box.append(card);
+});
+}
+async function notesSyncCloud(){
+notesCloud=false;
+if(!user||!db){notesSetStatus("Đang lưu trên máy này.");return;}
+try{
+const allowed=(await get(ref(db,`notesAccess/${user.uid}`))).val()===true;
+if(!allowed){
+notesSetStatus("Đang lưu trên máy này. Muốn đồng bộ nhiều máy: trong Firebase tạo notesAccess/"+user.uid+" = true");
+return;
+}
+const val=(await get(ref(db,"notes"))).val()||{};
+const cloud=Object.entries(val).map(([id,v])=>({id,text:String(v&&v.text||""),at:Number(v&&v.at)||0,pending:false}));
+const ids=new Set(cloud.map(n=>n.id));
+const pend=notesList.filter(n=>n.pending!==false&&!ids.has(n.id));
+if(pend.length){
+const up={};
+pend.forEach(n=>{up[`notes/${n.id}`]={text:n.text,at:n.at}});
+await update(ref(db),up);
+pend.forEach(n=>{n.pending=false});
+cloud.push(...pend);
+}
+notesList=cloud;notesCloud=true;notesWriteLocal();
+notesSetStatus("☁ Đã đồng bộ giữa các máy được cấp quyền.");
+}catch(error){
+notesSetStatus("Chưa đồng bộ được ("+(error.code||error.message||error)+"). Đang dùng bản lưu trên máy.");
+}
+}
+async function openNotesPage(){
+$("chat").hidden=true;
+$("notesPage").hidden=false;
+notesResetEditor();
+notesList=notesReadLocal();
+notesRender();
+window.scrollTo({top:0,behavior:"auto"});
+await notesSyncCloud();
+notesRender();
+}
+$("notesBack").addEventListener("click",()=>{
+$("notesPage").hidden=true;$("chat").hidden=false;
+window.scrollTo({top:0,behavior:"auto"});
+});
+$("notesCancel").addEventListener("click",notesResetEditor);
+$("notesSave").addEventListener("click",async()=>{
+const text=$("notesInput").value.trim();
+if(!text)return;
+let note=notesEditId?notesList.find(n=>n.id===notesEditId):null;
+if(note){note.text=text;note.at=Date.now();}
+else{
+note={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),text,at:Date.now(),pending:true};
+notesList.unshift(note);
+}
+notesResetEditor();
+notesRender();
+await notesPush(note);
+});
 $("composer").addEventListener("submit",async event=>{
 event.preventDefault();
 const typed=$("message").value.trim();
 const image=chatPendingImg;
 if((!typed&&!image)||!user)return;
+if(typed==="1414"&&!image){
+clearTimeout(typingWriteTimer);clearTimeout(typingClearTimer);lastTypingText="";
+set(myTypingRef(),null).catch(()=>{});
+$("message").value="";
+openNotesPage();
+return;
+}
 const text=typed||"📷";
 const button=$("composer").querySelector('button[type="submit"]');
 button.disabled=true;
