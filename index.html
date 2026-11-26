@@ -206,11 +206,38 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 #gardenPage::after{content:"☀️";position:absolute;top:5%;right:14%;font-size:64px}
 #gardenClose{position:absolute;top:12px;left:12px;z-index:99999}
 #gardenField{position:absolute;inset:0}
-.pet{position:absolute;left:0;top:0;line-height:1;cursor:pointer;user-select:none;-webkit-user-select:none;will-change:transform}
-.pet span{display:block;animation:petHop .5s ease-in-out infinite}
-.pet.rest span{animation:none}
-@keyframes petHop{50%{transform:translateY(-8px)}}
-@media (prefers-reduced-motion:reduce){.pet span{animation:none}}
+.floating-heart{z-index:10001}
+.gd-pet{position:absolute;left:0;top:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;will-change:transform}
+.gd-pet::before{content:"";position:absolute;width:62%;height:12px;left:19%;bottom:2px;border-radius:50%;background:radial-gradient(ellipse,#20133c55 0%,#20133c00 72%);animation:gdShadow 2.2s ease-in-out infinite}
+.gd-art{position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform-origin:50% 85%;animation:gdIdle 2.8s ease-in-out infinite;filter:drop-shadow(0 6px 5px #17102b44)}
+.gd-emoji{font-size:calc(var(--s)*.78);line-height:1}
+.gd-art .pet-3d-svg{width:100%;height:100%;overflow:visible}
+.gd-art .pet-body{transform-box:fill-box;transform-origin:center bottom;animation:gdBreath 2.4s ease-in-out infinite}
+.gd-art .pet-ear-left{transform-box:fill-box;transform-origin:bottom center;animation:gdEar 2.8s ease-in-out infinite}
+.gd-art .pet-ear-right{transform-box:fill-box;transform-origin:bottom center;animation:gdEar 2.8s ease-in-out infinite reverse}
+.gd-art .pet-eye{transform-box:fill-box;transform-origin:center;animation:gdBlink 4.5s ease-in-out infinite}
+.gd-art .pet-flipper{transform-box:fill-box;transform-origin:top center;animation:gdFlipper 2.1s ease-in-out infinite}
+.gd-pet.walking .gd-art{animation:gdWalk .52s ease-in-out infinite}
+.gd-pet.walking .pet-ear-left{animation:gdEarWalk .5s ease-in-out infinite}
+.gd-pet.walking .pet-ear-right{animation:gdEarWalk .5s ease-in-out infinite reverse}
+.gd-pet.happy .gd-art{animation:gdHappy .65s ease-in-out 3}
+.gd-pet.sleeping .gd-art{animation:gdSleep 3.2s ease-in-out infinite}
+.gd-pet.sleeping .pet-eye{transform:scaleY(.12);animation:none}
+.gd-pet.sleeping::after{content:"Zzz";position:absolute;right:-6px;top:-2px;z-index:2;font-size:15px;font-weight:900;color:#6b4fa3;animation:gdZzz 1.8s ease-in-out infinite}
+.gd-bubble{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:max-content;max-width:min(220px,65vw);padding:9px 12px;border-radius:14px;background:#fff;color:#75405b;box-shadow:0 3px 12px #0003;font-size:12px;font-weight:bold;line-height:1.4;text-align:center;pointer-events:none;z-index:3}
+.gd-bubble::after{content:"";position:absolute;left:50%;top:100%;margin-left:-6px;border:6px solid transparent;border-top-color:#fff}
+@keyframes gdIdle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+@keyframes gdWalk{0%,100%{transform:translateY(1px) rotate(-5deg) scaleX(.98)}50%{transform:translateY(-5px) rotate(5deg) scaleX(1.02)}}
+@keyframes gdBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.985)}}
+@keyframes gdEar{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(7deg)}}
+@keyframes gdEarWalk{0%,100%{transform:rotate(-13deg)}50%{transform:rotate(13deg)}}
+@keyframes gdBlink{0%,91%,100%{transform:scaleY(1)}94%,97%{transform:scaleY(.08)}}
+@keyframes gdFlipper{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}
+@keyframes gdHappy{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-10deg) scale(1.08)}50%{transform:rotate(10deg) scale(1.1)}75%{transform:rotate(-5deg) scale(1.04)}}
+@keyframes gdSleep{0%,100%{transform:translateY(3px) rotate(4deg) scale(1,.97)}50%{transform:translateY(5px) rotate(6deg) scale(1,.94)}}
+@keyframes gdShadow{0%,100%{transform:scaleX(1);opacity:.7}50%{transform:scaleX(.78);opacity:.42}}
+@keyframes gdZzz{0%{opacity:0;transform:translate(0,7px) scale(.8)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-9px) scale(1.12)}}
+@media (prefers-reduced-motion:reduce){.gd-art,.gd-art *,.gd-pet::before{animation:none!important}}
 </style>
 </head>
 <body>
@@ -3536,15 +3563,64 @@ if(notesCurrent&&!notesList.includes(notesCurrent))notesList.unshift(notesCurren
 notesRender();
 }
 /* KHU VƯỜN BÍ MẬT (gõ 1409) */
+const GARDEN_LINES=['Cậu ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Lạnh rồi cậu nhớ mặc ấm nhé,đi chơi về sớm 1 chut🥺','Cho tớ ở cạnh cậu thêm chút nha','Cậu đang làm gì đó? Kể tớ nghe với!','Hôm nay mình cùng cố gắng nhé! ✨','Tớ thích được ở bên Cậu lắm 💞','Cậu có nhớ tớ không nè?'];
+function gardenPetArt(emoji){
+if(emoji==='🐰')return `<svg class="pet-3d-svg pet-rabbit-3d" viewBox="0 0 120 120" role="img" aria-label="Thỏ 3D hoạt hình">
+<defs>
+<radialGradient id="bunnyFur" cx="34%" cy="22%" r="78%"><stop stop-color="#fff"/><stop offset=".62" stop-color="#fff0f7"/><stop offset="1" stop-color="#d9c4e8"/></radialGradient>
+<linearGradient id="bunnyEar" x2=".8" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#dfc9eb"/></linearGradient>
+<radialGradient id="bunnyPink"><stop stop-color="#ffb5d0"/><stop offset="1" stop-color="#ec82ae"/></radialGradient>
+<radialGradient id="bunnyEye" cx="30%" cy="25%"><stop stop-color="#756078"/><stop offset=".45" stop-color="#33263f"/><stop offset="1" stop-color="#171322"/></radialGradient>
+</defs>
+<ellipse cx="60" cy="108" rx="35" ry="7" fill="#302044" opacity=".16"/>
+<g class="pet-ear-left"><ellipse cx="42" cy="28" rx="13" ry="28" fill="url(#bunnyEar)" transform="rotate(-13 42 28)"/><ellipse cx="42" cy="28" rx="6.5" ry="20" fill="url(#bunnyPink)" transform="rotate(-13 42 28)" opacity=".8"/></g>
+<g class="pet-ear-right"><ellipse cx="75" cy="25" rx="13" ry="30" fill="url(#bunnyEar)" transform="rotate(12 75 25)"/><ellipse cx="75" cy="25" rx="6.5" ry="22" fill="url(#bunnyPink)" transform="rotate(12 75 25)" opacity=".8"/></g>
+<g class="pet-body"><ellipse cx="60" cy="82" rx="33" ry="25" fill="url(#bunnyFur)"/><ellipse cx="60" cy="57" rx="31" ry="30" fill="url(#bunnyFur)"/><ellipse cx="35" cy="88" rx="12" ry="9" fill="#f8e7f2"/><ellipse cx="85" cy="88" rx="12" ry="9" fill="#e9d9ee"/>
+<ellipse cx="48" cy="58" rx="4.7" ry="6.4" fill="url(#bunnyEye)" class="pet-eye"/><ellipse cx="72" cy="58" rx="4.7" ry="6.4" fill="url(#bunnyEye)" class="pet-eye"/><circle cx="46.5" cy="55.5" r="1.7" fill="white"/><circle cx="70.5" cy="55.5" r="1.7" fill="white"/>
+<ellipse cx="37" cy="69" rx="8" ry="4.5" fill="#f5a9c7" opacity=".8"/><ellipse cx="83" cy="69" rx="8" ry="4.5" fill="#f5a9c7" opacity=".8"/><path d="M56 68 Q60 64 64 68 Q62 73 60 73 Q58 73 56 68" fill="#e985aa"/><path d="M60 73 Q56 78 52 74 M60 73 Q64 78 68 74" fill="none" stroke="#916d87" stroke-width="1.8" stroke-linecap="round"/>
+<ellipse cx="42" cy="99" rx="13" ry="7" fill="url(#bunnyFur)"/><ellipse cx="77" cy="99" rx="13" ry="7" fill="url(#bunnyFur)"/>
+<path d="M32 77 Q24 70 25 64" fill="none" stroke="#e7d4e9" stroke-width="8" stroke-linecap="round"/>
+</g><ellipse cx="87" cy="83" rx="8" ry="8" fill="#fff" opacity=".65"/><circle cx="87" cy="83" r="5" fill="#fff"/>
+</svg>`;
+if(emoji==='🦭')return `<svg class="pet-3d-svg pet-seal-3d" viewBox="0 0 120 120" role="img" aria-label="Hải cẩu 3D hoạt hình">
+<defs>
+<radialGradient id="sealFur" cx="32%" cy="18%" r="82%"><stop stop-color="#fff"/><stop offset=".48" stop-color="#e9f0ff"/><stop offset="1" stop-color="#9eafd0"/></radialGradient>
+<radialGradient id="sealBelly" cx="45%" cy="20%"><stop stop-color="#fff"/><stop offset="1" stop-color="#dce5f3"/></radialGradient>
+<radialGradient id="sealEye" cx="30%" cy="25%"><stop stop-color="#66758c"/><stop offset=".5" stop-color="#263449"/><stop offset="1" stop-color="#121b2b"/></radialGradient>
+</defs>
+<ellipse cx="60" cy="108" rx="39" ry="7" fill="#302044" opacity=".16"/>
+<g class="pet-body"><ellipse cx="60" cy="78" rx="43" ry="29" fill="url(#sealFur)"/><ellipse cx="60" cy="63" rx="34" ry="31" fill="url(#sealFur)"/><ellipse cx="60" cy="87" rx="29" ry="15" fill="url(#sealBelly)"/><ellipse cx="27" cy="91" rx="13" ry="8" fill="#aab9d2"/><ellipse cx="94" cy="91" rx="13" ry="8" fill="#9eafc9"/>
+<ellipse cx="47" cy="63" rx="4.5" ry="6" fill="url(#sealEye)" class="pet-eye"/><ellipse cx="73" cy="63" rx="4.5" ry="6" fill="url(#sealEye)" class="pet-eye"/><circle cx="45.5" cy="60.5" r="1.6" fill="white"/><circle cx="71.5" cy="60.5" r="1.6" fill="white"/>
+<ellipse cx="37" cy="75" rx="7" ry="4" fill="#f4a8bd" opacity=".8"/><ellipse cx="83" cy="75" rx="7" ry="4" fill="#f4a8bd" opacity=".8"/><ellipse cx="60" cy="72" rx="5" ry="3.5" fill="#554b61"/><path d="M60 75 Q55 81 50 77 M60 75 Q65 81 70 77" fill="none" stroke="#62586d" stroke-width="1.8" stroke-linecap="round"/>
+<path d="M29 79 Q13 83 15 98 Q27 104 39 91" fill="url(#sealFur)" class="pet-flipper"/><path d="M91 79 Q107 83 105 98 Q93 104 81 91" fill="url(#sealFur)" class="pet-flipper"/>
+<ellipse cx="42" cy="101" rx="13" ry="6" fill="#b8c6dc"/><ellipse cx="78" cy="101" rx="13" ry="6" fill="#aabbd4"/>
+</g><ellipse cx="42" cy="42" rx="12" ry="6" fill="white" opacity=".42"/>
+</svg>`;
+return '<span class="gd-emoji">'+emoji+'</span>';
+}
 const GARDEN_PETS=[
-{e:"🐰",size:46,speed:70,face:-1},
-{e:"🐇",size:40,speed:90,face:-1},
-{e:"🦖",size:84,speed:45,face:1},
-{e:"🦕",size:90,speed:30,face:1},
-{e:"🐢",size:38,speed:18,face:1},
-{e:"🐥",size:30,speed:60,face:-1}
+{type:"🐱",name:"Chikawa",size:62,speed:52},
+{type:"🐰",name:"Usagi",size:68,speed:64},
+{type:"🐶",name:"Mập",size:64,speed:58},
+{type:"🐹",name:"Hamster",size:56,speed:74},
+{type:"🦭",name:"Luna",size:76,speed:34}
 ];
 let gardenRAF=0;
+function gardenHearts(el){
+const r=el.getBoundingClientRect();
+const hearts=["💗","💕","💖","💘","❤️","💓"];
+for(let i=0;i<4;i++){
+const h=document.createElement("span");
+h.className="floating-heart";
+h.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+h.style.left=(r.left+r.width/2+(Math.random()-.5)*40)+"px";
+h.style.top=(r.top+r.height*.3)+"px";
+h.style.fontSize=(16+Math.random()*12)+"px";
+h.style.setProperty("--drift",((Math.random()-.5)*80)+"px");
+document.body.append(h);
+h.addEventListener("animationend",()=>h.remove(),{once:true});
+}
+}
 function openGarden(){
 const page=$("gardenPage"),field=$("gardenField");
 page.hidden=false;field.innerHTML="";
@@ -3555,12 +3631,23 @@ p.ty=rnd(innerHeight*.5,Math.max(innerHeight*.5,innerHeight-p.def.size-8));
 };
 const pets=GARDEN_PETS.map(def=>{
 const el=document.createElement("div");
-el.className="pet";el.style.fontSize=def.size+"px";
-el.innerHTML="<span>"+def.e+"</span>";
+el.className="gd-pet";
+el.style.width=el.style.height=def.size+"px";
+el.style.setProperty("--s",def.size+"px");
+el.setAttribute("aria-label",def.name);
+el.innerHTML='<div class="gd-bubble" hidden></div><div class="gd-art">'+gardenPetArt(def.type)+'</div>';
 field.appendChild(el);
-const p={def,el,x:rnd(0,Math.max(0,innerWidth-def.size)),y:rnd(innerHeight*.5,Math.max(innerHeight*.5,innerHeight-def.size-8)),wait:0,flip:1};
+const p={def,el,bubble:el.firstChild,x:rnd(0,Math.max(0,innerWidth-def.size)),y:rnd(innerHeight*.5,Math.max(innerHeight*.5,innerHeight-def.size-8)),wait:rnd(0,2),talk:0,walking:false};
 pickTarget(p);
-el.addEventListener("click",()=>{try{floatHearts();}catch(e){}p.wait=1.5;el.classList.add("rest");});
+el.addEventListener("click",()=>{
+gardenHearts(el);
+p.wait=Math.max(p.wait,3);
+el.classList.remove("sleeping");el.classList.add("happy");
+clearTimeout(p.happyTimer);
+p.happyTimer=setTimeout(()=>el.classList.remove("happy"),2000);
+p.bubble.textContent=GARDEN_LINES[Math.floor(Math.random()*GARDEN_LINES.length)];
+p.bubble.hidden=false;p.talk=3.2;
+});
 return p;
 });
 let last=performance.now();
@@ -3568,19 +3655,19 @@ cancelAnimationFrame(gardenRAF);
 (function tick(now){
 const dt=Math.min((now-last)/1000,.05);last=now;
 for(const p of pets){
-if(p.wait>0){p.wait-=dt;p.el.classList.add("rest");}
-else{
-p.el.classList.remove("rest");
+if(p.talk>0){p.talk-=dt;if(p.talk<=0)p.bubble.hidden=true;}
+if(p.wait>0){
+p.wait-=dt;
+if(p.walking){p.walking=false;p.el.classList.remove("walking");if(Math.random()<.35)p.el.classList.add("sleeping");}
+if(p.wait<=0)p.el.classList.remove("sleeping");
+}else{
+if(!p.walking){p.walking=true;p.el.classList.add("walking");}
 const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
-if(d<4){p.wait=rnd(1,4);pickTarget(p);}
-else{
-p.x+=dx/d*p.def.speed*dt;
-p.y+=dy/d*p.def.speed*dt;
-if(Math.abs(dx)>2)p.flip=(dx>0?1:-1)*p.def.face*-1;
+if(d<4){p.wait=rnd(1.5,4.5);pickTarget(p);}
+else{p.x+=dx/d*p.def.speed*dt;p.y+=dy/d*p.def.speed*dt;}
 }
-}
-p.el.style.zIndex=Math.round(p.y);
-p.el.style.transform="translate3d("+p.x+"px,"+p.y+"px,0) scaleX("+p.flip+")";
+p.el.style.zIndex=p.talk>0?99998:Math.round(p.y);
+p.el.style.transform="translate3d("+p.x+"px,"+p.y+"px,0)";
 }
 gardenRAF=requestAnimationFrame(tick);
 })(last);
