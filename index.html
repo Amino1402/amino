@@ -449,12 +449,11 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 
 <section id="notesPage" hidden>
   <button id="notesBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
-  <h2>📝 Ghi chú</h2>
-  <p class="notes-hint">Viết là tự lưu. Dán link vào ghi chú, bấm vào link ở danh sách bên dưới để mở.</p>
+  <h2>📝 Note</h2>
   <p class="notes-hint" id="notesStatus"></p>
-  <textarea id="notesInput" maxlength="2000" placeholder="Ghi chú hoặc link (https://...)"></textarea>
+  <textarea id="notesInput" maxlength="2000"></textarea>
   <div class="notes-actions">
-    <button id="notesNew" type="button">＋ Ghi chú mới</button>
+    <button id="notesNew" type="button">＋ Note mới</button>
     <span id="notesSaveState" class="notes-save-state"></span>
   </div>
   <div id="notesList"></div>
@@ -3418,7 +3417,7 @@ function notesRender(){
 const box=$("notesList");
 box.replaceChildren();
 if(!notesList.length){
-const empty=document.createElement("div");empty.className="notes-empty";empty.textContent="Chưa có ghi chú nào.";
+const empty=document.createElement("div");empty.className="notes-empty";empty.textContent="Chưa có Note nào.";
 box.append(empty);return;
 }
 [...notesList].sort((a,b)=>(b.at||0)-(a.at||0)).forEach(note=>{
@@ -3437,7 +3436,7 @@ async function notesFlush(){
 clearTimeout(notesTimer);notesTimer=null;
 if(!notesCurrent)return;
 const text=$("notesInput").value.slice(0,2000);
-if(!text.trim()){notesSetSaveState("Ghi chú trống, chưa lưu");return;}
+if(!text.trim()){notesSetSaveState("Note trống, chưa lưu");return;}
 notesCurrent.text=text;
 notesCurrent.at=Date.now();
 notesRender();
@@ -3499,9 +3498,9 @@ if(i>=0)cloud[i]=notesCurrent;else cloud.push(notesCurrent);
 notesList=cloud;notesWriteLocal();notesRender();
 },error=>{
 notesCloud=false;
-notesSetStatus("Mất kết nối ghi chú ("+(error.code||error.message||error)+"). Đang dùng bản lưu trên máy.");
+notesSetStatus("Mất kết nối Note ("+(error.code||error.message||error)+"). Đang dùng bản lưu trên máy.");
 });
-notesSetStatus("☁ Ghi chú dùng chung: mọi người trong phòng đều xem và sửa được.");
+notesSetStatus("");
 }catch(error){
 notesCloud=false;
 notesSetStatus("Chưa đồng bộ được ("+(error.code||error.message||error)+"). Đang dùng bản lưu trên máy.");
