@@ -550,7 +550,7 @@ document.head.appendChild(tag);
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
-getDatabase,ref,push,set,onValue,get,remove,query,orderByChild,endAt,
+getDatabase,ref,push,set,onValue,get,remove,query,orderByChild,endAt,startAt,
 limitToLast,onDisconnect,serverTimestamp,update,runTransaction,onChildAdded,onChildRemoved,equalTo
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 const firebaseConfig={
@@ -3159,11 +3159,8 @@ startMapListeners();
 startTypingSync();
 startMusicSync();
 startDiary();
-const recent=query(
-ref(db,"publicChat/messages"),
-orderByChild("createdAt"),
-limitToLast(100)
-);
+const CHAT_PAGE=15;
+const chatRef=ref(db,"publicChat/messages");
 const chatNodes=new Map();
 let initialBatch=true,scrollQueued=false;
 const queueScroll=()=>{
@@ -3212,19 +3209,65 @@ return box;
 const chatError=error=>{
 $("chatStatus").textContent="Không đọc được tin nhắn: "+error.message;
 };
-onChildAdded(recent,(item,prevKey)=>{
-const stick=initialBatch||nearBottom();
-const box=buildMessage(item.val()||{});
-const prev=prevKey?chatNodes.get(prevKey):null;
-if(prev&&prev.parentNode===messages)prev.after(box);else messages.prepend(box);
-chatNodes.set(item.key,box);
+const chatCss=document.createElement("style");
+chatCss.textContent="#messages{overflow-anchor:none}#messages #loadOlder{display:block;position:sticky;top:0;z-index:2;margin:0 auto 8px;padding:6px 14px;font-size:12px;border-radius:999px;background:var(--t1);color:var(--t0);border:1px solid var(--t4);box-shadow:0 1px 4px #0002}";
+document.head.append(chatCss);
+const olderBtn=document.createElement("button");
+olderBtn.id="loadOlder";olderBtn.type="button";olderBtn.hidden=true;
+olderBtn.textContent="\u2B06 Xem tin cũ hơn";
+messages.prepend(olderBtn);
+let oldestTs=Infinity,newestTs=0,hasMore=true,loadingOlder=false;
+const trackTs=t=>{t=Number(t)||0;if(t&&t<oldestTs)oldestTs=t;if(t>newestTs)newestTs=t;};
+/* 1) Tải 15 tin gần nhất, đúng 1 lần */
+try{
+const first=await get(query(chatRef,orderByChild("createdAt"),limitToLast(CHAT_PAGE)));
+first.forEach(c=>{
+const d=c.val()||{};trackTs(d.createdAt);
+const box=buildMessage(d);messages.append(box);chatNodes.set(c.key,box);
+});
+hasMore=first.size>=CHAT_PAGE;
+olderBtn.hidden=!hasMore;
+queueScroll();
+}catch(error){chatError(error)}
+initialBatch=false;
+/* 2) Chỉ nghe tin MỚI (không tải lại tin cũ) */
+const liveQuery=query(chatRef,orderByChild("createdAt"),startAt(Math.max(0,newestTs-600000)));
+onChildAdded(liveQuery,item=>{
+if(chatNodes.has(item.key))return;
+const d=item.val()||{};trackTs(d.createdAt);
+const stick=nearBottom();
+const box=buildMessage(d);
+messages.append(box);chatNodes.set(item.key,box);
 if(stick)queueScroll();
 },chatError);
-onChildRemoved(recent,item=>{
+onChildRemoved(liveQuery,item=>{
 chatNodes.get(item.key)?.remove();
 chatNodes.delete(item.key);
 },chatError);
-onValue(recent,()=>{initialBatch=false},{onlyOnce:true});
+/* 3) Kéo lên / bấm mũi tên để tải thêm 15 tin cũ hơn */
+const loadOlder=async()=>{
+if(loadingOlder||!hasMore||!isFinite(oldestTs))return;
+loadingOlder=true;olderBtn.disabled=true;olderBtn.textContent="Đang tải...";
+try{
+const snap=await get(query(chatRef,orderByChild("createdAt"),endAt(oldestTs),limitToLast(CHAT_PAGE+1)));
+const items=[];
+snap.forEach(c=>{if(!chatNodes.has(c.key)){items.push(c);}});
+hasMore=snap.size>=CHAT_PAGE+1&&items.length>0;
+const prevH=messages.scrollHeight,prevTop=messages.scrollTop;
+const frag=document.createDocumentFragment();
+items.forEach(c=>{
+const d=c.val()||{};trackTs(d.createdAt);
+const box=buildMessage(d);frag.append(box);chatNodes.set(c.key,box);
+});
+olderBtn.after(frag);
+messages.scrollTop=prevTop+(messages.scrollHeight-prevH);
+}catch(error){chatError(error)}
+loadingOlder=false;olderBtn.disabled=false;
+olderBtn.textContent="\u2B06 Xem tin cũ hơn";
+olderBtn.hidden=!hasMore;
+};
+olderBtn.addEventListener("click",loadOlder);
+messages.addEventListener("scroll",()=>{if(messages.scrollTop<60)loadOlder()},{passive:true});
 await set(push(ref(db,"publicChat/messages")),{
 uid:user.uid,name:"Thông báo hệ thống",
 text:displayName+" đã vào chat",createdAt:Date.now()
