@@ -197,6 +197,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 #notesPage .notes-meta{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;opacity:.85}
 #notesPage .notes-meta span{flex:1}
 #notesPage .notes-meta button{padding:4px 10px;font-size:12px}
+#notesPage .notes-save-state{font-size:12px;opacity:.8}
 #notesPage .notes-empty{padding:18px;text-align:center;opacity:.7}
 </style>
 </head>
@@ -449,12 +450,12 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 <section id="notesPage" hidden>
   <button id="notesBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
   <h2>📝 Ghi chú</h2>
-  <p class="notes-hint">Viết ghi chú hoặc dán link vào đây. Bấm vào link để mở.</p>
+  <p class="notes-hint">Viết là tự lưu. Dán link vào ghi chú, bấm vào link ở danh sách bên dưới để mở.</p>
   <p class="notes-hint" id="notesStatus"></p>
   <textarea id="notesInput" maxlength="2000" placeholder="Ghi chú hoặc link (https://...)"></textarea>
   <div class="notes-actions">
-    <button id="notesSave" type="button">Lưu ghi chú</button>
-    <button id="notesCancel" type="button" hidden>Hủy sửa</button>
+    <button id="notesNew" type="button">＋ Ghi chú mới</button>
+    <span id="notesSaveState" class="notes-save-state"></span>
   </div>
   <div id="notesList"></div>
 </section>
@@ -3379,12 +3380,13 @@ $("chatStatus").textContent=e.name==="AbortError"?"Luna phản hồi lâu quá, 
 }finally{lunaBusy=false;}
 }
 /* GỬI TIN NHẮN */
-/* GHI CHÚ RIÊNG: gõ 1414 trong khung chat để mở. Lưu trên máy; nếu UID được cấp quyền trong notesAccess thì đồng bộ Firebase (chỉ tải 1 lần khi mở trang) */
+/* GHI CHÚ RIÊNG: gõ 1414 trong khung chat để mở. Tự động lưu như nhật ký. Xóa ghi chú chỉ làm trong Firebase Console. */
 const NOTES_KEY="amino_notes_v1";
-let notesEditId=null,notesCloud=false,notesList=[];
+let notesCloud=false,notesList=[],notesCurrent=null,notesTimer=null;
 function notesReadLocal(){try{const a=JSON.parse(localStorage.getItem(NOTES_KEY)||"[]");return Array.isArray(a)?a:[]}catch(_){return[]}}
 function notesWriteLocal(){try{localStorage.setItem(NOTES_KEY,JSON.stringify(notesList))}catch(_){}}
 function notesSetStatus(text){const el=$("notesStatus");if(el)el.textContent=text||""}
+function notesSetSaveState(text){const el=$("notesSaveState");if(el)el.textContent=text||""}
 function notesLinkify(parent,text){
 const re=/(https?:\/\/[^\s<>"']+)/g;let last=0,m;
 while((m=re.exec(text))){
@@ -3400,7 +3402,6 @@ last=m.index+m[1].length;
 }
 if(last<text.length)parent.append(document.createTextNode(text.slice(last)));
 }
-function notesResetEditor(){notesEditId=null;$("notesInput").value="";$("notesSave").textContent="Lưu ghi chú";$("notesCancel").hidden=true}
 async function notesPush(note){
 note.pending=!notesCloud;
 if(notesCloud){
@@ -3408,11 +3409,6 @@ try{await set(ref(db,`notes/${note.id}`),{text:note.text,at:note.at});note.pendi
 catch(error){note.pending=true;notesSetStatus("Không đồng bộ được: "+(error.message||error))}
 }
 notesWriteLocal();
-}
-async function notesDelete(id){
-notesList=notesList.filter(n=>n.id!==id);
-notesWriteLocal();
-if(notesCloud){try{await remove(ref(db,`notes/${id}`))}catch(error){notesSetStatus("Không xóa được trên Firebase: "+(error.message||error))}}
 }
 function notesRender(){
 const box=$("notesList");
@@ -3428,23 +3424,51 @@ notesLinkify(body,String(note.text||""));
 const meta=document.createElement("div");meta.className="notes-meta";
 const when=document.createElement("span");
 when.textContent=note.at?new Date(note.at).toLocaleString("vi-VN"):"";
-const edit=document.createElement("button");edit.type="button";edit.textContent="Sửa";
-edit.addEventListener("click",()=>{
-notesEditId=note.id;$("notesInput").value=note.text;
-$("notesSave").textContent="Cập nhật";$("notesCancel").hidden=false;
-$("notesInput").focus();window.scrollTo({top:0,behavior:"smooth"});
-});
-const del=document.createElement("button");del.type="button";del.textContent="Xóa";
-del.addEventListener("click",async()=>{
-if(!confirm("Xóa ghi chú này?"))return;
-if(notesEditId===note.id)notesResetEditor();
-await notesDelete(note.id);
-notesRender();
-});
-meta.append(when,edit,del);
+meta.append(when);
 card.append(body,meta);box.append(card);
 });
 }
+/* Tự lưu: gõ xong ~0,8 giây là lưu */
+async function notesFlush(){
+clearTimeout(notesTimer);notesTimer=null;
+if(!notesCurrent)return;
+const text=$("notesInput").value.slice(0,2000);
+if(!text.trim()){notesSetSaveState("Ghi chú trống, chưa lưu");return;}
+notesCurrent.text=text;
+notesCurrent.at=Date.now();
+notesRender();
+await notesPush(notesCurrent);
+notesSetSaveState(notesCurrent.pending?"✓ Đã lưu trên máy":"✓ Đã lưu");
+}
+$("notesInput").addEventListener("input",()=>{
+const text=$("notesInput").value;
+if(!notesCurrent){
+if(!text.trim())return;
+notesCurrent={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),text:text.slice(0,2000),at:Date.now(),pending:true};
+notesList.unshift(notesCurrent);
+}
+notesSetSaveState("Đang lưu...");
+clearTimeout(notesTimer);
+notesTimer=setTimeout(notesFlush,800);
+});
+$("notesNew").addEventListener("click",async()=>{
+await notesFlush();
+notesCurrent=null;
+$("notesInput").value="";
+notesSetSaveState("");
+$("notesInput").focus();
+});
+function notesLeave(){
+if(notesTimer)notesFlush();
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)notesLeave()});
+window.addEventListener("pagehide",notesLeave);
+$("notesBack").addEventListener("click",async()=>{
+await notesFlush();
+notesCurrent=null;
+$("notesPage").hidden=true;$("chat").hidden=false;
+window.scrollTo({top:0,behavior:"auto"});
+});
 async function notesSyncCloud(){
 notesCloud=false;
 if(!user||!db){notesSetStatus("Đang lưu trên máy này.");return;}
@@ -3474,31 +3498,16 @@ notesSetStatus("Chưa đồng bộ được ("+(error.code||error.message||error
 async function openNotesPage(){
 $("chat").hidden=true;
 $("notesPage").hidden=false;
-notesResetEditor();
+notesCurrent=null;
+$("notesInput").value="";
+notesSetSaveState("");
 notesList=notesReadLocal();
 notesRender();
 window.scrollTo({top:0,behavior:"auto"});
 await notesSyncCloud();
+if(notesCurrent&&!notesList.includes(notesCurrent))notesList.unshift(notesCurrent);
 notesRender();
 }
-$("notesBack").addEventListener("click",()=>{
-$("notesPage").hidden=true;$("chat").hidden=false;
-window.scrollTo({top:0,behavior:"auto"});
-});
-$("notesCancel").addEventListener("click",notesResetEditor);
-$("notesSave").addEventListener("click",async()=>{
-const text=$("notesInput").value.trim();
-if(!text)return;
-let note=notesEditId?notesList.find(n=>n.id===notesEditId):null;
-if(note){note.text=text;note.at=Date.now();}
-else{
-note={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),text,at:Date.now(),pending:true};
-notesList.unshift(note);
-}
-notesResetEditor();
-notesRender();
-await notesPush(note);
-});
 $("composer").addEventListener("submit",async event=>{
 event.preventDefault();
 const typed=$("message").value.trim();
