@@ -408,6 +408,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   </div>
 </section>
 
+<input id="diaryNativeFile" type="file" accept="image/*" capture="environment" hidden>
 <div id="diaryCameraModal" hidden>
   <div id="diaryCameraPanel" role="dialog" aria-modal="true" aria-label="Chụp ảnh nhật ký">
     <video id="diaryCameraVideo" autoplay playsinline muted></video>
@@ -906,6 +907,7 @@ let diarySaveTimer=null;
 let diaryDraftImages=[];
 let diaryCameraStream=null;
 let diaryCameraFacing="environment";
+let diaryNativeMode=false;
 let diaryCapturedData=null;
 let diaryCapturedAt=null;
 let diaryCameraSaveDate=null;
@@ -1597,6 +1599,7 @@ if(Math.abs(dx)>65&&dx>0)showDiaryPhotoCalendar();
 else if(Math.abs(dy)>65&&dy>0&&$("diaryCommunityFeed").scrollTop<=2)showDiaryCamera();
 }
 async function openDiaryCamera(){
+diaryNativeMode=false;
 showDiaryCamera();
 if(!diaryCameraSaveDate)diaryCameraSaveDate=diarySelectedDate;
 if(!navigator.mediaDevices?.getUserMedia){
@@ -1667,6 +1670,7 @@ if(video)video.srcObject=null;
 diaryCapturedData=null;
 diaryCapturedAt=null;
 diaryCameraSaveDate=null;
+diaryNativeMode=false;
 diaryGestureStart=null;
 diaryCameraGalleryTouchY=null;
 const chat=$("chat");
@@ -1725,6 +1729,7 @@ $("diaryCapturedActions").hidden=false;
 $("diaryCameraHint").hidden=true;
 }
 function retakeDiaryPhoto(){
+if(diaryNativeMode){const input=$("diaryNativeFile");input.value="";input.click();return;}
 diaryCapturedData=null;diaryCapturedAt=null;
 $("diaryCapturedPreview").hidden=true;
 $("diaryCameraCaption").hidden=true;
@@ -1812,7 +1817,7 @@ renderDiaryImagePreview();
 refreshDiaryView();
 }
 if(cameraStatus){cameraStatus.textContent="";cameraStatus.hidden=true;}
-retakeDiaryPhoto();
+if(diaryNativeMode){diaryNativeMode=false;closeDiaryCamera();}else retakeDiaryPhoto();
 }catch(error){
 console.error("Lưu ảnh nhật ký thất bại:",error);
 showCameraStatus("Không lưu được ảnh: "+(error?.message||String(error)));
@@ -1820,21 +1825,46 @@ showCameraStatus("Không lưu được ảnh: "+(error?.message||String(error)))
 saveButton.disabled=false;
 }
 }
+function onDiaryNativePhoto(){
+const file=$("diaryNativeFile").files?.[0];
+if(!file)return;
+if(!file.type.startsWith("image/")){alert("File đã chọn không phải ảnh.");return;}
+const reader=new FileReader();
+reader.onerror=()=>alert("Không đọc được ảnh.");
+reader.onload=()=>{
+stopDiaryCameraStream();
+diaryNativeMode=true;
+diaryCapturedData=reader.result;
+diaryCapturedAt=new Date();
+diaryCameraSaveDate=diaryLocalKey(diaryCapturedAt);
+diarySelectedDate=diaryCameraSaveDate;
+["chat","diaryPage","mapPage","photoPage"].forEach(id=>{const e=$(id);if(e)e.hidden=true;});
+showDiaryCamera();
+$("diaryCapturedPreview").src=diaryCapturedData;
+$("diaryCapturedPreview").hidden=false;
+$("diaryCameraVideo").hidden=true;
+$("diaryCameraCaption").value="";
+$("diaryCameraCaption").hidden=false;
+$("diaryLiveActions").hidden=true;
+$("diaryCapturedActions").hidden=false;
+$("diaryCameraHint").hidden=true;
+const cs=$("diaryCameraSaveStatus");if(cs){cs.textContent="";cs.hidden=true;}
+$("diaryCameraModal").hidden=false;
+window.scrollTo({top:0,behavior:"auto"});
+};
+reader.readAsDataURL(file);
+}
 function startDiary(){
 if(diaryStarted)return;
 diaryStarted=true;
 $("photoToggle").addEventListener("click",()=>{
-$("chat").hidden=true;
-$("diaryPage").hidden=true;
-$("mapPage").hidden=true;
-$("photoPage").hidden=true;
 const today=new Date();
 diaryCameraSaveDate=diaryLocalKey(today);
 diarySelectedDate=diaryCameraSaveDate;
 diaryMonth=new Date(today.getFullYear(),today.getMonth(),1);
-openDiaryCamera();
-window.scrollTo({top:0,behavior:"auto"});
+const input=$("diaryNativeFile");input.value="";input.click();
 });
+$("diaryNativeFile").addEventListener("change",onDiaryNativePhoto);
 $("diaryToggle").addEventListener("click",async()=>{
 $("chat").hidden=true;
 $("photoPage").hidden=true;
