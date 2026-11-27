@@ -201,9 +201,71 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 #notesPage .notes-empty{padding:18px;text-align:center;opacity:.7}
 </style>
 <style id="gardenCss">
-#gardenPage{position:fixed;inset:0;z-index:10000;overflow:hidden;background:linear-gradient(#bde7ff 0,#e8f8ff 45%,#8fd18a 45%,#5fb86a 100%)}
-#gardenPage::before{content:"☁️";position:absolute;top:8%;left:12%;font-size:56px;opacity:.9}
-#gardenPage::after{content:"☀️";position:absolute;top:5%;right:14%;font-size:64px}
+#gardenPage{position:fixed;inset:0;z-index:10000;overflow:hidden;background:linear-gradient(#8fd3ff 0,#e8f8ff 45%,#8fd18a 45%,#5fb86a 100%)}
+#gardenPage.gd-dusk{background:linear-gradient(#ff9a8b 0,#ffd8a8 45%,#7fb56a 45%,#4a8f5a 100%)}
+#gardenPage.gd-night{background:linear-gradient(#10143a 0,#3a3f7a 45%,#2f6b4f 45%,#1d4a3a 100%)}
+#gardenScene{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#gardenField{touch-action:manipulation}
+.gd-deco{position:absolute;line-height:1;user-select:none;pointer-events:none}
+.gd-sun{animation:gdSun 6s ease-in-out infinite}
+.gd-star{color:#fff;animation:gdTwinkle 2.6s ease-in-out infinite}
+.gd-cloud{left:0;opacity:.92;animation:gdCloud 70s linear infinite}
+.gd-tree{filter:drop-shadow(0 4px 3px #0003)}
+.gd-flower{transform-origin:50% 100%;animation:gdSway 3s ease-in-out infinite alternate}
+.gd-bird{left:0;animation:gdBird 26s linear infinite}
+.gd-fly{left:0;top:0;font-size:22px;z-index:5}
+.gd-fly span{display:block;animation:gdFlap .32s ease-in-out infinite alternate}
+.gd-firefly{animation:gdFire 3.4s ease-in-out infinite}
+.gd-item{position:absolute;left:0;top:0;width:30px;height:30px;font-size:28px;line-height:30px;text-align:center;pointer-events:none}
+.gd-in{display:block}
+.gd-in.food{animation:gdDrop .6s cubic-bezier(.3,1.4,.5,1)}
+.gd-in.ball{animation:gdBounce .6s ease-in-out infinite}
+.gd-paw{position:absolute;font-size:22px;pointer-events:none;transform:translate(-50%,-50%);animation:gdPaw 1s ease-out forwards;z-index:3}
+.gd-flip{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.gd-tag{position:absolute;left:50%;top:calc(100% - 4px);transform:translateX(-50%);padding:1px 8px;border-radius:10px;background:#ffffffcc;color:#6a4a85;font-size:11px;font-weight:700;white-space:nowrap;pointer-events:none;z-index:2}
+.gd-pet.mine .gd-tag{background:#fff3c4;box-shadow:0 0 0 2px #f4a340}
+.gd-pet.mine{filter:drop-shadow(0 0 6px #fff8)}
+.gd-pet.eating .gd-art{animation:gdEat .35s ease-in-out 4}
+.gd-pet.sad:not(.sleeping)::after{content:"🥺";position:absolute;right:-4px;top:-4px;z-index:2;font-size:16px}
+.gd-pet.sad .gd-art{filter:saturate(.55) drop-shadow(0 6px 5px #17102b44)}
+#gardenHud{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:min(360px,calc(100vw - 20px));padding:10px 12px;border-radius:18px;background:#fffffff2;color:#5b3a73;box-shadow:0 6px 22px #0004;z-index:99990;font-size:13px}
+#gardenHud[hidden],#gardenPick[hidden],#gardenToast[hidden]{display:none}
+.gd-hud-top{display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.gd-xp{height:6px;border-radius:6px;background:#eadcf7;margin:5px 0 7px;overflow:hidden}
+.gd-xp i{display:block;height:100%;background:linear-gradient(90deg,#f4a340,#ff7aa8);transition:width .4s}
+.gd-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gd-stat{display:flex;align-items:center;gap:4px}
+.gd-bar{flex:1;height:8px;border-radius:8px;background:#eadcf7;overflow:hidden}
+.gd-bar i{display:block;height:100%;width:0;background:#7bd389;transition:width .4s,background .3s}
+.gd-bar i.low{background:#ff6b6b}
+.gd-btns{display:flex;gap:6px;margin-top:8px}
+.gd-btns button{flex:1;padding:8px 4px;border:0;border-radius:12px;background:#a78bfa;color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+.gd-btns button:disabled{opacity:.5;cursor:default}
+.gd-days{margin-top:6px;text-align:center;font-size:11px;opacity:.75}
+#gardenPick{position:absolute;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:#1b102a99;backdrop-filter:blur(4px)}
+.gd-pick-card{width:min(420px,92vw);max-height:92vh;overflow:auto;padding:18px;border-radius:22px;background:#fff;color:#5b3a73;text-align:center;box-shadow:0 10px 40px #0006}
+.gd-pick-card h2{margin:0 0 6px;font-size:20px}
+.gd-pick-card p{margin:0 0 12px;font-size:13px;line-height:1.4}
+.gd-pick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.gd-pick-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:2px solid transparent;border-radius:16px;background:#f6f0ff;color:#5b3a73;font-weight:700;font-size:13px;cursor:pointer;transition:transform .15s}
+.gd-pick-item.on{border-color:#a78bfa;background:#efe3ff;transform:scale(1.06)}
+.gd-pick-art{--s:64px;width:64px;height:64px;position:relative}
+.gd-pick-card input{width:100%;box-sizing:border-box;padding:10px 12px;border:2px solid #e1dced;border-radius:12px;font-size:15px;text-align:center;margin-bottom:10px}
+#gdPickOk{width:100%;padding:11px;border:0;border-radius:14px;background:#a78bfa;color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+#gdPickOk:disabled{opacity:.45;cursor:default}
+#gdPickErr{margin-top:8px;color:#d33;font-size:12px}
+#gardenToast{position:absolute;top:56px;left:50%;transform:translateX(-50%);max-width:min(380px,90vw);padding:10px 14px;border-radius:14px;background:#fff;color:#a33;font-size:13px;font-weight:700;text-align:center;box-shadow:0 4px 16px #0004;z-index:100001}
+@keyframes gdSun{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.07) rotate(6deg)}}
+@keyframes gdTwinkle{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes gdCloud{from{transform:translateX(-140px)}to{transform:translateX(calc(100vw + 140px))}}
+@keyframes gdSway{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+@keyframes gdBird{0%{transform:translate(-60px,0)}25%{transform:translate(25vw,-14px)}50%{transform:translate(50vw,6px)}75%{transform:translate(75vw,-10px)}100%{transform:translate(calc(100vw + 60px),0)}}
+@keyframes gdFlap{from{transform:scaleX(1)}to{transform:scaleX(.45)}}
+@keyframes gdFire{0%,100%{opacity:0;transform:translate(0,0)}50%{opacity:1;transform:translate(14px,-18px)}}
+@keyframes gdDrop{from{transform:translateY(-90px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes gdBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes gdPaw{from{opacity:1;transform:translate(-50%,-50%) scale(.8)}to{opacity:0;transform:translate(-50%,-90%) scale(1.3)}}
+@keyframes gdEat{0%,100%{transform:scale(1,1)}50%{transform:scale(1.12,.86) translateY(4px)}}
 #gardenClose{position:absolute;top:12px;left:12px;z-index:99999}
 #gardenField{position:absolute;inset:0}
 .floating-heart{z-index:10001}
@@ -238,34 +300,6 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 @keyframes gdShadow{0%,100%{transform:scaleX(1);opacity:.7}50%{transform:scaleX(.78);opacity:.42}}
 @keyframes gdZzz{0%{opacity:0;transform:translate(0,7px) scale(.8)}35%{opacity:1}100%{opacity:0;transform:translate(7px,-9px) scale(1.12)}}
 @media (prefers-reduced-motion:reduce){.gd-art,.gd-art *,.gd-pet::before{animation:none!important}}
-</style>
-<style id="zooCss">
-#gardenPage{background:#f4efe4;overflow:auto}
-#gardenPage::before,#gardenPage::after{display:none}
-#gardenField{display:none}
-#zooRoot{max-width:760px;margin:0 auto;padding:12px 12px 40px;color:#3b2f2f}
-#zooHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px 120px;min-height:44px}
-#zooHead h2{margin:0;font-size:18px}
-#zooScore{font-weight:700;background:#fff;border-radius:999px;padding:6px 12px;box-shadow:0 1px 6px #0002;font-size:13px}
-#zooTabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
-#zooTabs button{flex:0 0 auto;background:#fff;color:#5a4636;border:2px solid #e3d6bd;position:relative;padding:9px 12px;font-size:13px}
-#zooTabs button.on{background:#7a5a3a;color:#fff;border-color:#7a5a3a}
-#zooTabs .bad{position:absolute;top:-5px;right:-5px;background:#e11d48;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;display:grid;place-items:center}
-#zooScene{position:relative;height:42vh;min-height:250px;border-radius:16px;overflow:hidden;border:3px solid #7a5a3a;box-shadow:0 4px 14px #0003}
-#zooScene .zoo-deco{position:absolute;left:0;right:0;top:4px;text-align:center;font-size:26px;opacity:.55;letter-spacing:14px;pointer-events:none}
-#zooScene .gd-pet.sel{filter:drop-shadow(0 0 7px #fff) drop-shadow(0 0 3px #f59e0b)}
-.zoo-card{background:#fff;border-radius:14px;padding:12px;margin-top:10px;box-shadow:0 2px 8px #0002}
-.zoo-card h3{margin:0 0 8px;font-size:15px}
-#zooAnimals{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-#zooAnimals button{background:#f1e8d6;color:#4a3a2a;border:2px solid transparent;padding:7px 11px;font-size:13px}
-#zooAnimals button.on{border-color:#7a5a3a;background:#fff7e3}
-.zoo-stat{display:grid;grid-template-columns:70px 1fr 34px;align-items:center;gap:8px;font-size:12px;margin:5px 0}
-.zoo-bar{height:10px;background:#eee;border-radius:99px;overflow:hidden}
-.zoo-bar i{display:block;height:100%;border-radius:99px;transition:width .4s}
-#zooActions{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-#zooActions button{background:#15803d;padding:11px 8px;font-size:13px}
-#zooActions button.zone{background:#0369a1}
-#zooMsg{min-height:20px;font-size:13px;color:#7a5a3a;margin-top:8px;font-weight:600}
 </style>
 </head>
 <body>
@@ -632,8 +666,12 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 
 </main>
 <div id="gardenPage" hidden>
-<button id="gardenClose" type="button">✕ Thoát vườn</button>
+<div id="gardenScene"></div>
 <div id="gardenField"></div>
+<button id="gardenClose" type="button">✕ Thoát vườn</button>
+<div id="gardenHud" hidden></div>
+<div id="gardenPick" hidden></div>
+<div id="gardenToast" hidden></div>
 </div>
 
 <script>
@@ -3620,7 +3658,7 @@ await notesSyncCloud();
 if(notesCurrent&&!notesList.includes(notesCurrent))notesList.unshift(notesCurrent);
 notesRender();
 }
-/* KHU VƯỜN BÍ MẬT (gõ 1409) */
+/* KHU VƯỜN BÍ MẬT (gõ 1409): mỗi uid chọn 1 thú cưng, chăm sóc, thấy thú cưng của mọi người */
 const GARDEN_LINES=['Cậu ơi, tớ nhớ cậu lắm 🥺','Hôm nay cậu có vui không? 💗','Ôm tớ một cái đi mà!','Tớ ở đây chờ cậu nè 🌷','Cậu là người tuyệt nhất!','Đừng quên nghỉ ngơi nhé 💕','Lạnh rồi cậu nhớ mặc ấm nhé,đi chơi về sớm 1 chut🥺','Cho tớ ở cạnh cậu thêm chút nha','Cậu đang làm gì đó? Kể tớ nghe với!','Hôm nay mình cùng cố gắng nhé! ✨','Tớ thích được ở bên Cậu lắm 💞','Cậu có nhớ tớ không nè?'];
 function gardenPetArt(emoji){
 if(emoji==='🐰')return `<svg class="pet-3d-svg pet-rabbit-3d" viewBox="0 0 120 120" role="img" aria-label="Thỏ 3D hoạt hình">
@@ -3656,14 +3694,18 @@ if(emoji==='🦭')return `<svg class="pet-3d-svg pet-seal-3d" viewBox="0 0 120 1
 </svg>`;
 return '<span class="gd-emoji">'+emoji+'</span>';
 }
-const GARDEN_PETS=[
-{type:"🐱",name:"Chikawa",size:62,speed:52},
-{type:"🐰",name:"Usagi",size:68,speed:64},
-{type:"🐶",name:"Mập",size:64,speed:58},
-{type:"🐹",name:"Hamster",size:56,speed:74},
-{type:"🦭",name:"Luna",size:76,speed:34}
-];
-let gardenRAF=0;
+const GARDEN_TYPES={
+cat:{emoji:'🐱',label:'Mèo',size:64,speed:56,food:'🐟'},
+rabbit:{emoji:'🐰',label:'Thỏ',size:68,speed:66,food:'🥕'},
+dog:{emoji:'🐶',label:'Cún',size:66,speed:62,food:'🍖'},
+hamster:{emoji:'🐹',label:'Hamster',size:56,speed:76,food:'🌻'},
+seal:{emoji:'🦭',label:'Hải cẩu',size:78,speed:38,food:'🐠'}
+};
+const GD_BOTTOM_PAD=150;
+let gardenRAF=0,gardenUnsub=null,gardenTimer=0,gardenSaveT=0,gardenMine=null,gardenAll=new Map(),gardenItems=[],gardenFlies=[],gardenPickResolve=null,gardenSeq=0,gardenToastT=0;
+const gdRnd=(a,b)=>a+Math.random()*(b-a);
+const gdClamp=v=>Math.max(0,Math.min(100,v));
+const gdLevel=xp=>Math.floor(Math.sqrt((xp||0)/12))+1;
 function gardenHearts(el){
 const r=el.getBoundingClientRect();
 const hearts=["💗","💕","💖","💘","❤️","💓"];
@@ -3679,188 +3721,372 @@ document.body.append(h);
 h.addEventListener("animationend",()=>h.remove(),{once:true});
 }
 }
-function openGarden(){
-const page=$("gardenPage"),field=$("gardenField");
-page.hidden=false;field.innerHTML="";
-const rnd=(a,b)=>a+Math.random()*(b-a);
-const pickTarget=p=>{
-p.tx=rnd(0,Math.max(0,innerWidth-p.def.size));
-p.ty=rnd(innerHeight*.5,Math.max(innerHeight*.5,innerHeight-p.def.size-8));
+function gardenToast(msg){
+const t=$("gardenToast");t.textContent=msg;t.hidden=false;
+clearTimeout(gardenToastT);gardenToastT=setTimeout(()=>{t.hidden=true;},6000);
+}
+function gdDecay(rec,now){
+const m=Math.max(0,Math.min((now-(rec.tick||now))/60000,4320));
+if(m>0){rec.no=gdClamp(rec.no-m*.25);rec.vui=gdClamp(rec.vui-m*.2);rec.nl=gdClamp(rec.nl-m*.12);}
+rec.tick=now;
+}
+function gdSave(){
+if(!gardenMine||!user||!db)return;
+const r=gardenMine,q=v=>Math.round(v*10)/10;
+update(ref(db,"gardenPets/"+user.uid),{no:q(r.no),vui:q(r.vui),nl:q(r.nl),xp:Math.round(r.xp),tick:r.tick}).catch(()=>{});
+}
+function gdSaveSoon(){clearTimeout(gardenSaveT);gardenSaveT=setTimeout(gdSave,700);}
+function gdBounds(size){
+const minY=innerHeight*.46;
+return{minY,maxY:Math.max(minY,innerHeight-size-GD_BOTTOM_PAD),maxX:Math.max(0,innerWidth-size)};
+}
+function gdMoodLine(rec){
+if(rec.no<25)return"Tớ đói quá, cho tớ ăn với 🥺🍖";
+if(rec.nl<20)return"Tớ buồn ngủ quá 😴";
+if(rec.vui<30)return"Chơi với tớ đi mà, buồn quá à 🥺";
+return GARDEN_LINES[Math.floor(Math.random()*GARDEN_LINES.length)];
+}
+function gardenSay(p,text,t){p.bubble.textContent=text;p.bubble.hidden=false;p.talk=t||3.6;}
+function gardenTag(p){
+const r=p.rec;
+p.tag.textContent=p.mine?(r.name+" · Lv."+gdLevel(r.xp)):(r.name+" · "+(r.owner||"?"));
+}
+/* CẢNH VƯỜN: trời theo giờ thật, mây, cây, hoa, bướm, đom đóm, chim */
+function gardenBuildScene(){
+const page=$("gardenPage"),sc=$("gardenScene");
+const h=new Date().getHours(),W=innerWidth,H=innerHeight,hz=H*.45;
+const night=h>=19||h<5,dusk=(h>=17&&h<19)||(h>=5&&h<6);
+page.classList.remove("gd-day","gd-dusk","gd-night");
+page.classList.add(night?"gd-night":dusk?"gd-dusk":"gd-day");
+sc.innerHTML="";
+const add=(txt,x,y,size,cls,delay)=>{
+const e=document.createElement("span");
+e.className="gd-deco "+(cls||"");e.textContent=txt;
+e.style.left=x+"px";e.style.top=y+"px";e.style.fontSize=size+"px";
+if(delay!=null)e.style.animationDelay=delay+"s";
+sc.appendChild(e);return e;
 };
-const pets=GARDEN_PETS.map(def=>{
+add(night?"🌙":dusk?"🌇":"☀️",W*.8,H*.05,60,"gd-sun");
+if(night)for(let i=0;i<45;i++){
+const s=add("✦",gdRnd(0,W),gdRnd(0,hz-20),gdRnd(6,12),"gd-star",-gdRnd(0,3));
+}
+for(let i=0;i<4;i++){
+const c=add("☁️",0,gdRnd(H*.03,H*.22),gdRnd(40,68),"gd-cloud",-gdRnd(0,70));
+c.style.animationDuration=gdRnd(55,95)+"s";
+}
+const nt=Math.max(3,Math.round(W/150));
+for(let i=0;i<nt;i++){
+const sz=gdRnd(54,84);
+add(Math.random()<.7?"🌳":"🌲",gdRnd(0,W-sz),hz-sz*.82,sz,"gd-tree");
+}
+const nf=Math.max(14,Math.min(40,Math.round(W/24)));
+const fl=["🌷","🌸","🌼","🌻","🌺","🌿","🍄","🌱"];
+for(let i=0;i<nf;i++){
+add(fl[Math.floor(Math.random()*fl.length)],gdRnd(0,W-20),gdRnd(hz+14,H-30),gdRnd(18,30),"gd-flower",-gdRnd(0,3));
+}
+if(!night){
+add("🐦",0,gdRnd(H*.06,H*.2),26,"gd-bird",-gdRnd(0,20));
+for(let i=0;i<4;i++){
+const d=document.createElement("div");d.className="gd-deco gd-fly";
+d.innerHTML="<span>🦋</span>";sc.appendChild(d);
+gardenFlies.push({el:d,cx:gdRnd(0,W),cy:gdRnd(hz+20,H-120),rx:gdRnd(30,90),ry:gdRnd(14,40),sp:gdRnd(.6,1.4),vx:gdRnd(8,20)*(Math.random()<.5?-1:1),t:gdRnd(0,10)});
+}
+}else{
+for(let i=0;i<14;i++)add("✨",gdRnd(0,W),gdRnd(hz+10,H-60),gdRnd(10,16),"gd-firefly",-gdRnd(0,5));
+}
+}
+function gardenMakePet(uid,rec,mine){
+const def=GARDEN_TYPES[rec.type];if(!def)return null;
+const size=Math.round(def.size*(mine?1.3:1));
 const el=document.createElement("div");
-el.className="gd-pet";
-el.style.width=el.style.height=def.size+"px";
-el.style.setProperty("--s",def.size+"px");
-el.setAttribute("aria-label",def.name);
-el.innerHTML='<div class="gd-bubble" hidden></div><div class="gd-art">'+gardenPetArt(def.type)+'</div>';
-field.appendChild(el);
-const p={def,el,bubble:el.firstChild,x:rnd(0,Math.max(0,innerWidth-def.size)),y:rnd(innerHeight*.5,Math.max(innerHeight*.5,innerHeight-def.size-8)),wait:rnd(0,2),talk:0,walking:false};
-pickTarget(p);
-el.addEventListener("click",()=>{
+el.className="gd-pet"+(mine?" mine":"");
+el.style.width=el.style.height=size+"px";
+el.style.setProperty("--s",size+"px");
+el.innerHTML='<div class="gd-bubble" hidden></div><div class="gd-tag"></div><div class="gd-art"><div class="gd-flip">'+gardenPetArt(def.emoji)+'</div></div>';
+$("gardenField").appendChild(el);
+const b=gdBounds(size);
+const p={uid,mine,def,el,size,rec,bubble:el.children[0],tag:el.children[1],flip:el.querySelector(".gd-flip"),x:gdRnd(0,b.maxX),y:gdRnd(b.minY,b.maxY),tx:0,ty:0,wait:gdRnd(0,2),talk:0,walking:false,goal:null,sleepT:0,dir:0,chat:gdRnd(10,20),lastPet:0};
+gardenPick(p);gardenTag(p);
+el.setAttribute("aria-label",rec.name);
+el.addEventListener("click",ev=>{
+ev.stopPropagation();
 gardenHearts(el);
 p.wait=Math.max(p.wait,3);
+if(p.sleepT>0)return;
 el.classList.remove("sleeping");el.classList.add("happy");
-clearTimeout(p.happyTimer);
-p.happyTimer=setTimeout(()=>el.classList.remove("happy"),2000);
-p.bubble.textContent=GARDEN_LINES[Math.floor(Math.random()*GARDEN_LINES.length)];
-p.bubble.hidden=false;p.talk=3.2;
+clearTimeout(p.happyT);p.happyT=setTimeout(()=>el.classList.remove("happy"),2000);
+if(mine){
+const now=Date.now();
+p.rec.vui=gdClamp(p.rec.vui+4);
+if(now-p.lastPet>5000){p.rec.xp+=1;p.lastPet=now;}
+gardenSay(p,gdMoodLine(p.rec));
+gardenHudUpdate();gdSaveSoon();
+}else{
+gardenSay(p,GARDEN_LINES[Math.floor(Math.random()*GARDEN_LINES.length)]);
+}
 });
 return p;
-});
-let last=performance.now();
-cancelAnimationFrame(gardenRAF);
-(function tick(now){
-const dt=Math.min((now-last)/1000,.05);last=now;
-for(const p of pets){
-if(p.talk>0){p.talk-=dt;if(p.talk<=0)p.bubble.hidden=true;}
-if(p.wait>0){
-p.wait-=dt;
-if(p.walking){p.walking=false;p.el.classList.remove("walking");if(Math.random()<.35)p.el.classList.add("sleeping");}
-if(p.wait<=0)p.el.classList.remove("sleeping");
-}else{
-if(!p.walking){p.walking=true;p.el.classList.add("walking");}
-const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
-if(d<4){p.wait=rnd(1.5,4.5);pickTarget(p);}
-else{p.x+=dx/d*p.def.speed*dt;p.y+=dy/d*p.def.speed*dt;}
 }
+function gardenPick(p){
+const b=gdBounds(p.size);
+p.tx=gdRnd(0,b.maxX);p.ty=gdRnd(b.minY,b.maxY);
+}
+/* VẬT PHẨM: thức ăn / bóng */
+function gardenSpawn(emoji,kind){
+const b=gdBounds(60);
+const el=document.createElement("div");
+el.className="gd-item";
+const s=document.createElement("span");s.className="gd-in "+kind;s.textContent=emoji;
+el.appendChild(s);
+$("gardenField").appendChild(el);
+const x=gdRnd(40,Math.max(60,innerWidth-70)),y=gdRnd(b.minY+30,b.maxY+40);
+const it={el,kind,x,y,bx:x,by:y};
+gardenItems.push(it);
+return it;
+}
+function gardenRemoveItem(it){
+it.el.remove();
+const i=gardenItems.indexOf(it);if(i>=0)gardenItems.splice(i,1);
+}
+function gardenAct(kind){
+const p=gardenAll.get(user.uid);
+if(!p||p.goal||p.sleepT>0)return;
+const r=p.rec;
+if(kind==="sleep"){
+if(r.nl>=95){gardenSay(p,"Tớ chưa buồn ngủ đâu 😆");return;}
+p.sleepT=7;p.walking=false;p.el.classList.remove("walking");p.el.classList.add("sleeping");
+gardenSay(p,"Ngủ một chút nha... 💤",2.4);
+}else if(kind==="feed"){
+if(r.no>=95){gardenSay(p,"Tớ no căng rồi, ăn không nổi nữa 😋");return;}
+p.goal={kind:"food",item:gardenSpawn(p.def.food,"food")};
+p.el.classList.remove("sleeping");
+}else if(kind==="play"){
+if(r.nl<12){gardenSay(p,"Mệt quá, cho tớ ngủ chút đã 😴");return;}
+p.goal={kind:"ball",item:gardenSpawn("🎾","ball"),left:3};
+p.el.classList.remove("sleeping");
+}
+gardenHudUpdate();
+}
+function gardenArrive(p){
+const g=p.goal,r=p.rec;
+if(g.kind==="food"){
+gardenRemoveItem(g.item);
+p.el.classList.add("eating");
+clearTimeout(p.eatT);p.eatT=setTimeout(()=>p.el.classList.remove("eating"),1500);
+r.no=gdClamp(r.no+32);r.vui=gdClamp(r.vui+6);r.xp+=3;
+gardenHearts(p.el);
+gardenSay(p,["Ngon quá! 😋","Cảm ơn cậu nhiều nha 💗","Nom nom nom 🍽️"][Math.floor(Math.random()*3)]);
+p.goal=null;p.wait=2.5;
+}else{
+g.left--;
+r.vui=gdClamp(r.vui+10);r.nl=gdClamp(r.nl-4);r.no=gdClamp(r.no-2);r.xp+=2;
+p.el.classList.add("happy");
+clearTimeout(p.happyT);p.happyT=setTimeout(()=>p.el.classList.remove("happy"),1800);
+gardenHearts(p.el);
+if(g.left>0){
+const b=gdBounds(60);
+g.item.bx=gdRnd(40,Math.max(60,innerWidth-70));g.item.by=gdRnd(b.minY+30,b.maxY+40);
+}else{
+gardenRemoveItem(g.item);
+gardenSay(p,"Vui quá đi! 🎉");
+p.goal=null;p.wait=2;
+}
+}
+gardenTag(p);gardenHudUpdate();gdSaveSoon();
+}
+function gardenStep(p,dt){
+if(p.talk>0){p.talk-=dt;if(p.talk<=0)p.bubble.hidden=true;}
+let moving=false;
+if(p.sleepT>0){
+p.sleepT-=dt;p.rec.nl=gdClamp(p.rec.nl+dt*10);
+if(p.sleepT<=0){
+p.el.classList.remove("sleeping");p.rec.xp+=2;p.wait=1;
+gardenSay(p,"Ngủ ngon quá! ✨");gardenTag(p);gardenHudUpdate();gdSaveSoon();
+}
+}else{
+const g=p.goal;
+if(g){
+p.tx=g.item.x-p.size/2;p.ty=g.item.y-p.size*.75;
+}else if(p.wait>0){
+p.wait-=dt;
+if(!p.mine&&p.walking&&Math.random()<.35)p.el.classList.add("sleeping");
+if(p.wait<=0&&!p.mine)p.el.classList.remove("sleeping");
+}
+if(g||p.wait<=0){
+const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
+if(d<(g?10:4)){
+if(g)gardenArrive(p);
+else{p.wait=gdRnd(1.5,4.5);gardenPick(p);}
+}else{
+moving=true;
+let sp=p.def.speed*(g?2:1);
+if(p.mine&&(p.rec.nl<20||p.rec.no<20))sp*=.6;
+p.x+=dx/d*sp*dt;p.y+=dy/d*sp*dt;
+if(Math.abs(dx)>2){
+const nd=dx>0?1:-1;
+if(nd!==p.dir){p.dir=nd;p.flip.style.transform=nd>0?"scaleX(-1)":"";}
+}
+}
+}
+if(p.mine&&!p.goal&&!(p.talk>0)&&p.sleepT<=0){
+p.chat-=dt;
+if(p.chat<=0){gardenSay(p,gdMoodLine(p.rec));p.chat=gdRnd(16,28);}
+}
+}
+if(moving!==p.walking){p.walking=moving;p.el.classList.toggle("walking",moving);}
 p.el.style.zIndex=p.talk>0?99998:Math.round(p.y);
 p.el.style.transform="translate3d("+p.x+"px,"+p.y+"px,0)";
 }
+function gardenLoop(){
+let last=performance.now();
+(function tick(now){
+const dt=Math.min((now-last)/1000,.05);last=now;
+for(const f of gardenFlies){
+f.t+=dt;f.cx+=f.vx*dt;
+if(f.cx>innerWidth+60)f.cx=-60;else if(f.cx<-60)f.cx=innerWidth+60;
+const x=f.cx+Math.cos(f.t*f.sp)*f.rx,y=f.cy+Math.sin(f.t*f.sp*1.7)*f.ry;
+f.el.style.transform="translate3d("+x+"px,"+y+"px,0)";
+}
+for(const it of gardenItems){
+if(it.kind==="ball"){const k=Math.min(1,dt*3);it.x+=(it.bx-it.x)*k;it.y+=(it.by-it.y)*k;}
+it.el.style.transform="translate3d("+(it.x-15)+"px,"+(it.y-15)+"px,0)";
+it.el.style.zIndex=Math.round(it.y);
+}
+for(const p of gardenAll.values())gardenStep(p,dt);
 gardenRAF=requestAnimationFrame(tick);
 })(last);
 }
+/* BẢNG ĐIỀU KHIỂN CHĂM SÓC */
+function gardenHudBuild(){
+const hud=$("gardenHud");
+const stat=(ic,k)=>'<div class="gd-stat"><span>'+ic+'</span><div class="gd-bar"><i id="gdB_'+k+'"></i></div></div>';
+hud.innerHTML='<div class="gd-hud-top"><b id="gdHName"></b><span id="gdHLv"></span></div><div class="gd-xp"><i id="gdXp"></i></div><div class="gd-stats">'+stat("🍖","no")+stat("💗","vui")+stat("⚡","nl")+'</div><div class="gd-btns"><button type="button" data-a="feed">🍖 Cho ăn</button><button type="button" data-a="play">🎾 Chơi</button><button type="button" data-a="sleep">😴 Ngủ</button></div><div class="gd-days" id="gdHDays"></div>';
+hud.hidden=false;
+hud.onclick=e=>{const b=e.target.closest("button[data-a]");if(b&&!b.disabled)gardenAct(b.dataset.a);};
+}
+function gardenHudUpdate(){
+const p=gardenAll.get(user&&user.uid),hud=$("gardenHud");
+if(!p||hud.hidden)return;
+const r=p.rec,lv=gdLevel(r.xp);
+$("gdHName").textContent=p.def.emoji+" "+r.name;
+$("gdHLv").textContent="Lv."+lv;
+const base=12*(lv-1)*(lv-1),next=12*lv*lv;
+$("gdXp").style.width=Math.max(2,Math.min(100,(r.xp-base)/(next-base)*100))+"%";
+for(const k of["no","vui","nl"]){
+const b=$("gdB_"+k);b.style.width=Math.round(r[k])+"%";b.classList.toggle("low",r[k]<25);
+}
+const days=Math.floor((Date.now()-(r.born||Date.now()))/86400000)+1;
+$("gdHDays").textContent="Ngày thứ "+days+" bên nhau 💞";
+const busy=!!(p.goal||p.sleepT>0);
+hud.querySelectorAll("button[data-a]").forEach(b=>b.disabled=busy);
+p.el.classList.toggle("sad",r.no<25||r.vui<25);
+gardenTag(p);
+}
+/* CHỌN THÚ CƯNG LẦN ĐẦU */
+function gardenChoose(){
+return new Promise(resolve=>{
+gardenPickResolve=resolve;
+const box=$("gardenPick");box.hidden=false;
+box.innerHTML='<div class="gd-pick-card"><h2>Chọn bạn đồng hành 🐾</h2><p>Mỗi người chỉ được nhận nuôi <b>1 bé</b> và không đổi được nữa nên chọn kỹ nha!</p><div class="gd-pick-grid"></div><input id="gdPickName" maxlength="16" placeholder="Đặt tên cho bé..." autocomplete="off"><button id="gdPickOk" type="button" disabled>Nhận nuôi 💞</button><div id="gdPickErr"></div></div>';
+const grid=box.querySelector(".gd-pick-grid"),inp=$("gdPickName"),ok=$("gdPickOk"),errEl=$("gdPickErr");
+let chosen="";
+for(const[key,def]of Object.entries(GARDEN_TYPES)){
+const b=document.createElement("button");b.type="button";b.className="gd-pick-item";
+b.innerHTML='<div class="gd-pick-art"><div class="gd-art"><div class="gd-flip">'+gardenPetArt(def.emoji)+'</div></div></div>';
+const s=document.createElement("span");s.textContent=def.label;b.appendChild(s);
+b.addEventListener("click",()=>{
+chosen=key;
+grid.querySelectorAll(".gd-pick-item").forEach(x=>x.classList.toggle("on",x===b));
+if(!inp.value.trim()||Object.values(GARDEN_TYPES).some(d=>d.label===inp.value))inp.value=def.label;
+ok.disabled=false;
+});
+grid.appendChild(b);
+}
+ok.addEventListener("click",async()=>{
+if(!chosen)return;
+const def=GARDEN_TYPES[chosen],now=Date.now();
+const rec={type:chosen,name:inp.value.trim().slice(0,16)||def.label,owner:String(displayName||"Thành viên").slice(0,24),born:now,no:80,vui:80,nl:90,xp:0,tick:now};
+ok.disabled=true;errEl.textContent="";
+try{await set(ref(db,"gardenPets/"+user.uid),rec);}
+catch(e){errEl.textContent="Không lưu được. Cậu đã dán rules mới (gardenPets) vào Firebase chưa?";ok.disabled=false;return;}
+gardenPickResolve=null;box.hidden=true;box.innerHTML="";
+resolve(rec);
+});
+});
+}
+async function openGarden(){
+const page=$("gardenPage"),field=$("gardenField");
+const seq=++gardenSeq;
+cancelAnimationFrame(gardenRAF);clearInterval(gardenTimer);
+if(gardenUnsub){gardenUnsub();gardenUnsub=null;}
+page.hidden=false;field.innerHTML="";gardenAll.clear();gardenItems=[];gardenFlies=[];gardenMine=null;
+$("gardenHud").hidden=true;
+gardenBuildScene();
+gardenLoop();
+let rec=null,failed=false;
+try{rec=(await get(ref(db,"gardenPets/"+user.uid))).val();}catch(e){failed=true;}
+if(seq!==gardenSeq)return;
+if(failed){gardenToast("Không đọc được dữ liệu thú cưng. Cậu đã cập nhật rules gardenPets trên Firebase chưa?");return;}
+if(!rec||!GARDEN_TYPES[rec.type])rec=await gardenChoose();
+if(!rec||seq!==gardenSeq)return;
+for(const k of["no","vui","nl"])if(typeof rec[k]!=="number")rec[k]=70;
+rec.xp=Number(rec.xp)||0;
+const now=Date.now(),away=now-(rec.tick||now);
+gdDecay(rec,now);
+gardenMine=rec;
+const p=gardenMakePet(user.uid,rec,true);
+if(!p)return;
+gardenAll.set(user.uid,p);
+gardenHudBuild();gardenHudUpdate();
+gardenSay(p,away>6*3600000&&rec.no<45?"Cậu đi đâu lâu thế, tớ đói quá rồi 🥺":"Cậu đến rồi! 💗",4);
+gardenUnsub=onValue(ref(db,"gardenPets"),snap=>{
+if(seq!==gardenSeq)return;
+const val=snap.val()||{};
+for(const[uid,r]of Object.entries(val)){
+if(uid===user.uid||!r||!GARDEN_TYPES[r.type])continue;
+const q=gardenAll.get(uid);
+if(!q){const np=gardenMakePet(uid,r,false);if(np)gardenAll.set(uid,np);}
+else{q.rec=r;gardenTag(q);}
+}
+for(const uid of[...gardenAll.keys()]){
+if(uid!==user.uid&&!val[uid]){gardenAll.get(uid).el.remove();gardenAll.delete(uid);}
+}
+});
+let n=0;
+gardenTimer=setInterval(()=>{
+if(!gardenMine)return;
+gdDecay(gardenMine,Date.now());gardenHudUpdate();
+if(++n%3===0)gdSave();
+},20000);
+gdSaveSoon();
+}
+$("gardenField").addEventListener("click",ev=>{
+if(ev.target!==$("gardenField"))return;
+const p=user&&gardenAll.get(user.uid);
+if(!p||p.goal||p.sleepT>0)return;
+const b=gdBounds(p.size);
+p.tx=Math.max(0,Math.min(b.maxX,ev.clientX-p.size/2));
+p.ty=Math.max(b.minY,Math.min(b.maxY,ev.clientY-p.size));
+p.wait=0;
+const paw=document.createElement("span");
+paw.className="gd-paw";paw.textContent="🐾";
+paw.style.left=ev.clientX+"px";paw.style.top=ev.clientY+"px";
+$("gardenField").appendChild(paw);
+setTimeout(()=>paw.remove(),1000);
+});
 function closeGarden(){
-cancelAnimationFrame(gardenRAF);
+gardenSeq++;
+cancelAnimationFrame(gardenRAF);clearInterval(gardenTimer);clearTimeout(gardenSaveT);
+if(gardenMine&&user){gdDecay(gardenMine,Date.now());gdSave();}
+if(gardenUnsub){gardenUnsub();gardenUnsub=null;}
+if(gardenPickResolve){gardenPickResolve(null);gardenPickResolve=null;}
+gardenAll.clear();gardenItems=[];gardenFlies=[];gardenMine=null;
+$("gardenField").innerHTML="";$("gardenScene").innerHTML="";
+$("gardenPick").hidden=true;$("gardenPick").innerHTML="";$("gardenHud").hidden=true;$("gardenToast").hidden=true;
 $("gardenPage").hidden=true;
 }
 $("gardenClose").addEventListener("click",closeGarden);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("gardenPage").hidden)closeGarden();});
-/* VƯỜN THÚ AMINO: mỗi khu có thú + chức năng chăm sóc riêng. Lưu trên máy (localStorage). */
-const ZOO_KEY="amino_zoo_v1";
-const ZOO_ZONES=[
-{id:"rabbit",name:"Khu Thỏ",icon:"🐰",bg:"linear-gradient(#d9f2c8,#a6db8f)",deco:"🌼🥕🌷",
-animals:[{id:"usagi",type:"🐰",name:"Usagi",size:70,speed:60},{id:"ham",type:"🐹",name:"Hamster",size:54,speed:78}],
-acts:[{l:"🥕 Cho ăn cà rốt",m:"Nhồm nhoàm~ 🥕",s:{food:35,joy:5}},{l:"🪮 Chải lông",m:"Lông mượt rồi nè ✨",s:{clean:40,joy:10}},{l:"🎡 Cho chạy bánh xe",m:"Chạy vù vù!",s:{joy:35,food:-8}}]},
-{id:"cat",name:"Khu Mèo",icon:"🐱",bg:"linear-gradient(#ffe7c7,#f6c98e)",deco:"🧶🐟🪟",
-animals:[{id:"chika",type:"🐱",name:"Chikawa",size:62,speed:52},{id:"kitty",type:"😺",name:"Mướp",size:58,speed:60}],
-acts:[{l:"🐟 Cho ăn pate",m:"Meo meo~ ngon quá!",s:{food:40}},{l:"🧶 Chơi cuộn len",m:"Vồ được rồi!",s:{joy:40,food:-6}},{l:"🧹 Dọn khay cát (cả khu)",m:"Cả khu thơm tho 🌿",s:{clean:45},all:1}]},
-{id:"dog",name:"Khu Chó",icon:"🐶",bg:"linear-gradient(#cfe9ff,#9ccf8a)",deco:"🦴🌳🎾",
-animals:[{id:"map",type:"🐶",name:"Mập",size:64,speed:58},{id:"cho2",type:"🐕",name:"Vàng",size:62,speed:64}],
-acts:[{l:"🍖 Cho xương",m:"Gâu gâu! Cảm ơn!",s:{food:40}},{l:"🦮 Dắt đi dạo",m:"Đi dạo vui quá!",s:{joy:40,food:-10,clean:-6}},{l:"🛁 Tắm cho chó",m:"Thơm phức!",s:{clean:50,joy:-4}}]},
-{id:"sea",name:"Khu Biển",icon:"🦭",bg:"linear-gradient(#bfe9ff,#5fb4e6)",deco:"🌊🐟🧊",
-animals:[{id:"luna",type:"🦭",name:"Luna",size:76,speed:34},{id:"pingu",type:"🐧",name:"Pingu",size:60,speed:40}],
-acts:[{l:"🐟 Cho ăn cá",m:"Ục ục~ ngon!",s:{food:40}},{l:"💧 Thay nước hồ (cả khu)",m:"Nước trong veo 💦",s:{clean:50},all:1},{l:"🧊 Thêm đá mát (cả khu)",m:"Mát lịm 🧊",s:{joy:30},all:1}]},
-{id:"dino",name:"Khu Khủng long",icon:"🦖",bg:"linear-gradient(#d6f0b0,#7fae5a)",deco:"🌴🌋🦴",
-animals:[{id:"rex",type:"🦖",name:"Rex",size:78,speed:36},{id:"dip",type:"🦕",name:"Dippy",size:84,speed:28}],
-acts:[{l:"🌿 Cho ăn lá",m:"Nhai nhai~",s:{food:40}},{l:"🛁 Tắm bùn",m:"Bùn mát quá!",s:{clean:35,joy:20}},{l:"📢 Gầm vang cùng nhau",m:"GRAOOO! 🦖",s:{joy:40,food:-8}}]}
-];
-const ZOO_STATS=[["food","🍖 No","#f59e0b"],["joy","💗 Vui","#ec4899"],["clean","🧼 Sạch","#38bdf8"]];
-const ZOO_DECAY={food:7,joy:5,clean:4}; /* điểm giảm mỗi giờ */
-let zooS=null,zooZone="rabbit",zooSel={},zooRAF=0,zooTimer=0,zooPets=[];
-function zooClamp(v){return Math.max(0,Math.min(100,v))}
-function zooLoad(){
-let s=null;try{s=JSON.parse(localStorage.getItem(ZOO_KEY)||"null")}catch(_){}
-if(!s||!s.a)s={a:{},score:0,t:Date.now()};
-const hrs=Math.min(12,Math.max(0,(Date.now()-(s.t||Date.now()))/36e5));
-ZOO_ZONES.forEach(z=>z.animals.forEach(a=>{
-const o=s.a[a.id]||(s.a[a.id]={food:70,joy:70,clean:70});
-for(const k in ZOO_DECAY)o[k]=zooClamp((o[k]??70)-ZOO_DECAY[k]*hrs);
-}));
-s.t=Date.now();return s;
-}
-function zooSave(){zooS.t=Date.now();try{localStorage.setItem(ZOO_KEY,JSON.stringify(zooS))}catch(_){}}
-function zooNeed(a){const o=zooS.a[a.id];return Math.min(o.food,o.joy,o.clean)<30}
-function zooLine(a){
-const o=zooS.a[a.id];
-if(o.food<30)return"Tớ đói quá, cho tớ ăn với 🥺";
-if(o.clean<30)return"Người tớ bẩn rồi, tắm cho tớ đi 🫧";
-if(o.joy<30)return"Chán quá, chơi với tớ đi mà 😢";
-return["Cậu đến thăm tớ nè! 💗","Ở đây vui lắm! ✨","Ôm tớ một cái đi~","Hôm nay trời đẹp ghê 🌤️"][Math.floor(Math.random()*4)];
-}
-function zooAct(zone,i){
-const act=zone.acts[i],list=act.all?zone.animals:[zone.animals.find(a=>a.id===zooSel[zone.id])||zone.animals[0]];
-let helped=false;
-list.forEach(a=>{const o=zooS.a[a.id];for(const k in act.s){if(act.s[k]>0&&o[k]<90)helped=true;o[k]=zooClamp(o[k]+act.s[k]);}});
-if(helped)zooS.score++;
-const m=$("zooMsg");m.textContent=(helped?"+1 ⭐ ":"Đã đủ rồi nhưng thú vẫn thích 😊 ")+act.m;
-list.forEach(a=>{const p=zooPets.find(p=>p.a===a);if(p){gardenHearts(p.el);p.el.classList.add("happy");setTimeout(()=>p.el.classList.remove("happy"),1500);p.bubble.textContent=act.m;p.bubble.hidden=false;p.talk=2.5;}});
-zooSave();zooRenderPanel();zooRenderTabs();
-}
-function zooRenderTabs(){
-const t=$("zooTabs");t.innerHTML="";
-ZOO_ZONES.forEach(z=>{
-const b=document.createElement("button");b.type="button";b.className=z.id===zooZone?"on":"";
-b.textContent=z.icon+" "+z.name;
-const n=z.animals.filter(zooNeed).length;
-if(n){const d=document.createElement("span");d.className="bad";d.textContent=n;b.append(d);}
-b.onclick=()=>{zooZone=z.id;zooRenderAll();};
-t.append(b);
-});
-$("zooScore").textContent="⭐ "+zooS.score+" điểm chăm sóc";
-}
-function zooRenderPanel(){
-const z=ZOO_ZONES.find(x=>x.id===zooZone);
-const sel=z.animals.find(a=>a.id===zooSel[z.id])||z.animals[0];zooSel[z.id]=sel.id;
-const an=$("zooAnimals");an.innerHTML="";
-z.animals.forEach(a=>{const b=document.createElement("button");b.type="button";b.className=a.id===sel.id?"on":"";b.textContent=a.type+" "+a.name+(zooNeed(a)?" ❗":"");b.onclick=()=>{zooSel[z.id]=a.id;zooRenderPanel();zooPets.forEach(p=>p.el.classList.toggle("sel",p.a.id===a.id));};an.append(b);});
-const o=zooS.a[sel.id];
-$("zooStats").innerHTML=ZOO_STATS.map(([k,l,c])=>`<div class="zoo-stat"><span>${l}</span><div class="zoo-bar"><i style="width:${o[k]}%;background:${c}"></i></div><b>${Math.round(o[k])}</b></div>`).join("");
-$("zooCareTitle").textContent="Chăm sóc "+sel.name+" · "+z.name;
-const box=$("zooActions");box.innerHTML="";
-z.acts.forEach((a,i)=>{const b=document.createElement("button");b.type="button";b.textContent=a.l;if(a.all)b.className="zone";b.onclick=()=>zooAct(z,i);box.append(b);});
-}
-function zooRenderScene(){
-const z=ZOO_ZONES.find(x=>x.id===zooZone),sc=$("zooScene");
-sc.style.background=z.bg;sc.innerHTML='<div class="zoo-deco">'+z.deco+"</div>";
-const W=()=>sc.clientWidth,H=()=>sc.clientHeight,rnd=(a,b)=>a+Math.random()*(b-a);
-zooPets=z.animals.map(a=>{
-const el=document.createElement("div");el.className="gd-pet"+(a.id===zooSel[z.id]?" sel":"");
-el.style.width=el.style.height=a.size+"px";el.style.setProperty("--s",a.size+"px");
-el.innerHTML='<div class="gd-bubble" hidden></div><div class="gd-art">'+gardenPetArt(a.type)+"</div>";
-sc.append(el);
-const p={a,el,bubble:el.firstChild,x:rnd(0,Math.max(0,W()-a.size)),y:rnd(H()*.35,Math.max(H()*.35,H()-a.size-6)),wait:rnd(0,2),talk:0,walking:false};
-p.tx=p.x;p.ty=p.y;
-el.addEventListener("click",()=>{zooSel[z.id]=a.id;zooRenderPanel();zooPets.forEach(q=>q.el.classList.toggle("sel",q===p));gardenHearts(el);p.bubble.textContent=zooLine(a);p.bubble.hidden=false;p.talk=3;p.wait=Math.max(p.wait,3);});
-return p;
-});
-let last=performance.now();cancelAnimationFrame(zooRAF);
-(function tick(now){
-const dt=Math.min((now-last)/1000,.05);last=now;
-for(const p of zooPets){
-if(p.talk>0){p.talk-=dt;if(p.talk<=0)p.bubble.hidden=true;}
-if(p.wait>0){p.wait-=dt;if(p.walking){p.walking=false;p.el.classList.remove("walking");if(zooNeed(p.a)||Math.random()<.3)p.el.classList.add("sleeping");}if(p.wait<=0)p.el.classList.remove("sleeping");}
-else{
-if(!p.walking){p.walking=true;p.el.classList.add("walking");}
-const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
-if(d<4){p.wait=rnd(1.5,4);p.tx=rnd(0,Math.max(0,W()-p.a.size));p.ty=rnd(H()*.35,Math.max(H()*.35,H()-p.a.size-6));}
-else{const sp=zooNeed(p.a)?p.a.speed*.5:p.a.speed;p.x+=dx/d*sp*dt;p.y+=dy/d*sp*dt;}
-}
-p.el.style.zIndex=Math.round(p.y);
-p.el.style.transform="translate3d("+p.x+"px,"+p.y+"px,0)";
-}
-zooRAF=requestAnimationFrame(tick);
-})(last);
-}
-function zooRenderAll(){zooRenderTabs();zooRenderPanel();zooRenderScene();$("zooMsg").textContent="";}
-function openZoo(){
-const page=$("gardenPage");page.hidden=false;
-if(!$("zooRoot")){
-const r=document.createElement("div");r.id="zooRoot";
-r.innerHTML='<div id="zooHead"><h2>🦁 Vườn thú Amino</h2><span id="zooScore"></span></div><div id="zooTabs"></div><div id="zooScene"></div><div class="zoo-card"><div id="zooAnimals"></div><div id="zooStats"></div></div><div class="zoo-card"><h3 id="zooCareTitle"></h3><div id="zooActions"></div><div id="zooMsg"></div><p class="hint">Mỗi khu có cách chăm riêng. Nút xanh dương là chăm cả khu. Chỉ số tự giảm theo thời gian, kể cả lúc cậu không mở vườn.</p></div>';
-page.append(r);
-}
-zooS=zooLoad();zooSave();zooRenderAll();
-clearInterval(zooTimer);
-zooTimer=setInterval(()=>{ /* chỉ số giảm dần khi đang xem */
-ZOO_ZONES.forEach(z=>z.animals.forEach(a=>{const o=zooS.a[a.id];for(const k in ZOO_DECAY)o[k]=zooClamp(o[k]-ZOO_DECAY[k]/3600*5);}));
-zooSave();zooRenderTabs();zooRenderPanel();
-},5000);
-}
-function closeZoo(){cancelAnimationFrame(zooRAF);clearInterval(zooTimer);if(zooS)zooSave();$("gardenPage").hidden=true;}
-$("gardenClose").textContent="✕ Thoát vườn thú";
-$("gardenClose").addEventListener("click",closeZoo);
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("gardenPage").hidden)closeZoo();});
 $("composer").addEventListener("submit",async event=>{
 event.preventDefault();
 const typed=$("message").value.trim();
@@ -3877,7 +4103,7 @@ if(typed==="1409"&&!image){
 clearTimeout(typingWriteTimer);clearTimeout(typingClearTimer);lastTypingText="";
 set(myTypingRef(),null).catch(()=>{});
 $("message").value="";
-openZoo();
+openGarden();
 return;
 }
 const text=typed||"📷";
