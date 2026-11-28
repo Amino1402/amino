@@ -387,6 +387,55 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 @keyframes gdRain{to{transform:translate(-30px,112vh)}}
 @media (prefers-reduced-motion:reduce){.gd-art,.gd-art *,.gd-pet::before,.gd-cloud,.gd-bird,.gd-petal,.gd-sway,.gd-fly{animation:none!important}}
 </style>
+<style id="trekCss">
+#trekPanel{margin:10px 0;padding:11px;border:1px solid var(--t8);border-radius:12px;background:var(--t11)}
+#trekHead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px;font-size:14px;color:#59418d}
+#trekSun{font-size:12px}
+#trekStats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+#trekStats div{padding:6px 4px;border:1px solid var(--t4);border-radius:10px;background:#fff;text-align:center}
+#trekStats small{display:block;font-size:10px;color:#7a6a9c}
+#trekStats b{font-size:16px;color:var(--t0);font-variant-numeric:tabular-nums}
+#trekHint{margin-bottom:8px;font-size:12.5px;line-height:1.5;color:#59418d;white-space:pre-line}
+#trekButtons,#trekTools{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#trekButtons button,#trekTools button{flex:1 1 105px;min-height:38px;padding:8px 10px;font-size:13px}
+#trekStartBtn{background:#e11d48;font-weight:800}
+#trekPauseBtn{background:#d97706}
+#trekStopBtn,#trekSosBtn{background:#b42318}
+#trekHomeBtn,#trekWptBtn{background:#0f766e}
+#trekHomeBtn.on{background:#15803d}
+#trekTools button{background:#64748b}
+#trekTools button.on{background:#15803d}
+#trekToast{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100001;max-width:min(92vw,440px);padding:10px 14px;border-radius:14px;background:#1f1535;color:#fff;font-size:13px;font-weight:700;line-height:1.4;text-align:center;box-shadow:0 6px 22px #0006}
+.trk-km{padding:1px 6px;border:2px solid #e11d48;border-radius:999px;background:#fff;color:#e11d48;font:700 11px system-ui,sans-serif;white-space:nowrap}
+.trk-wpt{font-size:24px;line-height:28px;text-shadow:0 2px 4px #fff}
+.trk-start{font-size:26px;line-height:28px;text-shadow:0 2px 4px #fff}
+#trekModal{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(30,20,60,.55)}
+.trk-card{width:min(560px,100%);max-height:92dvh;overflow:auto;padding:16px;border-radius:18px;background:#fff;color:#3b2a63}
+.trk-card h3{margin:0 0 8px}
+.trk-card h4{margin:12px 0 4px;font-size:13px}
+.trk-card p{margin:4px 0 8px;font-size:13px;line-height:1.5}
+.trk-card input{width:100%;margin:2px 0 6px}
+.trk-card canvas{display:block;width:100%;height:150px;margin:6px 0;border-radius:10px;background:#f7f3ff}
+.trk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.trk-grid div{padding:6px 4px;border-radius:10px;background:var(--t2);text-align:center;font-size:11px}
+.trk-grid b{display:block;font-size:15px;color:var(--t0)}
+.trk-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.trk-row button,.trk-row a{flex:1 1 120px;padding:11px 8px;border-radius:8px;background:var(--t0);color:#fff;font-size:13px;font-weight:700;text-align:center;text-decoration:none}
+.trk-gray{background:#64748b!important}
+.trk-red{background:#b42318!important}
+.trk-green{background:#15803d!important}
+.trk-msg{min-height:18px;margin:4px 0;font-size:12.5px;color:#59418d}
+.trk-wpt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}
+.trk-wpt-grid button{padding:8px 2px;border:1px solid var(--t8);background:#fff;color:#3b2a63;font-size:11px;line-height:1.3}
+.trk-wpt-grid button span{display:block;font-size:22px}
+.trk-wpt-grid button.sel{border-color:var(--t0);background:var(--t1)}
+.trk-item{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;padding:9px 10px;border:1px solid var(--t4);border-radius:12px;background:var(--t13);cursor:pointer}
+.trk-item small{display:block;opacity:.75}
+.trk-item b{color:var(--t0)}
+.trk-split{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--t4);font-size:12.5px}
+.trk-sos-box{width:100%;min-height:96px;margin:6px 0;padding:10px;border:1px solid var(--t8);border-radius:10px;font-size:12.5px;line-height:1.5}
+@media(max-width:520px){#trekStats b{font-size:14px}.trk-wpt-grid{grid-template-columns:repeat(4,1fr)}}
+</style>
 </head>
 <body>
 <button id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false" title="Menu">☰</button>
@@ -615,6 +664,35 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
       <button id="routeClearBtn" type="button" hidden>✕ Xóa lộ trình</button>
     </div>
   </div>
+  <section id="trekPanel" aria-label="Trekking">
+    <div id="trekHead"><b>🥾 Trekking</b><span id="trekSun">🌅 Đang tính giờ mặt trời...</span></div>
+    <div id="trekStats">
+      <div><small>Thời gian</small><b id="trkTime">00:00:00</b></div>
+      <div><small>Quãng đường</small><b id="trkDist">0.00 km</b></div>
+      <div><small>Tốc độ</small><b id="trkSpeed">0.0 km/h</b></div>
+      <div><small>Độ cao</small><b id="trkAlt">-- m</b></div>
+      <div><small>Tổng leo</small><b id="trkUp">0 m</b></div>
+      <div><small>Tổng xuống</small><b id="trkDown">0 m</b></div>
+    </div>
+    <div id="trekHint">Nhấn ● để bắt đầu ghi hành trình. Nhớ giữ màn hình sáng khi đi để GPS ổn định.</div>
+    <div id="trekButtons">
+      <button id="trekStartBtn" type="button">● Ghi hành trình</button>
+      <button id="trekPauseBtn" type="button" hidden>⏸ Tạm dừng</button>
+      <button id="trekStopBtn" type="button" hidden>■ Kết thúc</button>
+      <button id="trekWptBtn" type="button">📍 Cột mốc</button>
+      <button id="trekHomeBtn" type="button">🧭 Về điểm đầu</button>
+      <button id="trekSosBtn" type="button">🆘 SOS</button>
+    </div>
+    <div id="trekTools">
+      <button id="trekTopoBtn" type="button">🗻 Địa hình</button>
+      <button id="trekTrailBtn" type="button">🥾 Đường mòn</button>
+      <button id="trekFollowBtn" type="button" class="on">📌 Bám theo</button>
+      <button id="trekVoiceBtn" type="button">🔇 Đọc km</button>
+      <button id="trekGpxBtn" type="button">📂 Nạp GPX</button>
+      <button id="trekHistBtn" type="button">📜 Lịch sử</button>
+      <input id="trekGpxFile" type="file" accept=".gpx,application/gpx+xml,text/xml,application/xml" hidden>
+    </div>
+  </section>
   <div id="mapWorkspace">
     <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
     <aside id="mapMeetingPanel" aria-label="Danh sách người dùng đã chia sẻ vị trí">
@@ -634,6 +712,9 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   </section>
 </section>
 
+
+<div id="trekToast" hidden></div>
+<div id="trekModal" hidden></div>
 
 <section id="notesPage" hidden>
   <button id="notesBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
@@ -2906,6 +2987,7 @@ ensureAminoMap();
 startMapListeners();
 updateMapPhotoMarkers();
 beginLocationSharing();
+trkOnMapOpen();
 requestAnimationFrame(()=>requestAnimationFrame(()=>aminoMap&&aminoMap.invalidateSize()));
 window.scrollTo({top:0,behavior:"auto"});
 }
@@ -3387,6 +3469,7 @@ function setupMapControls(){
 setupMotorbikeRouteControls();
 setupMapPhotoControls();
 setupMapSearch();
+setupTrekControls();
 const mapToggle=$("mapToggle");
 const mapBack=$("mapBack");
 if(mapToggle){
@@ -3399,6 +3482,654 @@ $("chat").hidden=false;
 window.scrollTo({top:0,behavior:"auto"});
 });
 }
+}
+/* ================= TREKKING: ghi hành trình, GPX, cột mốc, SOS, lịch sử ================= */
+const TRK_WPT_ICONS=[["⛺","Trại"],["💧","Nước"],["🏞️","View đẹp"],["⚠️","Nguy hiểm"],["🍜","Quán ăn"],["🚻","WC"],["🅿️","Gửi xe"],["🌉","Cầu/suối"],["📸","Chụp ảnh"],["⭐","Khác"]];
+const TRK_DIRS=["Bắc","Đông Bắc","Đông","Đông Nam","Nam","Tây Nam","Tây","Tây Bắc"];
+const trk={rec:false,paused:false,pts:[],wpts:[],startTs:0,pausedMs:0,pauseAt:0,endTs:0,moveMs:0,dist:0,up:0,down:0,maxAlt:null,minAlt:null,altS:null,altRef:null,speed:0,watchId:null,lock:null,tick:0,draftT:0,nextKm:1,splits:[],sunWarned:false,skipMove:false,saved:true,follow:true,voice:false,line:null,startMk:null,wptMk:[],kmMk:[],homeLine:null,homeOn:false,base:null,baseMk:null,topo:null,trail:null,plan:null,planLayers:[],viewLayers:[],lastOff:0,last:null,mapBound:false,draftChecked:false,ready:false,msgs:{rec:"",gps:"",home:"",plan:""}};
+const trkEsc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const trkPad=n=>String(n).padStart(2,"0");
+const trkFmtTime=ms=>{const s=Math.max(0,Math.floor(ms/1000));return trkPad(Math.floor(s/3600))+":"+trkPad(Math.floor(s%3600/60))+":"+trkPad(s%60)};
+const trkFmtDist=m=>m<1000?Math.round(m)+" m":(m/1000).toFixed(m<10000?2:1)+" km";
+const trkFmtClock=d=>trkPad(d.getHours())+":"+trkPad(d.getMinutes());
+const trkCardinal=deg=>TRK_DIRS[Math.round(deg/45)%8];
+function trkBearing(a,b){
+const r=v=>v*Math.PI/180;
+const y=Math.sin(r(b.lng-a.lng))*Math.cos(r(b.lat));
+const x=Math.cos(r(a.lat))*Math.sin(r(b.lat))-Math.sin(r(a.lat))*Math.cos(r(b.lat))*Math.cos(r(b.lng-a.lng));
+return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+let trkToastT=0;
+function trkToast(msg,ms){const t=$("trekToast");t.textContent=msg;t.hidden=false;clearTimeout(trkToastT);trkToastT=setTimeout(()=>{t.hidden=true},ms||4000)}
+function trkSpeak(msg){if(!trk.voice||!("speechSynthesis" in window))return;try{const u=new SpeechSynthesisUtterance(msg);u.lang="vi-VN";window.speechSynthesis.speak(u)}catch(_){}}
+function trkAlert(msg){trkToast(msg,6500);trkSpeak(msg);try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(_){}}
+function trkHint(key,text){
+trk.msgs[key]=text||"";
+const lines=Object.values(trk.msgs).filter(Boolean);
+$("trekHint").textContent=lines.length?lines.join("\n"):"Nhấn ● để bắt đầu ghi hành trình. Nhớ giữ màn hình sáng khi đi để GPS ổn định.";
+}
+function trkMap(){
+ensureAminoMap();
+if(aminoMap&&!trk.mapBound){trk.mapBound=true;aminoMap.on("dragstart",()=>{if(trk.follow&&trk.rec){trk.follow=false;trkSyncFollowBtn()}})}
+return aminoMap;
+}
+function trkSyncFollowBtn(){const b=$("trekFollowBtn");if(b)b.classList.toggle("on",trk.follow)}
+/* ---------- mặt trời mọc/lặn (thuật toán SunCalc, chạy offline) ---------- */
+function trkSunTimes(lat,lng,date){
+const rad=Math.PI/180,dayMs=864e5,J1970=2440588,J2000=2451545;
+const toJ=d=>d.valueOf()/dayMs-.5+J1970,fromJ=j=>new Date((j+.5-J1970)*dayMs);
+const lw=rad*-lng,phi=rad*lat,d=toJ(date)-J2000;
+const n=Math.round(d-.0009-lw/(2*Math.PI)),ds=.0009+lw/(2*Math.PI)+n;
+const M=rad*(357.5291+.98560028*ds);
+const C=rad*(1.9148*Math.sin(M)+.02*Math.sin(2*M)+.0003*Math.sin(3*M));
+const L=M+C+rad*102.9372+Math.PI;
+const dec=Math.asin(Math.sin(L)*Math.sin(rad*23.4397));
+const Jn=J2000+ds+.0053*Math.sin(M)-.0069*Math.sin(2*L);
+const cw=(Math.sin(-.833*rad)-Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec));
+if(cw<-1||cw>1||!isFinite(cw))return null;
+const w=Math.acos(cw),a=.0009+(w+lw)/(2*Math.PI)+n;
+const Js=J2000+a+.0053*Math.sin(M)-.0069*Math.sin(2*L);
+return{rise:fromJ(Jn-(Js-Jn)),set:fromJ(Js)};
+}
+function trkSunInfo(){
+let p=trk.last;
+if(!p&&user&&sharedLocationsData&&sharedLocationsData[user.uid]){const s=sharedLocationsData[user.uid];p={lat:Number(s.lat),lng:Number(s.lng)}}
+if((!p||!isFinite(p.lat))&&aminoMap){const c=aminoMap.getCenter();p={lat:c.lat,lng:c.lng}}
+if(!p||!isFinite(p.lat))return null;
+const t=trkSunTimes(p.lat,p.lng,new Date());
+if(!t)return null;
+const now=Date.now(),left=t.set.getTime()-now;
+return{t,left,up:now>=t.rise.getTime()&&now<t.set.getTime()};
+}
+function trkUpdateSun(){
+const el=$("trekSun");if(!el)return;
+const i=trkSunInfo();
+if(!i){el.textContent="🌅 Chưa có vị trí để tính giờ mặt trời";return}
+let txt="🌅 "+trkFmtClock(i.t.rise)+" · 🌇 "+trkFmtClock(i.t.set);
+if(i.up)txt+=" · còn "+Math.floor(i.left/3600000)+"h"+trkPad(Math.floor(i.left%3600000/60000))+" ánh sáng";
+else if(i.left>0)txt+=" · mặt trời chưa mọc";
+else txt+=" · trời đã tối";
+el.textContent=txt;
+if(trk.rec&&!trk.sunWarned&&i.up&&i.left<90*60000){trk.sunWarned=true;trkAlert("Còn khoảng "+Math.max(1,Math.round(i.left/60000))+" phút nữa là mặt trời lặn. Hãy tính đường về và chuẩn bị đèn pin!")}
+}
+/* ---------- hiển thị số liệu ---------- */
+function trkElapsed(){
+if(!trk.startTs)return 0;
+const end=trk.paused?trk.pauseAt:(trk.rec?Date.now():(trk.endTs||Date.now()));
+return Math.max(0,end-trk.startTs-trk.pausedMs);
+}
+function trkRender(){
+$("trkTime").textContent=trkFmtTime(trk.startTs?trkElapsed():0);
+$("trkDist").textContent=(trk.dist/1000).toFixed(2)+" km";
+const sp=(trk.rec&&!trk.paused&&trk.last&&Date.now()-trk.last.t<8000)?trk.speed*3.6:0;
+$("trkSpeed").textContent=sp.toFixed(1)+" km/h";
+$("trkAlt").textContent=trk.altS!==null?Math.round(trk.altS)+" m":"-- m";
+$("trkUp").textContent=Math.round(trk.up)+" m";
+$("trkDown").textContent=Math.round(trk.down)+" m";
+}
+function trkClearLayers(){
+const m=aminoMap;
+[trk.line,trk.startMk,trk.homeLine].forEach(l=>{if(l&&m)m.removeLayer(l)});
+trk.wptMk.concat(trk.kmMk).forEach(l=>{if(m)m.removeLayer(l)});
+trk.line=trk.startMk=trk.homeLine=null;trk.wptMk=[];trk.kmMk=[];
+}
+function trkReset(){
+trkClearLayers();
+Object.assign(trk,{pts:[],wpts:[],startTs:0,pausedMs:0,pauseAt:0,endTs:0,moveMs:0,dist:0,up:0,down:0,maxAlt:null,minAlt:null,altS:null,altRef:null,nextKm:1,splits:[],speed:0,sunWarned:false,skipMove:false,saved:true});
+trkRender();
+}
+function trkAddWptMarker(w){
+const m=aminoMap;if(!m)return;
+const mk=L.marker([w.lat,w.lng],{icon:L.divIcon({className:"",html:'<div class="trk-wpt">'+trkEsc(w.icon||"⭐")+'</div>',iconSize:[28,28],iconAnchor:[14,24]})}).addTo(m);
+const box=document.createElement("div");
+const t=document.createElement("b");t.textContent=(w.icon||"⭐")+" "+(w.note||"Cột mốc");box.appendChild(t);
+const alt=document.createElement("div");alt.textContent=(w.alt!=null?"Độ cao ~"+Math.round(w.alt)+" m · ":"")+(w.t?new Date(w.t).toLocaleTimeString("vi-VN"):"");box.appendChild(alt);
+mk.bindPopup(box);
+trk.wptMk.push(mk);
+}
+function trkKmMarker(km,p){
+const m=aminoMap;if(!m)return;
+trk.kmMk.push(L.marker([p.lat,p.lng],{icon:L.divIcon({className:"",html:'<div class="trk-km">'+km+' km</div>',iconSize:[44,20],iconAnchor:[22,10]}),interactive:false}).addTo(m));
+}
+function trkRedraw(){
+const m=trkMap();if(!m)return;
+trkClearLayers();
+if(trk.pts.length){
+trk.line=L.polyline(trk.pts.map(p=>[p.lat,p.lng]),{color:"#e11d48",weight:5,opacity:.9}).addTo(m);
+trk.startMk=L.marker([trk.pts[0].lat,trk.pts[0].lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🚩</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(m);
+}
+trk.splits.forEach(s=>{const p=trk.pts.find(x=>x.d>=s.km*1000);if(p)trkKmMarker(s.km,p)});
+trk.wpts.forEach(trkAddWptMarker);
+}
+/* ---------- GPS ---------- */
+function trkNeedWatch(){return trk.rec||trk.homeOn||!!trk.plan}
+function trkSyncWatch(){
+if(trkNeedWatch()&&trk.watchId===null&&navigator.geolocation){
+trk.watchId=navigator.geolocation.watchPosition(trkOnFix,trkOnErr,{enableHighAccuracy:true,maximumAge:2000,timeout:25000});
+}else if(!trkNeedWatch()&&trk.watchId!==null){
+navigator.geolocation.clearWatch(trk.watchId);trk.watchId=null;
+}
+}
+function trkOnErr(e){
+const msg={1:"Bạn chưa cấp quyền GPS cho trình duyệt.",2:"Không xác định được GPS, hãy bật định vị.",3:"GPS phản hồi quá chậm, hãy ra chỗ thoáng hơn."}[e.code]||("Lỗi GPS: "+e.message);
+trkHint("gps","⚠️ "+msg);
+}
+function trkNearestOnPlan(h){
+const P=trk.plan.pts,k=Math.cos(h.lat*Math.PI/180),M=111320;
+let best=Infinity,bi=0,bt=0;
+for(let i=0;i<P.length-1;i++){
+const ax=(P[i].lng-h.lng)*k*M,ay=(P[i].lat-h.lat)*M,bx=(P[i+1].lng-h.lng)*k*M,by=(P[i+1].lat-h.lat)*M;
+const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+const t=l2?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/l2)):0;
+const dd=Math.hypot(ax+t*dx,ay+t*dy);
+if(dd<best){best=dd;bi=i;bt=t}
+}
+return{off:best,along:P[bi].d+bt*(P[bi+1].d-P[bi].d)};
+}
+function trkOnFix(pos){
+const c=pos.coords,now=pos.timestamp||Date.now();
+const here={lat:c.latitude,lng:c.longitude};
+trk.last={lat:here.lat,lng:here.lng,acc:c.accuracy,t:now};
+/* bám theo điểm đầu / lộ trình GPX (kể cả khi không ghi) */
+if(trk.homeOn){
+const base=trk.base||trk.pts[0];
+if(base){
+const dd=distanceBetweenMeters(here,base),br=trkBearing(here,base);
+trkHint("home","🧭 Điểm đầu cách "+trkFmtDist(dd)+" · hướng "+trkCardinal(br)+" ("+Math.round(br)+"°)");
+if(aminoMap){
+if(trk.homeLine)trk.homeLine.setLatLngs([[here.lat,here.lng],[base.lat,base.lng]]);
+else trk.homeLine=L.polyline([[here.lat,here.lng],[base.lat,base.lng]],{color:"#0f766e",weight:4,dashArray:"6 8"}).addTo(aminoMap);
+}
+}
+}
+if(trk.plan&&trk.plan.pts.length>1){
+const r=trkNearestOnPlan(here);
+trkHint("plan","📂 "+trk.plan.name+": còn "+trkFmtDist(Math.max(0,trk.plan.total-r.along))+" · lệch đường "+Math.round(r.off)+" m");
+if(r.off>60&&now-trk.lastOff>30000){trk.lastOff=now;trkAlert("Cảnh báo: bạn đang lệch lộ trình khoảng "+Math.round(r.off)+" mét!")}
+}
+if(!trk.rec||trk.paused)return;
+/* ---- ghi hành trình ---- */
+if(c.accuracy>35){trkHint("gps","⚠️ GPS yếu (±"+Math.round(c.accuracy)+" m), đang chờ tín hiệu tốt hơn...");return}
+trkHint("gps","");
+let alt=(c.altitude!=null&&isFinite(c.altitude))?c.altitude:null;
+if(alt!==null)trk.altS=trk.altS===null?alt:trk.altS*.7+alt*.3;
+const prev=trk.pts[trk.pts.length-1];
+if(!prev){
+trk.pts.push({lat:here.lat,lng:here.lng,alt:trk.altS,t:now,d:0});
+trk.altRef=trk.altS;
+if(trk.altS!==null){trk.maxAlt=trk.minAlt=trk.altS}
+if(aminoMap){
+trk.line=trk.line||L.polyline([],{color:"#e11d48",weight:5,opacity:.9}).addTo(aminoMap);
+trk.line.addLatLng([here.lat,here.lng]);
+if(!trk.startMk)trk.startMk=L.marker([here.lat,here.lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🚩</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(aminoMap);
+aminoMap.setView([here.lat,here.lng],Math.max(aminoMap.getZoom(),16));
+}
+trkHint("rec","● Đang ghi hành trình...");
+trkRender();return;
+}
+const d=distanceBetweenMeters(prev,here),dt=(now-prev.t)/1000;
+if(d<Math.max(4,Math.min(c.accuracy*.35,12)))return;
+if(dt>0&&d/dt>40)return;
+trk.dist+=d;
+trk.speed=(c.speed!=null&&c.speed>=0)?c.speed:(dt>0?d/dt:0);
+if(trk.skipMove)trk.skipMove=false;
+else if(dt>0&&d/dt>=.5)trk.moveMs+=dt*1000;
+if(trk.altS!==null){
+if(trk.altRef===null)trk.altRef=trk.altS;
+const df=trk.altS-trk.altRef;
+if(df>=3){trk.up+=df;trk.altRef=trk.altS}else if(df<=-3){trk.down-=df;trk.altRef=trk.altS}
+trk.maxAlt=trk.maxAlt===null?trk.altS:Math.max(trk.maxAlt,trk.altS);
+trk.minAlt=trk.minAlt===null?trk.altS:Math.min(trk.minAlt,trk.altS);
+}
+trk.pts.push({lat:here.lat,lng:here.lng,alt:trk.altS,t:now,d:trk.dist});
+if(trk.line)trk.line.addLatLng([here.lat,here.lng]);
+if(trk.follow&&aminoMap)aminoMap.panTo([here.lat,here.lng],{animate:true});
+while(trk.dist>=trk.nextKm*1000){
+const km=trk.nextKm++,el=trkElapsed();
+trk.splits.push({km,ms:el});
+trkKmMarker(km,here);
+const seg=el-(km>1?trk.splits[km-2].ms:0);
+trkSpeak("Đã đi "+km+" ki lô mét. Km vừa rồi mất "+Math.floor(seg/60000)+" phút "+Math.round(seg%60000/1000)+" giây.");
+trkToast("🚩 Đã qua km "+km+" · "+trkFmtTime(seg).slice(3)+" cho km này",3000);
+}
+trkRender();
+}
+async function trkWake(){try{if("wakeLock" in navigator&&!trk.lock){trk.lock=await navigator.wakeLock.request("screen");trk.lock.addEventListener("release",()=>{trk.lock=null})}}catch(_){}}
+function trkUnwake(){try{if(trk.lock)trk.lock.release()}catch(_){}trk.lock=null}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&trk.rec)trkWake()});
+/* ---------- nháp phòng khi tắt app giữa chừng ---------- */
+function trkSaveDraft(){
+if(!user||!trk.startTs)return;
+try{localStorage.setItem("aminoTrekDraft:"+user.uid,JSON.stringify({startTs:trk.startTs,pausedMs:trk.pausedMs,moveMs:trk.moveMs,dist:trk.dist,up:trk.up,down:trk.down,maxAlt:trk.maxAlt,minAlt:trk.minAlt,nextKm:trk.nextKm,splits:trk.splits,pts:trk.pts.map(p=>[p.lat,p.lng,p.alt,p.t,p.d]),wpts:trk.wpts,savedAt:Date.now()}))}catch(_){}
+}
+function trkClearDraft(){try{if(user)localStorage.removeItem("aminoTrekDraft:"+user.uid)}catch(_){}}
+function trkCheckDraft(){
+if(trk.draftChecked||!user)return;
+trk.draftChecked=true;
+if(trk.rec||trk.pts.length)return;
+let raw=null;try{raw=localStorage.getItem("aminoTrekDraft:"+user.uid)}catch(_){}
+if(!raw)return;
+let d;try{d=JSON.parse(raw)}catch(_){trkClearDraft();return}
+if(!d||!d.pts||d.pts.length<2||Date.now()-d.savedAt>864e5){trkClearDraft();return}
+const resume=confirm("Có một hành trình đang ghi dở ("+(d.dist/1000).toFixed(2)+" km, bắt đầu "+new Date(d.startTs).toLocaleString("vi-VN")+").\nBấm OK để tiếp tục ghi, bấm Hủy để kết thúc và lưu lại.");
+trkReset();
+Object.assign(trk,{startTs:d.startTs,pausedMs:(d.pausedMs||0)+(resume?Date.now()-d.savedAt:0),moveMs:d.moveMs||0,dist:d.dist||0,up:d.up||0,down:d.down||0,maxAlt:d.maxAlt,minAlt:d.minAlt,nextKm:d.nextKm||1,splits:d.splits||[],wpts:d.wpts||[],pts:d.pts.map(a=>({lat:a[0],lng:a[1],alt:a[2],t:a[3],d:a[4]}))});
+const last=trk.pts[trk.pts.length-1];
+trk.altS=last.alt;trk.altRef=last.alt;
+trkRedraw();
+if(aminoMap&&trk.line)aminoMap.fitBounds(trk.line.getBounds(),{padding:[30,30]});
+if(resume)trkStart(true);
+else{trk.rec=true;trk.endTs=d.savedAt;trkStop()}
+}
+/* ---------- điều khiển ghi ---------- */
+function trkStart(resume){
+const m=trkMap();
+if(!m){trkToast("Chưa tải được bản đồ.");return}
+if(!navigator.geolocation){trkToast("Thiết bị không hỗ trợ GPS.");return}
+if(trk.rec)return;
+if(!resume){
+if(trk.pts.length&&!trk.saved&&!confirm("Hành trình trước chưa được lưu, ghi mới sẽ mất nó. Tiếp tục?"))return;
+trkReset();trk.startTs=Date.now();
+}
+trk.rec=true;trk.paused=false;trk.draftT=0;
+trkSyncWatch();
+clearInterval(trk.tick);trk.tick=setInterval(trkTick,1000);
+trkWake();
+$("trekStartBtn").hidden=true;$("trekPauseBtn").hidden=false;$("trekStopBtn").hidden=false;
+$("trekPauseBtn").textContent="⏸ Tạm dừng";
+trkHint("rec","● Đang ghi hành trình... (chờ GPS ổn định)");
+trkRender();
+}
+function trkPause(){
+if(!trk.rec)return;
+if(!trk.paused){trk.paused=true;trk.pauseAt=Date.now();$("trekPauseBtn").textContent="▶ Tiếp tục";trkHint("rec","⏸ Đang tạm dừng, thời gian đứng nghỉ không được tính.")}
+else{trk.pausedMs+=Date.now()-trk.pauseAt;trk.paused=false;trk.skipMove=true;$("trekPauseBtn").textContent="⏸ Tạm dừng";trkHint("rec","● Đang ghi hành trình...")}
+}
+function trkStop(){
+if(!trk.rec)return;
+if(trk.paused){trk.pausedMs+=Date.now()-trk.pauseAt;trk.paused=false}
+trk.rec=false;
+if(!trk.endTs)trk.endTs=Date.now();
+clearInterval(trk.tick);trkUnwake();trkSyncWatch();
+$("trekStartBtn").hidden=false;$("trekPauseBtn").hidden=true;$("trekStopBtn").hidden=true;
+trkHint("rec","");trkHint("gps","");
+if(trk.pts.length<2){trkToast("Hành trình quá ngắn nên không lưu.");trkReset();trkClearDraft();return}
+trk.saved=false;trkSaveDraft();trkRender();
+trkShowSummary();
+}
+function trkTick(){
+trkRender();
+const now=Date.now();
+if(now-trk.draftT>15000){trk.draftT=now;trkSaveDraft()}
+if(trk.rec&&!trk.paused&&trk.last&&now-trk.last.t>20000)trkHint("gps","⚠️ 20 giây rồi chưa có GPS mới, hãy ra chỗ thoáng hơn.");
+if(now%60000<1100)trkUpdateSun();
+}
+/* ---------- phân tích số liệu ---------- */
+function trkBuildCum(pts){let d=0;pts.forEach((p,i)=>{if(i)d+=distanceBetweenMeters(pts[i-1],p);p.d=d});return d}
+function trkElevStats(pts){
+let up=0,down=0,ref=null,mx=null,mn=null;
+pts.forEach(p=>{
+if(p.alt==null||!isFinite(p.alt))return;
+if(ref===null)ref=p.alt;
+const df=p.alt-ref;
+if(df>=3){up+=df;ref=p.alt}else if(df<=-3){down-=df;ref=p.alt}
+mx=mx===null?p.alt:Math.max(mx,p.alt);mn=mn===null?p.alt:Math.min(mn,p.alt);
+});
+return{up,down,mx,mn};
+}
+function trkSplitsFromRec(sp){return sp.map((s,i)=>({km:s.km,seg:s.ms-(i?sp[i-1].ms:0)}))}
+function trkSplits(pts){
+const out=[];let k=1,prevT=pts.length?pts[0].t:0;
+for(let i=1;i<pts.length;i++){
+while(pts[i].d>=k*1000){
+const a=pts[i-1],b=pts[i],f=b.d>a.d?(k*1000-a.d)/(b.d-a.d):1;
+const t=a.t+f*(b.t-a.t);
+out.push({km:k,seg:t-prevT});prevT=t;k++;
+}
+}
+return out;
+}
+function trkDrawProfile(cv,pts){
+if(!cv)return;
+const dpr=window.devicePixelRatio||1,w=cv.clientWidth||300,h=cv.clientHeight||150;
+cv.width=w*dpr;cv.height=h*dpr;
+const g=cv.getContext("2d");g.scale(dpr,dpr);g.clearRect(0,0,w,h);
+const P=pts.filter(p=>p.alt!=null&&isFinite(p.alt));
+g.font="11px system-ui,sans-serif";g.fillStyle="#7a6a9c";
+if(P.length<2){g.fillText("Chưa có dữ liệu độ cao",10,20);return}
+let mn=Infinity,mx=-Infinity;P.forEach(p=>{if(p.alt<mn)mn=p.alt;if(p.alt>mx)mx=p.alt});
+if(mx-mn<10)mx=mn+10;
+const D=P[P.length-1].d||1,pl=38,pb=18,pt=8,pw=w-pl-8,ph=h-pb-pt;
+const X=d=>pl+d/D*pw,Y=a=>pt+(1-(a-mn)/(mx-mn))*ph;
+const gr=g.createLinearGradient(0,pt,0,pt+ph);gr.addColorStop(0,"rgba(225,29,72,.5)");gr.addColorStop(1,"rgba(225,29,72,.05)");
+g.beginPath();g.moveTo(X(P[0].d),pt+ph);
+P.forEach(p=>g.lineTo(X(p.d),Y(p.alt)));
+g.lineTo(X(P[P.length-1].d),pt+ph);g.closePath();g.fillStyle=gr;g.fill();
+g.beginPath();P.forEach((p,i)=>{if(i)g.lineTo(X(p.d),Y(p.alt));else g.moveTo(X(p.d),Y(p.alt))});
+g.strokeStyle="#e11d48";g.lineWidth=2;g.stroke();
+g.fillStyle="#7a6a9c";
+g.fillText(Math.round(mx)+" m",2,pt+8);g.fillText(Math.round(mn)+" m",2,pt+ph);
+g.fillText("0",pl,h-4);g.fillText((D/1000).toFixed(1)+" km",w-52,h-4);
+}
+/* ---------- cửa sổ (modal) ---------- */
+function trkOpen(html,bind){
+const m=$("trekModal");
+m.innerHTML='<div class="trk-card">'+html+'<div class="trk-row"><button type="button" class="trk-gray" data-close="1">Đóng</button></div></div>';
+m.hidden=false;
+m.onclick=e=>{if(e.target===m||(e.target.dataset&&e.target.dataset.close))trkClose()};
+if(bind)bind(m);
+}
+function trkClose(){const m=$("trekModal");m.hidden=true;m.innerHTML="";m.onclick=null}
+function trkStatsHtml(s){
+const avg=s.moving>0?(s.dist/1000)/(s.moving/3600):0;
+return '<div class="trk-grid"><div><small>Quãng đường</small><b>'+trkFmtDist(s.dist)+'</b></div><div><small>Thời gian</small><b>'+trkFmtTime(s.dur*1000)+'</b></div><div><small>Di chuyển</small><b>'+trkFmtTime(s.moving*1000)+'</b></div><div><small>Tốc độ TB</small><b>'+avg.toFixed(1)+' km/h</b></div><div><small>Leo / Xuống</small><b>'+Math.round(s.up)+' / '+Math.round(s.down)+' m</b></div><div><small>Cao nhất / thấp nhất</small><b>'+(s.maxAlt!=null?Math.round(s.maxAlt):'--')+' / '+(s.minAlt!=null?Math.round(s.minAlt):'--')+'</b></div></div>';
+}
+function trkSplitsHtml(sp){
+if(!sp.length)return "";
+return '<h4>Chia theo km</h4>'+sp.map(x=>'<div class="trk-split"><span>Km '+x.km+'</span><span>'+trkFmtTime(x.seg).slice(3)+'</span><span>'+(x.seg>0?(3600000/x.seg).toFixed(1):'--')+' km/h</span></div>').join("");
+}
+function trkSummaryObj(){
+return{startedAt:trk.startTs,endedAt:trk.endTs||Date.now(),dur:Math.round(trkElapsed()/1000),moving:Math.round(trk.moveMs/1000),dist:trk.dist,up:trk.up,down:trk.down,maxAlt:trk.maxAlt,minAlt:trk.minAlt,pts:trk.pts,wpts:trk.wpts};
+}
+function trkShowSummary(keepName){
+const s=trkSummaryObj();
+const defName=keepName||("Trek "+new Date(s.startedAt).toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));
+trkOpen('<h3>🏁 Kết thúc hành trình</h3><input id="trkName" maxlength="60" value="'+trkEsc(defName)+'">'+trkStatsHtml(s)+'<canvas id="trkProf"></canvas><div id="trkMsg" class="trk-msg"></div>'+trkSplitsHtml(trkSplitsFromRec(trk.splits))+'<div class="trk-row"><button type="button" id="trkSaveBtn" class="trk-green">💾 Lưu lên đám mây</button><button type="button" id="trkGpxDl">⬇️ Tải GPX</button><button type="button" id="trkDemBtn" class="trk-gray">⛰️ Hiệu chỉnh độ cao</button><button type="button" id="trkDiscard" class="trk-red">🗑️ Bỏ hành trình</button></div>',()=>{
+requestAnimationFrame(()=>trkDrawProfile($("trkProf"),s.pts));
+const name=()=>($("trkName").value.trim()||defName);
+$("trkSaveBtn").onclick=async function(){
+this.disabled=true;$("trkMsg").textContent="Đang lưu...";
+try{
+await trkSaveRemote(s,name());
+trk.saved=true;trkClearDraft();
+$("trkMsg").textContent="✅ Đã lưu vào Lịch sử.";
+}catch(e){
+this.disabled=false;
+$("trkMsg").textContent="Không lưu được ("+(e.code||e.message)+"). Kiểm tra Firebase Rules trekMeta/trekData, hoặc bấm Tải GPX để giữ file.";
+}
+};
+$("trkGpxDl").onclick=()=>trkDownload(name(),trkGpx(name(),s.pts,s.wpts));
+$("trkDemBtn").onclick=async function(){
+this.disabled=true;$("trkMsg").textContent="Đang lấy độ cao chuẩn từ bản đồ địa hình...";
+const ok=await trkDemFix(s.pts);
+if(ok){const e=trkElevStats(s.pts);trk.up=e.up;trk.down=e.down;trk.maxAlt=e.mx;trk.minAlt=e.mn;trkRender();trkShowSummary(name())}
+else{this.disabled=false;$("trkMsg").textContent="Không lấy được dữ liệu độ cao (cần mạng). Số liệu GPS giữ nguyên."}
+};
+$("trkDiscard").onclick=()=>{if(confirm("Bỏ hành trình này?")){trkReset();trkClearDraft();trkClose()}};
+});
+}
+async function trkDemFix(pts){
+const n=pts.length;if(n<2)return false;
+const cnt=Math.min(n,400),idx=[];
+for(let k=0;k<cnt;k++)idx.push(Math.round(k*(n-1)/(cnt-1)));
+const elev=[];
+try{
+for(let i=0;i<idx.length;i+=100){
+const part=idx.slice(i,i+100);
+const url="https://api.open-meteo.com/v1/elevation?latitude="+part.map(j=>pts[j].lat.toFixed(5)).join(",")+"&longitude="+part.map(j=>pts[j].lng.toFixed(5)).join(",");
+const ctrl=new AbortController(),tm=setTimeout(()=>ctrl.abort(),10000);
+const res=await fetch(url,{signal:ctrl.signal});clearTimeout(tm);
+if(!res.ok)return false;
+const data=await res.json();
+if(!data.elevation||data.elevation.length!==part.length)return false;
+elev.push(...data.elevation);
+}
+}catch(_){return false}
+for(let k=0;k<idx.length-1;k++){
+const a=idx[k],b=idx[k+1];
+for(let j=a;j<=b;j++){const f=b>a?(j-a)/(b-a):0;pts[j].alt=elev[k]+(elev[k+1]-elev[k])*f}
+}
+pts[idx[idx.length-1]].alt=elev[elev.length-1];
+return true;
+}
+/* ---------- lưu / tải từ Firebase ---------- */
+function trkEncode(s){
+let pts=s.pts;const MAX=3500;
+if(pts.length>MAX){const step=pts.length/MAX,o=[];for(let i=0;i<MAX;i++)o.push(pts[Math.floor(i*step)]);o.push(pts[pts.length-1]);pts=o}
+const t0=s.startedAt;
+return{
+pts:JSON.stringify(pts.map(p=>[+p.lat.toFixed(5),+p.lng.toFixed(5),p.alt==null?null:Math.round(p.alt),Math.max(0,Math.round((p.t-t0)/1000))])),
+wpts:JSON.stringify(s.wpts.slice(0,200).map(x=>[+x.lat.toFixed(5),+x.lng.toFixed(5),x.icon,String(x.note||"").slice(0,40),Math.max(0,Math.round((x.t-t0)/1000))]))
+};
+}
+function trkDecode(meta,data){
+const t0=meta.startedAt||0;
+const pts=JSON.parse(data.pts||"[]").map(a=>({lat:a[0],lng:a[1],alt:a[2],t:t0+a[3]*1000}));
+trkBuildCum(pts);
+let wpts=[];try{wpts=JSON.parse(data.wpts||"[]").map(a=>({lat:a[0],lng:a[1],icon:a[2],note:a[3],t:t0+(a[4]||0)*1000}))}catch(_){}
+return{pts,wpts};
+}
+async function trkSaveRemote(s,name){
+const key=push(ref(db,"trekMeta/"+user.uid)).key,enc=trkEncode(s);
+const meta={name:name.slice(0,60),startedAt:s.startedAt,endedAt:s.endedAt,dist:Math.round(s.dist),dur:s.dur,moving:s.moving,up:Math.round(s.up),down:Math.round(s.down),wptCount:Math.min(s.wpts.length,500),pointCount:Math.min(s.pts.length,100000),createdAt:Date.now()};
+if(s.maxAlt!=null&&isFinite(s.maxAlt))meta.maxAlt=Math.round(s.maxAlt);
+if(s.minAlt!=null&&isFinite(s.minAlt))meta.minAlt=Math.round(s.minAlt);
+await set(ref(db,"trekData/"+user.uid+"/"+key),{pts:enc.pts,wpts:enc.wpts});
+await set(ref(db,"trekMeta/"+user.uid+"/"+key),meta);
+}
+function trkClearView(){const m=aminoMap;trk.viewLayers.forEach(l=>{if(m)m.removeLayer(l)});trk.viewLayers=[]}
+async function trkViewSaved(id,meta){
+const m=trkMap();if(!m)return;
+trkOpen('<h3>'+trkEsc(meta.name)+'</h3><p>Đang tải dữ liệu hành trình...</p>');
+try{
+const snap=await get(ref(db,"trekData/"+user.uid+"/"+id));
+if(!snap.exists())throw new Error("Không tìm thấy dữ liệu đường đi");
+const {pts,wpts}=trkDecode(meta,snap.val());
+trkClearView();
+if(pts.length>1){
+const line=L.polyline(pts.map(p=>[p.lat,p.lng]),{color:"#2563eb",weight:5,opacity:.9}).addTo(m);
+trk.viewLayers.push(line);
+trk.viewLayers.push(L.marker([pts[0].lat,pts[0].lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🚩</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(m));
+trk.viewLayers.push(L.marker([pts[pts.length-1].lat,pts[pts.length-1].lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🏁</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(m));
+m.fitBounds(line.getBounds(),{padding:[30,30]});
+}
+wpts.forEach(w=>{
+const mk=L.marker([w.lat,w.lng],{icon:L.divIcon({className:"",html:'<div class="trk-wpt">'+trkEsc(w.icon||"⭐")+'</div>',iconSize:[28,28],iconAnchor:[14,24]})}).addTo(m);
+const box=document.createElement("b");box.textContent=(w.icon||"⭐")+" "+(w.note||"Cột mốc");mk.bindPopup(box);trk.viewLayers.push(mk);
+});
+const es=trkElevStats(pts);
+const s={dist:meta.dist,dur:meta.dur,moving:meta.moving||meta.dur,up:meta.up||es.up,down:meta.down||es.down,maxAlt:meta.maxAlt!=null?meta.maxAlt:es.mx,minAlt:meta.minAlt!=null?meta.minAlt:es.mn};
+trkOpen('<h3>'+trkEsc(meta.name)+'</h3><p>'+new Date(meta.startedAt).toLocaleString("vi-VN")+'</p>'+trkStatsHtml(s)+'<canvas id="trkProf"></canvas>'+trkSplitsHtml(trkSplits(pts))+'<div class="trk-row"><button type="button" id="trkGpxDl">⬇️ Tải GPX</button><button type="button" id="trkDelBtn" class="trk-red">🗑️ Xóa</button></div>',()=>{
+requestAnimationFrame(()=>trkDrawProfile($("trkProf"),pts));
+$("trkGpxDl").onclick=()=>trkDownload(meta.name,trkGpx(meta.name,pts,wpts));
+$("trkDelBtn").onclick=async()=>{
+if(!confirm("Xóa hành trình này vĩnh viễn?"))return;
+try{await remove(ref(db,"trekData/"+user.uid+"/"+id));await remove(ref(db,"trekMeta/"+user.uid+"/"+id));trkClearView();trkShowHistory()}
+catch(e){trkToast("Không xóa được: "+(e.code||e.message))}
+};
+});
+}catch(e){
+trkOpen('<h3>'+trkEsc(meta.name)+'</h3><p>Không mở được hành trình: '+trkEsc(e.code||e.message)+'</p>');
+}
+}
+async function trkShowHistory(){
+trkOpen('<h3>📜 Lịch sử hành trình</h3><div id="trkHistBody"><p>Đang tải...</p></div>');
+try{
+const snap=await get(ref(db,"trekMeta/"+user.uid));
+const v=snap.val()||{};
+const items=Object.keys(v).map(id=>Object.assign({id},v[id])).sort((a,b)=>b.startedAt-a.startedAt);
+const body=$("trkHistBody");if(!body)return;
+if(!items.length){body.innerHTML="<p>Chưa có hành trình nào. Bấm ● Ghi hành trình rồi đi thôi! 🥾</p>";return}
+const tot=items.reduce((a,x)=>({d:a.d+(x.dist||0),t:a.t+(x.dur||0),u:a.u+(x.up||0)}),{d:0,t:0,u:0});
+body.innerHTML='<div class="trk-grid"><div><small>Tổng quãng đường</small><b>'+trkFmtDist(tot.d)+'</b></div><div><small>Tổng thời gian</small><b>'+trkFmtTime(tot.t*1000).slice(0,5)+'</b></div><div><small>Tổng đã leo</small><b>'+Math.round(tot.u)+' m</b></div></div>'+items.map(x=>'<div class="trk-item" data-id="'+trkEsc(x.id)+'"><div><b>'+trkEsc(x.name)+'</b><small>'+new Date(x.startedAt).toLocaleDateString("vi-VN")+' · '+trkFmtTime((x.dur||0)*1000)+'</small></div><div>'+trkFmtDist(x.dist||0)+'<small>↗ '+Math.round(x.up||0)+' m</small></div></div>').join("");
+body.onclick=e=>{const it=e.target.closest(".trk-item");if(!it)return;const id=it.dataset.id;trkViewSaved(id,Object.assign({id},v[id]))};
+}catch(e){const body=$("trkHistBody");if(body)body.innerHTML="<p>Không đọc được lịch sử: "+trkEsc(e.code||e.message)+". Kiểm tra Firebase Rules (trekMeta).</p>"}
+}
+/* ---------- GPX ---------- */
+function trkGpx(name,pts,wpts){
+let x='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Amino Trek" xmlns="http://www.topografix.com/GPX/1/1">\n<metadata><name>'+trkEsc(name)+'</name></metadata>\n';
+(wpts||[]).forEach(w=>{x+='<wpt lat="'+w.lat+'" lon="'+w.lng+'"><name>'+trkEsc((w.icon||"")+" "+(w.note||""))+'</name></wpt>\n'});
+x+='<trk><name>'+trkEsc(name)+'</name><trkseg>\n';
+pts.forEach(p=>{x+='<trkpt lat="'+p.lat+'" lon="'+p.lng+'">'+(p.alt!=null&&isFinite(p.alt)?'<ele>'+Number(p.alt).toFixed(1)+'</ele>':'')+(p.t?'<time>'+new Date(p.t).toISOString()+'</time>':'')+'</trkpt>\n'});
+return x+'</trkseg></trk>\n</gpx>';
+}
+function trkDownload(name,text){
+const blob=new Blob([text],{type:"application/gpx+xml"});
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);a.download=(String(name).replace(/[^\w\-]+/g,"_")||"trek")+".gpx";
+document.body.appendChild(a);a.click();
+setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+}
+function trkParseGpx(text){
+const doc=new DOMParser().parseFromString(text,"application/xml");
+if(doc.getElementsByTagName("parsererror").length)throw new Error("File GPX không hợp lệ");
+let nodes=[...doc.getElementsByTagName("trkpt")];
+if(!nodes.length)nodes=[...doc.getElementsByTagName("rtept")];
+let pts=[];
+nodes.forEach(n=>{
+const lat=parseFloat(n.getAttribute("lat")),lng=parseFloat(n.getAttribute("lon"));
+if(!isFinite(lat)||!isFinite(lng))return;
+const e=n.getElementsByTagName("ele")[0];
+pts.push({lat,lng,alt:e?parseFloat(e.textContent):null});
+});
+if(pts.length<2)throw new Error("GPX không có đủ điểm đường đi");
+if(pts.length>8000){const step=pts.length/8000,o=[];for(let i=0;i<8000;i++)o.push(pts[Math.floor(i*step)]);o.push(pts[pts.length-1]);pts=o}
+const total=trkBuildCum(pts);
+const wpts=[...doc.getElementsByTagName("wpt")].map(n=>{
+const nm=n.getElementsByTagName("name")[0];
+return{lat:parseFloat(n.getAttribute("lat")),lng:parseFloat(n.getAttribute("lon")),icon:"📍",note:nm?nm.textContent.slice(0,40):""};
+}).filter(w=>isFinite(w.lat)&&isFinite(w.lng)).slice(0,100);
+const nameEl=doc.getElementsByTagName("name")[0];
+const es=trkElevStats(pts);
+return{name:(nameEl&&nameEl.textContent.trim().slice(0,40))||"Lộ trình GPX",pts,wpts,total,up:es.up,down:es.down,mx:es.mx,mn:es.mn};
+}
+function trkClearPlan(){
+const m=aminoMap;trk.planLayers.forEach(l=>{if(m)m.removeLayer(l)});trk.planLayers=[];
+trk.plan=null;trkHint("plan","");trkSyncWatch();
+$("trekGpxBtn").classList.remove("on");$("trekGpxBtn").textContent="📂 Nạp GPX";
+}
+function trkShowPlan(){
+const p=trk.plan;if(!p)return;
+trkOpen('<h3>📂 '+trkEsc(p.name)+'</h3>'+trkStatsHtml({dist:p.total,dur:0,moving:0,up:p.up,down:p.down,maxAlt:p.mx,minAlt:p.mn})+'<canvas id="trkProf"></canvas><p>Khi bạn đi, app sẽ báo còn bao xa và rung cảnh báo nếu lệch quá 60 m.</p><div class="trk-row"><button type="button" id="trkPlanOther">📂 Nạp file khác</button><button type="button" id="trkPlanClear" class="trk-red">✕ Bỏ lộ trình</button></div>',()=>{
+requestAnimationFrame(()=>trkDrawProfile($("trkProf"),p.pts));
+$("trkPlanOther").onclick=()=>{trkClose();$("trekGpxFile").click()};
+$("trkPlanClear").onclick=()=>{trkClearPlan();trkClose()};
+});
+}
+async function trkLoadGpx(file){
+const m=trkMap();if(!m||!file)return;
+try{
+const plan=trkParseGpx(await file.text());
+trkClearPlan();
+trk.plan=plan;
+const line=L.polyline(plan.pts.map(p=>[p.lat,p.lng]),{color:"#f97316",weight:5,opacity:.85}).addTo(m);
+trk.planLayers.push(line);
+trk.planLayers.push(L.marker([plan.pts[0].lat,plan.pts[0].lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🚩</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(m));
+trk.planLayers.push(L.marker([plan.pts[plan.pts.length-1].lat,plan.pts[plan.pts.length-1].lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🏁</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(m));
+plan.wpts.forEach(w=>{const mk=L.marker([w.lat,w.lng],{icon:L.divIcon({className:"",html:'<div class="trk-wpt">📍</div>',iconSize:[28,28],iconAnchor:[14,24]})}).addTo(m);const b=document.createElement("b");b.textContent=w.note||"Điểm GPX";mk.bindPopup(b);trk.planLayers.push(mk)});
+m.fitBounds(line.getBounds(),{padding:[30,30]});
+$("trekGpxBtn").classList.add("on");$("trekGpxBtn").textContent="📂 GPX ✓";
+trkHint("plan","📂 "+plan.name+": "+trkFmtDist(plan.total)+", leo "+Math.round(plan.up)+" m");
+trkSyncWatch();
+trkShowPlan();
+}catch(e){trkToast("Không đọc được GPX: "+e.message,5000)}
+}
+/* ---------- cột mốc ---------- */
+async function trkCurrentPos(){
+if(trk.last&&Date.now()-trk.last.t<60000)return{lat:trk.last.lat,lng:trk.last.lng,acc:trk.last.acc};
+return new Promise((ok,no)=>{
+if(!navigator.geolocation){no(new Error("Thiết bị không hỗ trợ GPS"));return}
+navigator.geolocation.getCurrentPosition(p=>ok({lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy}),e=>no(new Error({1:"Chưa cấp quyền GPS",2:"Không xác định được vị trí",3:"GPS quá chậm"}[e.code]||e.message)),{enableHighAccuracy:true,timeout:15000,maximumAge:10000});
+});
+}
+function trkWptOpen(){
+if(!trk.rec&&!trk.pts.length){trkToast("Hãy bắt đầu ghi hành trình rồi mới thêm cột mốc nhé 🥾");return}
+let sel=0;
+trkOpen('<h3>📍 Thêm cột mốc</h3><div class="trk-wpt-grid">'+TRK_WPT_ICONS.map((x,i)=>'<button type="button" data-i="'+i+'"'+(i===0?' class="sel"':'')+'><span>'+x[0]+'</span>'+x[1]+'</button>').join("")+'</div><input id="trkWptNote" maxlength="40" placeholder="Ghi chú (không bắt buộc)"><div class="trk-msg" id="trkMsg"></div><div class="trk-row"><button type="button" id="trkWptSave" class="trk-green">Lưu tại vị trí hiện tại</button></div>',m=>{
+m.querySelector(".trk-wpt-grid").onclick=e=>{const b=e.target.closest("button");if(!b)return;sel=Number(b.dataset.i);m.querySelectorAll(".trk-wpt-grid button").forEach(x=>x.classList.toggle("sel",x===b))};
+$("trkWptSave").onclick=async function(){
+this.disabled=true;$("trkMsg").textContent="Đang lấy vị trí...";
+try{
+const p=await trkCurrentPos();
+const w={lat:p.lat,lng:p.lng,alt:trk.altS,icon:TRK_WPT_ICONS[sel][0],note:$("trkWptNote").value.trim().slice(0,40)||TRK_WPT_ICONS[sel][1],t:Date.now()};
+trk.wpts.push(w);trkAddWptMarker(w);trk.saved=false;trkSaveDraft();
+trkClose();trkToast("📍 Đã lưu cột mốc "+w.icon+" "+w.note,2500);
+}catch(e){this.disabled=false;$("trkMsg").textContent="Không lấy được vị trí: "+e.message}
+};
+});
+}
+/* ---------- về điểm đầu ---------- */
+async function trkToggleHome(){
+const m=trkMap();if(!m)return;
+if(trk.homeOn){
+trk.homeOn=false;
+if(trk.homeLine){m.removeLayer(trk.homeLine);trk.homeLine=null}
+if(trk.baseMk){m.removeLayer(trk.baseMk);trk.baseMk=null}
+trk.base=null;trkHint("home","");trkSyncWatch();
+$("trekHomeBtn").classList.remove("on");return;
+}
+if(!trk.pts.length){
+try{
+const p=await trkCurrentPos();
+trk.base={lat:p.lat,lng:p.lng};
+trk.baseMk=L.marker([p.lat,p.lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🏕️</div>',iconSize:[28,28],iconAnchor:[14,24]}),interactive:false}).addTo(m);
+trkToast("🏕️ Đã đánh dấu vị trí này làm điểm quay về.",3000);
+}catch(e){trkToast("Không đặt được điểm quay về: "+e.message,4000);return}
+}
+trk.homeOn=true;$("trekHomeBtn").classList.add("on");
+trkHint("home","🧭 Đang chờ GPS để tính đường về...");
+trkSyncWatch();
+}
+/* ---------- SOS ---------- */
+async function trkSos(){
+trkOpen('<h3>🆘 Cầu cứu / chia sẻ vị trí</h3><p id="trkSosInfo">Đang lấy vị trí GPS...</p><div id="trkSosBody"></div>');
+let pos=null,err="";
+try{pos=await trkCurrentPos()}catch(e){err=e.message}
+let bat="";
+try{if(navigator.getBattery){const b=await navigator.getBattery();bat=" Pin điện thoại: "+Math.round(b.level*100)+"%."}}catch(_){}
+const info=$("trkSosInfo"),body=$("trkSosBody");
+if(!info||!body)return;
+const link=pos?"https://maps.google.com/?q="+pos.lat.toFixed(6)+","+pos.lng.toFixed(6):"";
+const text="🆘 "+displayName+" cần hỗ trợ!"+(pos?" Vị trí: "+link+" (sai số ~"+Math.round(pos.acc||0)+" m)":" Chưa lấy được GPS ("+err+").")+bat+" Lúc "+new Date().toLocaleString("vi-VN");
+info.textContent=pos?"Đã có vị trí. Gửi tin nhắn dưới đây cho người thân hoặc đội cứu hộ:":"Chưa lấy được GPS: "+err+". Bạn vẫn có thể gọi số khẩn cấp.";
+body.innerHTML='<textarea class="trk-sos-box" id="trkSosText" readonly></textarea><div class="trk-row"><button type="button" id="trkSosShare">📤 Chia sẻ</button><button type="button" id="trkSosCopy" class="trk-gray">📋 Sao chép</button><button type="button" id="trkSosChat" class="trk-red">💬 Gửi vào chat chung</button></div><h4>Gọi khẩn cấp (Việt Nam)</h4><div class="trk-row"><a href="tel:113">📞 113 Công an</a><a href="tel:114">🚒 114 Cứu hỏa - cứu nạn</a><a href="tel:115">🚑 115 Cấp cứu</a></div>';
+$("trkSosText").value=text;
+$("trkSosShare").onclick=async()=>{try{if(navigator.share)await navigator.share({text});else{await navigator.clipboard.writeText(text);trkToast("Thiết bị không hỗ trợ chia sẻ, đã sao chép tin nhắn.")}}catch(_){}};
+$("trkSosCopy").onclick=async()=>{try{await navigator.clipboard.writeText(text);trkToast("📋 Đã sao chép tin nhắn.")}catch(_){$("trkSosText").select()}};
+$("trkSosChat").onclick=async function(){
+if(!confirm("Gửi tin cầu cứu kèm vị trí vào phòng chat chung?"))return;
+this.disabled=true;
+try{await push(ref(db,"publicChat/messages"),{uid:user.uid,name:displayName,text:text.slice(0,1000),createdAt:Date.now()});trkToast("✅ Đã gửi vào chat chung.")}
+catch(e){this.disabled=false;trkToast("Không gửi được: "+(e.code||e.message))}
+};
+}
+/* ---------- lớp bản đồ & điều khiển ---------- */
+function trkToggleTopo(){
+const m=trkMap();if(!m)return;
+if(!trk.topo)trk.topo=L.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:19,maxNativeZoom:17,zIndex:5,attribution:'Map: &copy; OpenStreetMap, SRTM | Style: &copy; OpenTopoMap (CC-BY-SA)'});
+const on=!m.hasLayer(trk.topo);
+if(on)trk.topo.addTo(m);else m.removeLayer(trk.topo);
+$("trekTopoBtn").classList.toggle("on",on);
+}
+function trkToggleTrail(){
+const m=trkMap();if(!m)return;
+if(!trk.trail)trk.trail=L.tileLayer("https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png",{maxZoom:19,maxNativeZoom:18,zIndex:6,opacity:.9,attribution:'Hiking: &copy; waymarkedtrails.org'});
+const on=!m.hasLayer(trk.trail);
+if(on)trk.trail.addTo(m);else m.removeLayer(trk.trail);
+$("trekTrailBtn").classList.toggle("on",on);
+}
+function trkOnMapOpen(){trkUpdateSun();trkCheckDraft()}
+function setupTrekControls(){
+if(trk.ready)return;
+trk.ready=true;
+try{trk.voice=localStorage.getItem("aminoTrekVoice")==="1"}catch(_){}
+const syncVoice=()=>{const b=$("trekVoiceBtn");b.textContent=trk.voice?"🔊 Đọc km":"🔇 Đọc km";b.classList.toggle("on",trk.voice)};
+syncVoice();
+$("trekStartBtn").onclick=()=>trkStart(false);
+$("trekPauseBtn").onclick=trkPause;
+$("trekStopBtn").onclick=()=>{if(confirm("Kết thúc hành trình này?"))trkStop()};
+$("trekWptBtn").onclick=trkWptOpen;
+$("trekHomeBtn").onclick=trkToggleHome;
+$("trekSosBtn").onclick=trkSos;
+$("trekTopoBtn").onclick=trkToggleTopo;
+$("trekTrailBtn").onclick=trkToggleTrail;
+$("trekFollowBtn").onclick=()=>{trk.follow=!trk.follow;trkSyncFollowBtn()};
+$("trekVoiceBtn").onclick=()=>{trk.voice=!trk.voice;try{localStorage.setItem("aminoTrekVoice",trk.voice?"1":"0")}catch(_){}syncVoice();if(trk.voice)trkSpeak("Đã bật đọc cột mốc kilômét.")};
+$("trekGpxBtn").onclick=()=>{if(trk.plan)trkShowPlan();else $("trekGpxFile").click()};
+$("trekGpxFile").onchange=e=>{const f=e.target.files&&e.target.files[0];e.target.value="";if(f)trkLoadGpx(f)};
+$("trekHistBtn").onclick=trkShowHistory;
+setInterval(trkUpdateSun,60000);
+trkRender();
 }
 /* ĐĂNG NHẬP */
 $("enter").addEventListener("click",async()=>{
