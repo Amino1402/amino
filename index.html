@@ -208,6 +208,10 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 #gardenClose,#gdRainBtn{position:absolute;top:12px;z-index:99999;background:rgba(255,255,255,.88);color:#6b3a74;border:0;border-radius:999px;padding:9px 14px;font-size:14px;font-weight:700;box-shadow:0 3px 10px #0003}
 #gardenClose{left:12px}
 #gdRainBtn{right:12px}
+#gdShopBtn,#gdRankBtn{position:absolute;top:12px;z-index:99999;background:rgba(255,255,255,.88);color:#6b3a74;border:0;border-radius:999px;padding:9px 12px;font-size:14px;font-weight:700;box-shadow:0 3px 10px #0003}
+#gdShopBtn{right:62px}
+#gdRankBtn{right:112px}
+#gdCoins{position:absolute;left:12px;top:56px;z-index:99999;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.9);color:#8a5a00;font-size:13px;font-weight:700;box-shadow:0 3px 10px #0003}
 #gdToast{position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:100005;max-width:min(92vw,420px);padding:9px 14px;border-radius:14px;background:#fff;color:#6b3a74;font-size:13px;font-weight:700;text-align:center;box-shadow:0 4px 16px #0004}
 #gardenField{position:absolute;inset:0}
 #gdSky,#gdGround,#gdPond,#gdFence,#gdTint,#gdGloom,#gdRain,.gd-hill{position:absolute;pointer-events:none}
@@ -246,7 +250,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 .gd-sway{display:inline-block;transform-origin:50% 100%;animation:gdSway 4.5s ease-in-out infinite}
 .gd-fly{position:absolute;display:none;width:5px;height:5px;border-radius:50%;background:#fff3a0;box-shadow:0 0 9px 4px #fff3a0aa;z-index:9000;animation:gdFirefly var(--d) ease-in-out infinite alternate}
 .gd-night .gd-fly,.gd-dusk .gd-fly{display:block}
-.gd-bf{position:absolute;left:0;top:0;z-index:9000;font-size:20px;pointer-events:none}
+.gd-bf{position:absolute;left:0;top:0;z-index:9000;font-size:20px;pointer-events:auto;cursor:pointer;padding:8px}
 .gd-bf span{display:inline-block;animation:gdFlap .25s ease-in-out infinite alternate}
 .gd-night .gd-bf,.gd-rain .gd-bf,.gd-dusk .gd-bf{display:none}
 .gd-petal{position:absolute;top:-30px;z-index:9001;font-size:16px;pointer-events:none;opacity:.85;animation:gdPetal var(--d) linear var(--dl) infinite}
@@ -260,7 +264,7 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 .gd-pet{position:absolute;left:0;top:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;will-change:transform}
 .gd-pet::before{content:"";position:absolute;width:62%;height:12px;left:19%;bottom:2px;border-radius:50%;background:radial-gradient(ellipse,#20133c55 0%,#20133c00 72%);animation:gdShadow 2.2s ease-in-out infinite}
 .gd-art{position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform-origin:50% 85%;animation:gdIdle 2.8s ease-in-out infinite;filter:drop-shadow(0 6px 5px #17102b44)}
-.gd-face{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.gd-face{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;transition:transform .2s}
 .gd-face.flip{transform:scaleX(-1)}
 .gd-emoji{font-size:calc(var(--s)*.78);line-height:1}
 .gd-art .pet-3d-svg{width:100%;height:100%;overflow:visible}
@@ -323,6 +327,41 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 .gd-dust{position:absolute;left:0;top:0;font-size:26px;line-height:1;pointer-events:none}
 @keyframes gdAngry{0%,100%{transform:translateX(-1.5px)}50%{transform:translateX(1.5px)}}
 @keyframes gdFight{0%{transform:translate(-7px,0) rotate(-12deg)}25%{transform:translate(5px,-5px) rotate(10deg)}50%{transform:translate(7px,0) rotate(12deg)}75%{transform:translate(-5px,-4px) rotate(-8deg)}100%{transform:translate(-7px,0) rotate(-12deg)}}
+.gd-hat{position:absolute;left:50%;top:calc(var(--s)*var(--hy,0));transform:translateX(-50%);font-style:normal;font-size:calc(var(--s)*var(--hf,.4));line-height:1;pointer-events:none;z-index:2}
+.gd-hat:empty{display:none}
+.gd-poop{position:absolute;font-size:24px;line-height:1;cursor:pointer;animation:gdBob 2s ease-in-out infinite}
+.gd-pet.t-jump .gd-art{animation:gdJump .55s ease-out 2}
+.gd-pet.t-spin .gd-art{animation:gdSpin .9s ease-in-out 1}
+.gd-pet.t-roll .gd-art{animation:gdRoll 1.1s ease-in-out 1}
+#gdRainbow{position:absolute;left:50%;top:13%;transform:translateX(-50%);width:min(60vw,520px);height:min(30vw,260px);border-radius:999px 999px 0 0;z-index:1;pointer-events:none;opacity:0;transition:opacity 3s;box-shadow:0 0 0 8px #b08cff,0 0 0 16px #6ec7ff,0 0 0 24px #7be08a,0 0 0 32px #fff27a,0 0 0 40px #ffb84d,0 0 0 48px #ff6b6b;clip-path:inset(-60px -60px 0 -60px)}
+.gd-night #gdRainbow{display:none}
+#gdModal{position:absolute;inset:0;z-index:100004;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(40,20,70,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.gd-modal-card{width:min(480px,100%);max-height:90dvh;overflow:auto;padding:16px;border-radius:20px;background:#fff;color:#5a3560;text-align:center}
+.gd-modal-card h3{margin:0 0 6px}
+.gd-modal-card p{margin:0 0 8px;font-size:13px;line-height:1.5}
+.gd-shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.gd-shop-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:2px solid #ffd7e8;border-radius:14px;background:#fff7fb;font-size:12px}
+.gd-shop-item.on{border-color:#ff5c9a;background:#ffe6f1}
+.gd-shop-e{font-size:30px;line-height:1.1}
+.gd-shop-item button,.gd-modal-alt,.gd-modal-close{padding:7px 10px;border-radius:10px;background:#ff7fb2;font-size:12px}
+.gd-modal-alt{background:#9a7fb5}
+.gd-modal-close{background:#64748b;margin-top:8px}
+.gd-rank{display:flex;flex-direction:column;gap:6px;margin-top:8px;text-align:left}
+.gd-rank-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:#fff7fb;font-size:13px}
+.gd-rank-row.me{background:#ffe6f1;border:1px solid #ff9cc4}
+.gd-rank-row b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-rank-row small{opacity:.7}
+.gd-rank-row em{font-style:normal;font-weight:700;color:#c93673}
+#gdGift{position:absolute;left:50%;transform:translateX(-50%);z-index:100002;width:min(420px,calc(100% - 16px));padding:10px;border-radius:16px;background:rgba(255,255,255,.96);box-shadow:0 6px 24px #0004;color:#5a3560;text-align:center}
+.gd-gift-title{margin-bottom:8px;font-size:13px}
+.gd-gift-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.gd-gift-row button{padding:6px 2px;border-radius:12px;background:#fff;color:#7a3d73;border:1px solid #ffd0e3;font-size:11px;font-weight:700;line-height:1.3}
+.gd-gift-row button span{display:block;font-size:22px}
+.gd-gift-row button small{display:block;opacity:.75}
+.gd-gift-row button:disabled{opacity:.4}
+@keyframes gdJump{0%,100%{transform:translateY(0)}45%{transform:translateY(-26px) scale(1.05,.95)}}
+@keyframes gdSpin{to{transform:rotate(360deg)}}
+@keyframes gdRoll{0%{transform:translateX(0) rotate(0)}50%{transform:translateX(18px) rotate(180deg)}100%{transform:translateX(0) rotate(360deg)}}
 @keyframes gdIdle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
 @keyframes gdWalk{0%,100%{transform:translateY(1px) rotate(-5deg) scaleX(.98)}50%{transform:translateY(-5px) rotate(5deg) scaleX(1.02)}}
 @keyframes gdBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.985)}}
@@ -714,7 +753,10 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 </main>
 <div id="gardenPage" hidden>
 <button id="gardenClose" type="button">✕ Thoát vườn</button>
+<button id="gdRankBtn" type="button" aria-label="Xếp hạng">🏆</button>
+<button id="gdShopBtn" type="button" aria-label="Cửa hàng">🛍️</button>
 <button id="gdRainBtn" type="button" aria-label="Bật tắt mưa">🌧️</button>
+<div id="gdCoins" hidden></div>
 <div id="gdToast" hidden></div>
 <div id="gardenField"></div>
 <div id="gdPanel" hidden>
@@ -733,6 +775,8 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 <button type="button" data-act="name"><span>✏️</span>Đổi tên</button>
 </div>
 </div>
+<div id="gdGift" hidden></div>
+<div id="gdModal" hidden></div>
 <div id="gdPicker" hidden></div>
 </div>
 
@@ -3742,6 +3786,9 @@ energy:['Tớ buồn ngủ quá... 😴','Cho tớ chợp mắt xíu nha 🥱'],
 clean:['Tớ hơi bẩn rồi, tắm cho tớ nha 🫧','Người tớ lấm lem hết rồi 🥺']
 };
 const GD_EMOTE={hunger:"🍽️",joy:"😢",energy:"🥱",clean:"🪰"};
+const GD_HATS={bow:{e:"🎀",n:"Nơ",price:10,hy:-.1,hf:.36},crown:{e:"👑",n:"Vương miện",price:60,hy:-.2,hf:.4},tophat:{e:"🎩",n:"Mũ chóp",price:30,hy:-.24,hf:.44},cap:{e:"🧢",n:"Mũ lưỡi trai",price:20,hy:-.14,hf:.42},grad:{e:"🎓",n:"Mũ cử nhân",price:25,hy:-.2,hf:.42},shades:{e:"🕶️",n:"Kính râm",price:15,hy:.3,hf:.36},flower:{e:"🌸",n:"Hoa cài đầu",price:8,hy:-.08,hf:.3},straw:{e:"👒",n:"Nón rơm",price:18,hy:-.16,hf:.46},helmet:{e:"🪖",n:"Nón bảo hộ",price:22,hy:-.16,hf:.42}};
+const GD_GIFTS={food:{e:"🍖",n:"Đồ ăn",price:5,d:{hunger:25,joy:3}},toy:{e:"🧸",n:"Gấu bông",price:8,d:{joy:30}},cake:{e:"🍰",n:"Bánh kem",price:6,d:{hunger:15,joy:15}},flower:{e:"💐",n:"Hoa",price:3,d:{joy:12}}};
+const gdDayKey=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/86400000);
 const gdRnd=(a,b)=>a+Math.random()*(b-a);
 const gdClamp=(v,a=0,b=100)=>Math.min(b,Math.max(a,v));
 const gdPick=arr=>arr[Math.floor(Math.random()*arr.length)];
@@ -3814,7 +3861,7 @@ const maxY=size=>Math.max(minY(),innerHeight-PH-size-6);
 let toastId=0;
 const toast=(msg,ms)=>{const t=$("gdToast");t.textContent=msg;t.hidden=false;clearTimeout(toastId);toastId=setTimeout(()=>{t.hidden=true},ms||3500)};
 page.hidden=false;panel.hidden=true;picker.hidden=true;picker.innerHTML="";page.classList.remove("gd-rain");
-field.innerHTML='<div id="gdSky"><div id="gdBody"></div></div><div class="gd-hill h1"></div><div class="gd-hill h2"></div><div id="gdGround"></div><div id="gdPond"><i class="gd-lily">🪷</i></div><div id="gdFence"></div><div id="gdTint"></div><div id="gdGloom"></div><div id="gdRain"></div>';
+field.innerHTML='<div id="gdSky"><div id="gdBody"></div></div><div id="gdRainbow"></div><div class="gd-hill h1"></div><div class="gd-hill h2"></div><div id="gdGround"></div><div id="gdPond"><i class="gd-lily">🪷</i></div><div id="gdFence"></div><div id="gdTint"></div><div id="gdGloom"></div><div id="gdRain"></div>';
 /* ===== CẢNH VẬT ===== */
 const sky=$("gdSky");
 for(let i=0;i<46;i++){const s=document.createElement("i");s.className="gd-star";s.style.cssText=`left:${rnd(0,100)}%;top:${rnd(0,38)}%;--dl:${rnd(0,4)}s;--sz:${rnd(1.5,3)}px`;sky.appendChild(s)}
@@ -3841,7 +3888,7 @@ const a=el.animate([{transform:`translate(${cx}px,${cy}px)`},{transform:`transla
 cx=x;cy=y;a.onfinish=()=>later(hop,rnd(0,1200))};
 hop();
 }
-for(let i=0;i<7;i++){const b=document.createElement("div");b.className="gd-bf";b.innerHTML="<span>"+(i<5?pick(["🦋","🦋","🦋"]):"🐝")+"</span>";field.appendChild(b);flutter(b,rnd(0,innerWidth),rnd(innerHeight*.4,innerHeight*.7),i<5?55:95)}
+for(let i=0;i<7;i++){const b=document.createElement("div");b.className="gd-bf";b.innerHTML="<span>"+(i<5?pick(["🦋","🦋","🦋"]):"🐝")+"</span>";b.onclick=()=>catchBf(b);field.appendChild(b);flutter(b,rnd(0,innerWidth),rnd(innerHeight*.4,innerHeight*.7),i<5?55:95)}
 function fishJump(){
 const pond=$("gdPond");if(!pond)return;
 const x=rnd(15,68);
@@ -3864,14 +3911,19 @@ const cfg={night:["#0b1240",.34],dusk:["#ff7a3d",.11],dawn:["#ffb199",.08],day:[
 tint.style.background=cfg[0];tint.style.opacity=cfg[1];
 }
 $("gdBody").onclick=()=>{const o=["dawn","day","dusk","night"];forced=o[(o.indexOf(phase)+1)%4];applyTime();toast("🕒 Đã đổi sang buổi: "+({dawn:"bình minh",day:"ban ngày",dusk:"hoàng hôn",night:"ban đêm"}[forced]),2200)};
-$("gdRainBtn").onclick=()=>{
-rainOn=!rainOn;page.classList.toggle("gd-rain",rainOn);
-const r=$("gdRain");
-if(rainOn&&!r.firstChild){for(let i=0;i<80;i++){const d=document.createElement("i");d.className="gd-drop";d.style.cssText=`left:${rnd(0,105)}%;animation-duration:${rnd(.55,1)}s;animation-delay:-${rnd(0,1)}s;opacity:${rnd(.4,.9)}`;r.appendChild(d)}}
-toast(rainOn?"🌧️ Trời đổ mưa rồi, cả nhà trú tạm nhé!":"🌤️ Mưa tạnh rồi!",2200);
-};
+function setRain(on,auto){
+rainOn=on;page.classList.toggle("gd-rain",on);
+const r=$("gdRain"),rb=$("gdRainbow");
+if(on&&!r.firstChild){for(let i=0;i<80;i++){const d=document.createElement("i");d.className="gd-drop";d.style.cssText=`left:${rnd(0,105)}%;animation-duration:${rnd(.55,1)}s;animation-delay:-${rnd(0,1)}s;opacity:${rnd(.4,.9)}`;r.appendChild(d)}}
+if(on){rb.style.opacity="0";toast(auto?"🌧️ Ối, trời đổ mưa bất chợt!":"🌧️ Trời đổ mưa rồi, cả nhà trú tạm nhé!",2600)}
+else if(phase==="day"||phase==="dawn"){rb.style.opacity=".85";later(()=>{rb.style.opacity="0"},45000);toast("🌤️ Mưa tạnh rồi, có cầu vồng kìa! 🌈",3000)}
+else toast("🌤️ Mưa tạnh rồi!",2200);
+}
+$("gdRainBtn").onclick=()=>setRain(!rainOn);
+every(()=>{if(!rainOn&&phase!=="night"&&Math.random()<.2){setRain(true,true);later(()=>{if(rainOn)setRain(false,true)},rnd(50000,90000))}},120000);
 /* ===== VẬT NUÔI ===== */
 function setSize(p,size){p.size=size;p.el.style.width=p.el.style.height=size+"px";p.el.style.setProperty("--s",size+"px")}
+function setHat(p,id){const h=GD_HATS[id];p.hatEl.textContent=h?h.e:"";if(h){p.hatEl.style.setProperty("--hy",h.hy);p.hatEl.style.setProperty("--hf",h.hf)}}
 function pickTarget(p){p.tx=rnd(0,Math.max(0,innerWidth-p.size));p.ty=rnd(minY(),maxY(p.size))}
 function say(p,text,secs){p.bubble.textContent=text;p.bubble.hidden=false;p.talk=secs||3.2}
 function face(p,dx){if(Math.abs(dx)>.5)p.face.classList.toggle("flip",dx<0)}
@@ -3887,8 +3939,8 @@ o=o||{};
 const el=document.createElement("div");
 el.className="gd-pet"+(o.mine?" mine":"");
 el.setAttribute("aria-label",def.name);
-el.innerHTML='<div class="gd-bubble" hidden></div><div class="gd-emote"></div><div class="gd-art"><div class="gd-face">'+gardenPetArt(def.emoji)+'</div></div><div class="gd-tag"></div>';
-const p={def,el,size:def.size,speed:def.speed,bubble:el.children[0],emote:el.children[1],face:el.querySelector(".gd-face"),tag:el.children[3],x:0,y:0,tx:0,ty:0,wait:rnd(0,2),talk:0,walking:false,task:null,busy:false,mine:!!o.mine,data:null,fx:"",name:def.name,owner:"",tapLine:o.tapLine||(()=>pick(GARDEN_LINES))};
+el.innerHTML='<div class="gd-bubble" hidden></div><div class="gd-emote"></div><div class="gd-art"><div class="gd-face">'+gardenPetArt(def.emoji)+'<i class="gd-hat"></i></div></div><div class="gd-tag"></div>';
+const p={def,el,size:def.size,speed:def.speed,bubble:el.children[0],emote:el.children[1],face:el.querySelector(".gd-face"),hatEl:el.querySelector(".gd-hat"),uid:null,tag:el.children[3],x:0,y:0,tx:0,ty:0,wait:rnd(0,2),talk:0,walking:false,task:null,busy:false,mine:!!o.mine,data:null,fx:"",name:def.name,owner:"",tapLine:o.tapLine||(()=>pick(GARDEN_LINES))};
 setSize(p,def.size);p.tag.textContent=o.tag||"";
 p.x=rnd(0,Math.max(0,innerWidth-p.size));p.y=rnd(minY(),maxY(p.size));pickTarget(p);
 field.appendChild(el);
@@ -3898,7 +3950,7 @@ if(p.mine&&p.busy)return;
 p.wait=Math.max(p.wait,3);el.classList.remove("sleeping");el.classList.add("happy");
 clearTimeout(p.ht);p.ht=setTimeout(()=>el.classList.remove("happy"),2000);
 if(p.mine){say(p,moodLine()||pick(GARDEN_LINES));if(Date.now()-lastTap>2500){lastTap=Date.now();bump({joy:2},.4)}}
-else say(p,p.tapLine());
+else{say(p,p.tapLine());if(p.uid&&S)openGift(p)}
 });
 return p;
 }
@@ -3916,20 +3968,23 @@ clearTimeout(saveT);
 if(!S||!dirty)return;
 dirty=false;
 const r1=v=>Math.round(v*10)/10;
-update(ref(db,"gardenPets/"+uid),{hunger:r1(S.hunger),joy:r1(S.joy),energy:r1(S.energy),clean:r1(S.clean),xp:r1(S.xp),updatedAt:S.updatedAt}).catch(()=>{if(alive)toast("Chưa lưu được trạng thái bé 😢")});
+const o={hunger:r1(S.hunger),joy:r1(S.joy),energy:r1(S.energy),clean:r1(S.clean),xp:r1(S.xp),updatedAt:S.updatedAt,coins:r1(S.coins||0),streak:S.streak||0,lastDaily:S.lastDaily||0,hat:S.hat||"none"};
+if(S.owned&&Object.keys(S.owned).length)o.owned=S.owned;
+update(ref(db,"gardenPets/"+uid),o).catch(()=>{if(alive)toast("Chưa lưu được trạng thái bé 😢")});
 }
-function bump(d,xp){
+function bump(d,xp,coins){
 if(!S||!mine)return;
 const old=gdLevelOf(S.xp);
 settle();
 for(const k in d)S[k]=gdClamp(S[k]+d[k]);
 S.xp=Math.round((S.xp+(xp||0))*10)/10;
+if(coins){S.coins=Math.max(0,Math.round(((S.coins||0)+coins)*10)/10);if(coins>0)gardenHearts(mine.el,["🪙"],Math.min(4,Math.ceil(coins/2)))}
 const lv=gdLevelOf(S.xp);
 if(lv>old){
-setSize(mine,gdPetSize(GARDEN_TYPES[S.type],lv));
+setSize(mine,gdPetSize(GARDEN_TYPES[S.type],lv));S.coins=(S.coins||0)+10;
 gardenHearts(mine.el,["✨","🌟","💖","🎉"],8);
 say(mine,"Lên cấp "+lv+" rồi! 🎉",3.8);
-toast("🎉 "+S.name+" đã lên cấp "+lv+"!");
+toast("🎉 "+S.name+" đã lên cấp "+lv+"! Thưởng +10 🪙");
 }
 renderPanel();scheduleSave();
 }
@@ -3942,6 +3997,7 @@ $("gdXp").style.width=gdClamp((S.xp-b0)/(b1-b0)*100)+"%";
 for(const k in GD_RATE){const v=statNow(k),i=$("gdBar-"+k);i.style.width=v+"%";i.className=v>60?"ok":v>30?"mid":"low"}
 const busy=!!(mine&&mine.busy);
 panel.querySelectorAll("[data-act]").forEach(b=>{b.disabled=busy});
+$("gdCoins").textContent="🪙 "+Math.floor(S.coins||0)+(S.streak?"  🔥"+S.streak+" ngày":"");
 PH=panel.offsetHeight+16;
 }
 function refreshEmotes(){for(const p of allPets()){const d=p.mine?S:p.data;p.emote.textContent=p.fx||(d?gdEmoteFor(d):"")}}
@@ -3963,7 +4019,7 @@ goTo(mine,fx+14-mine.size/2,fy+30-mine.size*.9,()=>{
 say(mine,"Nom nom nom 😋",2);
 f.style.transition="transform 2s ease-in,opacity 2s";f.style.transform="scale(.1)";f.style.opacity=".2";
 hold(mine,"eating",2,()=>{
-f.remove();bump({hunger:45,joy:5},8);
+f.remove();bump({hunger:45,joy:5},8,2);
 say(mine,"Ngon quá đi! Cảm ơn cậu 💗");gardenHearts(mine.el);setBusy(false);
 });
 });
@@ -3985,7 +4041,7 @@ ball.firstChild.animate([{transform:"translateY(-120px)"},{transform:"translateY
 place(true);
 say(mine,"Bóng kìa! Chơi thôi! ⚽",1.8);
 const step=()=>{
-if(n>=4){ball.remove();bump({joy:35,energy:-12,hunger:-6,clean:-5},10);say(mine,"Vui quá trời luôn! 🥳");gardenHearts(mine.el);setBusy(false);return}
+if(n>=4){ball.remove();bump({joy:35,energy:-12,hunger:-6,clean:-5},10,3);say(mine,"Vui quá trời luôn! 🥳");gardenHearts(mine.el);setBusy(false);return}
 n++;
 goTo(mine,bx-mine.size/2+12,by-mine.size*.8,()=>{
 mine.el.classList.add("happy");later(()=>mine.el.classList.remove("happy"),900);
@@ -4005,13 +4061,13 @@ b.style.transform=`translate(${x}px,${y}px)`;field.appendChild(b);
 b.animate([{transform:`translate(${x}px,${y}px) scale(.6)`,opacity:1},{transform:`translate(${x+rnd(-20,20)}px,${y-70}px) scale(1.3)`,opacity:0}],{duration:1200,easing:"ease-out"}).onfinish=()=>b.remove();
 },170);
 intervals.push(iv);
-hold(mine,"bathing",3.4,()=>{clearInterval(iv);bump({clean:70,joy:4},8);say(mine,"Thơm tho sạch sẽ rồi nè ✨");gardenHearts(mine.el,["✨","🫧","💖"],5);setBusy(false)});
+hold(mine,"bathing",3.4,()=>{clearInterval(iv);bump({clean:70,joy:4},8,2);say(mine,"Thơm tho sạch sẽ rồi nè ✨");gardenHearts(mine.el,["✨","🫧","💖"],5);setBusy(false)});
 }
 function actSleep(){
 if(!mine||mine.busy)return;
 if(statNow("energy")>=88){say(mine,"Chưa buồn ngủ đâu 😆");return}
 setBusy(true);
-hold(mine,"sleeping",7,()=>{bump({energy:60,hunger:-5},6);say(mine,"Ngủ ngon quá, khỏe re rồi! ☀️");setBusy(false)});
+hold(mine,"sleeping",7,()=>{bump({energy:60,hunger:-5},6,1);say(mine,"Ngủ ngon quá, khỏe re rồi! ☀️");setBusy(false)});
 }
 function actRename(){
 if(!mine||!S)return;
@@ -4026,10 +4082,11 @@ function ensureMine(){
 if(pets.has(uid)||!S)return;
 const t=GARDEN_TYPES[S.type],lv=gdLevelOf(S.xp);
 const p=makePet({emoji:t.emoji,size:gdPetSize(t,lv),speed:t.speed,name:S.name},{mine:true,tag:"⭐ "+S.name});
-p.data=S;pets.set(uid,p);mine=p;
+p.data=S;pets.set(uid,p);mine=p;setHat(p,S.hat);$("gdCoins").hidden=false;
 $("gdAvatar").innerHTML=gardenPetArt(t.emoji);$("gdFeedIcon").textContent=t.food;
 panel.hidden=false;renderPanel();refreshEmotes();
 say(p,moodLine()||"Tớ về rồi nè, cậu nhớ tớ không? 💕",4);
+dailyReward();processGifts();
 }
 function showPicker(){
 let sel=null;
@@ -4049,7 +4106,7 @@ const name=(nameInput.value.trim()||t.name).slice(0,16);
 if(!confirm("Nhận nuôi "+t.label+" tên "+name+" nha? Sau này không đổi loài được đâu đó!"))return;
 go.disabled=true;msg.textContent="Đang làm giấy nhận nuôi...";
 const now=Date.now();
-const data={uid,type:sel,name,owner:String(displayName||"").slice(0,24),hunger:80,joy:80,energy:90,clean:90,xp:0,adoptedAt:now,updatedAt:now};
+const data={uid,type:sel,name,owner:String(displayName||"").slice(0,24),hunger:80,joy:80,energy:90,clean:90,xp:0,adoptedAt:now,updatedAt:now,coins:10,streak:0,lastDaily:0,hat:"none"};
 try{
 await set(ref(db,"gardenPets/"+uid),data);
 S=data;picker.hidden=true;picker.innerHTML="";ensureMine();
@@ -4069,7 +4126,7 @@ p=makePet({emoji:t.emoji,size:gdPetSize(t,lv),speed:t.speed,name:String(d.name||
 p.tapLine=()=>Math.random()<.55?"Chào cậu! Tớ là "+p.name+", bé của "+(p.owner||"một người bạn")+" 🐾":pick(GARDEN_LINES);
 pets.set(u,p);
 }else setSize(p,gdPetSize(t,lv));
-p.name=String(d.name||t.name).slice(0,16);p.owner=String(d.owner||"").slice(0,24);p.data=d;p.tag.textContent=p.name;
+setHat(p,d.hat);p.uid=u;p.name=String(d.name||t.name).slice(0,16);p.owner=String(d.owner||"").slice(0,24);p.data=d;p.tag.textContent=p.name;
 }
 unsub=onValue(ref(db,"gardenPets"),snap=>{
 const val=snap.val()||{};
@@ -4111,7 +4168,7 @@ if(p.wait<=0)p.el.classList.remove("sleeping");
 if(!p.walking){p.walking=true;p.el.classList.add("walking")}
 const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
 if(d<4){p.wait=rnd(1.5,4.5);pickTarget(p)}
-else{p.x+=dx/d*p.speed*dt;p.y+=dy/d*p.speed*dt;face(p,dx)}
+else{const sp=p.speed*(rainOn?1.35:1)*dt;p.x+=dx/d*sp;p.y+=dy/d*sp;face(p,dx)}
 }
 p.x=gdClamp(p.x,0,Math.max(0,innerWidth-p.size));p.y=gdClamp(p.y,minY(),maxY(p.size));
 p.el.style.zIndex=p.talk>0?99998:10+Math.round(p.y+p.size);
@@ -4132,6 +4189,119 @@ const a=pick(c);let b=pick(c);if(a===b)return;
 goTo(a,b.x+rnd(-50,50),b.y+rnd(-10,10),()=>{gardenHearts(a.el,["💕","💞"],3);gardenHearts(b.el,["💕","💞"],3);say(a,"💕",2);say(b,"💕",2);b.wait=Math.max(b.wait,3)},1.2);
 },32000);
 
+/* ===== XU, ĐIỂM DANH, BẮT BƯỚM, DỌN 💩 ===== */
+function dailyReward(){
+const dk=gdDayKey();
+if((S.lastDaily||0)===dk)return;
+S.streak=(S.lastDaily===dk-1)?(S.streak||0)+1:1;
+S.lastDaily=dk;
+const r=5+Math.min(S.streak,10)*2;
+S.coins=(S.coins||0)+r;
+dirty=true;saveNow();
+later(()=>{toast("🎁 Điểm danh "+S.streak+" ngày liên tiếp: +"+r+" 🪙",4500);gardenHearts(mine.el,["🪙","✨"],5);renderPanel()},1200);
+}
+function catchBf(el){
+if(el.dataset.off)return;
+if(!S||!mine){toast("Nhận nuôi một bé trước rồi mới bắt bướm được nha 🐾",2200);return}
+const bee=el.textContent.indexOf("🐝")>=0;
+el.dataset.off="1";el.style.visibility="hidden";
+const r=el.getBoundingClientRect();
+const pop=document.createElement("div");pop.className="gd-dust";pop.textContent=bee?"Ái!":"+1 🪙";
+pop.style.cssText="font-size:16px;font-weight:700;color:#fff;text-shadow:0 1px 3px #0009;z-index:99700";
+field.appendChild(pop);
+pop.animate([{transform:`translate(${r.left}px,${r.top}px)`,opacity:1},{transform:`translate(${r.left}px,${r.top-50}px)`,opacity:0}],{duration:1000}).onfinish=()=>pop.remove();
+if(bee){toast("🐝 Ong chích đó, đừng chọc nữa!",1800);bump({joy:-2},0,0)}
+else bump({joy:1},.3,1);
+later(()=>{el.style.visibility="";delete el.dataset.off},10000);
+}
+function spawnPoop(){
+if(!S||!mine||mine.busy||mine.task||field.querySelectorAll(".gd-poop").length>=3)return;
+const d=document.createElement("div");d.className="gd-poop";d.textContent="💩";
+const x=mine.x+mine.size/2-12,y=mine.y+mine.size-22;
+d.style.cssText=`left:${x}px;top:${y}px;z-index:${10+Math.round(y+24)}`;
+d.onclick=()=>{d.remove();bump({joy:1},.5,2);gardenHearts(mine.el,["✨"],2);say(mine,"Cảm ơn cậu dọn giúp nha! ✨",2.2)};
+field.appendChild(d);
+say(mine,"Ối... 😳",1.8);bump({clean:-4},0,0);
+}
+every(()=>{if(Math.random()<.5)spawnPoop()},120000);
+/* ===== CỬA HÀNG / XẾP HẠNG ===== */
+const modal=$("gdModal");
+const closeModal=()=>{modal.hidden=true;modal.innerHTML=""};
+function openModal(h){modal.innerHTML='<div class="gd-modal-card">'+h+'<button type="button" class="gd-modal-close" data-close="1">Đóng</button></div>';modal.hidden=false}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+modal.onclick=e=>{
+if(e.target===modal||(e.target.dataset&&e.target.dataset.close)){closeModal();return}
+const b=e.target.closest("[data-hat]");
+if(b&&S&&mine)hatAction(b.dataset.hat);
+};
+function renderShop(){
+const owned=S.owned||{};
+openModal('<h3>🛍️ Cửa hàng phụ kiện</h3><p>Cậu đang có <b>🪙 '+Math.floor(S.coins||0)+'</b>. Kiếm xu bằng cách chăm bé, bắt bướm 🦋, dọn 💩 và điểm danh mỗi ngày.</p><div class="gd-shop-grid">'+Object.keys(GD_HATS).map(k=>{const h=GD_HATS[k],on=S.hat===k;return '<div class="gd-shop-item'+(on?' on':'')+'"><div class="gd-shop-e">'+h.e+'</div><b>'+h.n+'</b><button type="button" data-hat="'+k+'">'+(on?'Đang đội':owned[k]?'Đội':'Mua '+h.price+' 🪙')+'</button></div>'}).join("")+'</div><button type="button" class="gd-modal-alt" data-hat="none">Bỏ phụ kiện</button>');
+}
+function hatAction(id){
+if(id==="none")S.hat="none";
+else{
+const h=GD_HATS[id];if(!h)return;
+S.owned=S.owned||{};
+if(!S.owned[id]){
+if((S.coins||0)<h.price){toast("Chưa đủ xu rồi 🥺",2000);return}
+S.coins-=h.price;S.owned[id]=true;
+}
+S.hat=S.hat===id?"none":id;
+}
+setHat(mine,S.hat);dirty=true;saveNow();renderPanel();renderShop();
+if(S.hat!=="none")say(mine,"Đẹp không nè? 😎",2.4);
+}
+function renderRank(){
+const list=allPets().map(p=>{const d=p.mine?S:p.data;return d?{p,d,xp:Number(d.xp)||0}:null}).filter(Boolean).sort((a,b)=>b.xp-a.xp);
+openModal('<h3>🏆 Bảng xếp hạng</h3><div class="gd-rank">'+(list.length?list.map((r,i)=>'<div class="gd-rank-row'+(r.p.mine?' me':'')+'"><span>'+(["🥇","🥈","🥉"][i]||(i+1))+'</span><span>'+(GARDEN_TYPES[r.d.type]?GARDEN_TYPES[r.d.type].emoji:"")+'</span><b>'+esc(r.p.name)+(GD_HATS[r.d.hat]?" "+GD_HATS[r.d.hat].e:"")+'</b><small>'+esc(r.p.mine?"của cậu":(r.p.owner||""))+'</small><em>Lv.'+gdLevelOf(r.xp)+'</em></div>').join(""):'<p>Chưa có bé nào.</p>')+'</div>');
+}
+$("gdShopBtn").onclick=()=>{if(S&&mine)renderShop();else toast("Nhận nuôi một bé trước nhé 🐾",2000)};
+$("gdRankBtn").onclick=renderRank;
+/* ===== TẶNG QUÀ ===== */
+const giftEl=$("gdGift"),giftQ=[];
+let giftT=0,lastGift=0,unsubG=null;
+function hideGift(){giftEl.hidden=true;clearTimeout(giftT)}
+function flyGift(e,a,b){
+const d=document.createElement("div");d.className="gd-dust";d.style.fontSize="28px";d.style.zIndex=99600;d.textContent=e;field.appendChild(d);
+d.animate([{transform:`translate(${a.x+a.size/2}px,${a.y}px) scale(.8)`},{transform:`translate(${(a.x+b.x)/2+b.size/2}px,${Math.min(a.y,b.y)-70}px) scale(1.3)`,offset:.5},{transform:`translate(${b.x+b.size/2}px,${b.y}px) scale(1)`}],{duration:1100,easing:"ease-in-out"}).onfinish=()=>{d.remove();gardenHearts(b.el,["💝","💖"],4)};
+}
+function openGift(p){
+if(!S||!mine)return;
+giftEl.innerHTML='<div class="gd-gift-title">🎁 Tặng quà cho <b>'+esc(p.name)+'</b>'+(p.owner?' (của '+esc(p.owner)+')':'')+'</div><div class="gd-gift-row">'+Object.keys(GD_GIFTS).map(k=>{const g=GD_GIFTS[k];return '<button type="button" data-gift="'+k+'"'+((S.coins||0)<g.price?' disabled':'')+'><span>'+g.e+'</span>'+g.n+'<small>'+g.price+' 🪙</small></button>'}).join("")+'</div>';
+giftEl.style.bottom=(PH+4)+"px";giftEl.hidden=false;
+clearTimeout(giftT);giftT=setTimeout(hideGift,9000);
+giftEl.onclick=async e=>{
+const b=e.target.closest("[data-gift]");if(!b||b.disabled)return;
+const k=b.dataset.gift,g=GD_GIFTS[k];
+if(!g||(S.coins||0)<g.price)return;
+if(Date.now()-lastGift<20000){toast("Từ từ thôi, mỗi 20 giây tặng 1 món nha 😆",2200);return}
+lastGift=Date.now();hideGift();
+try{
+await set(push(ref(db,"gardenGifts/"+p.uid)),{from:uid,fromName:String(displayName||"").slice(0,24),kind:k,at:Date.now()});
+flyGift(g.e,mine,p);
+bump({joy:3},3,-g.price);
+toast("💝 Đã tặng "+g.e+" cho "+p.name+"!",3000);
+}catch(err){lastGift=0;toast("Chưa gửi được quà 😢 (kiểm tra rules gardenGifts)",3000)}
+};
+}
+function applyGift(g){
+const def=GD_GIFTS[g.kind];if(!def||!mine)return;
+const from=String(g.fromName||"một người bạn").slice(0,24);
+bump(def.d,2,1);
+toast("🎁 "+from+" tặng "+S.name+" "+def.e+" "+def.n+"!",5000);
+say(mine,"Wow! Quà của "+from+" nè "+def.e+" 💖",4);
+gardenHearts(mine.el,[def.e,"💖","✨"],6);
+}
+function processGifts(){if(!S||!mine)return;while(giftQ.length)applyGift(giftQ.shift())}
+unsubG=onChildAdded(ref(db,"gardenGifts/"+uid),snap=>{giftQ.push(snap.val()||{});remove(snap.ref).catch(()=>{});processGifts()},()=>{});
+/* ===== TRÒ NGHỊCH NGỢM ===== */
+every(()=>{
+const c=allPets().filter(p=>!p.task&&!p.busy&&p.wait>0&&!p.el.classList.contains("sleeping"));
+if(!c.length||Math.random()>.65)return;
+const p=pick(c),k=pick(["jump","spin","roll"]);
+p.el.classList.add("t-"+k);later(()=>p.el.classList.remove("t-"+k),1300);
+},4500);
 /* ===== CÃI LỘN (~20 giây, 3 kịch bản, kết thúc làm lành hoặc giận nhau) ===== */
 const FIGHT_SCRIPTS=[
 (A,B)=>[
@@ -4209,7 +4379,7 @@ if(a.task)a.task.t=0;if(b.task)b.task.t=0;
 a.fx=b.fx="";refreshEmotes();
 say(a,"Làm hòa nha? 💕",2.4);say(b,"Ừm! Làm hòa nha! 💕",2.4);
 gardenHearts(a.el,["💕","💞"],5);gardenHearts(b.el,["💕","💞"],5);
-if(involved)bump({joy:3},1);
+if(involved)bump({joy:3},1,1);
 later(done,2400);
 }else{
 setFx(a,"😤",9000);setFx(b,"😤",9000);
@@ -4234,6 +4404,8 @@ gdDispose=()=>{
 saveNow();alive=false;
 cancelAnimationFrame(raf);timers.forEach(clearTimeout);intervals.forEach(clearInterval);clearTimeout(saveT);clearTimeout(resizeT);clearTimeout(toastId);
 if(unsub){try{unsub()}catch(e){}}
+if(unsubG){try{unsubG()}catch(e){}}
+clearTimeout(giftT);giftEl.hidden=true;modal.hidden=true;modal.innerHTML="";$("gdCoins").hidden=true;
 removeEventListener("resize",onResize);
 panel.onclick=null;panel.hidden=true;picker.hidden=true;picker.innerHTML="";field.innerHTML="";
 $("gdToast").hidden=true;page.classList.remove("gd-rain");
