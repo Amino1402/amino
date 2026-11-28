@@ -435,6 +435,29 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
 .trk-split{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--t4);font-size:12.5px}
 .trk-sos-box{width:100%;min-height:96px;margin:6px 0;padding:10px;border:1px solid var(--t8);border-radius:10px;font-size:12.5px;line-height:1.5}
 @media(max-width:520px){#trekStats b{font-size:14px}.trk-wpt-grid{grid-template-columns:repeat(4,1fr)}}
+#mapTabs{display:flex;gap:6px;margin:10px 0}
+#mapTabs button{flex:1;padding:10px 6px;border:1px solid var(--t8);background:var(--t5);color:var(--t0);font-size:14px;font-weight:700}
+#mapTabs button.on{background:var(--t0);color:#fff}
+.maptab-off{display:none!important}
+#mapWorkspace.trek-only{grid-template-columns:minmax(0,1fr)}
+#mapWorkspace.trek-only #mapMeetingPanel{display:none}
+#trekActs{display:flex;gap:6px;margin-bottom:8px}
+#trekActs button{flex:1;padding:8px 4px;border:1px solid var(--t8);background:#fff;color:var(--t0);font-size:13px;font-weight:700}
+#trekActs button.on{background:var(--t0);color:#fff}
+#trekActs.locked button:not(.on){opacity:.45}
+#trekFeed{margin-top:14px;padding:11px;border:1px solid var(--t8);border-radius:12px;background:var(--t11)}
+#trekFeed h3{margin:0 0 8px;font-size:16px;color:#59418d}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.trk-chips button{padding:6px 10px;border:1px solid var(--t8);border-radius:999px;background:#fff;color:var(--t0);font-size:12px;font-weight:700}
+.trk-chips button.on{background:var(--t0);color:#fff}
+#trekFeedSummary{margin:4px 0 8px;font-size:12.5px;color:#59418d}
+.trk-day{margin-bottom:12px}
+.trk-day-h{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;padding:6px 2px;border-bottom:2px solid var(--t8);color:#3b2a63}
+.trk-day-h small{opacity:.8}
+.trk-day-best{margin-top:6px;padding:5px 9px;border-radius:9px;background:#fff7d6;color:#7a5a00;font-size:12.5px;font-weight:700}
+.trk-item.mine{border-color:var(--t0);background:var(--t1)}
+.trk-check{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:12.5px;color:#59418d}
+.trk-card input[type=checkbox]{width:auto;margin:0}
 </style>
 </head>
 <body>
@@ -651,12 +674,13 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
   <button id="mapBack" type="button" aria-label="Quay lại phòng chat" title="Quay lại phòng chat">←</button>
   <h2>🗺️ Bản đồ Amino</h2>
   <p id="mapStatus" aria-live="polite">Đang xác định vị trí hiện tại...</p>
-  <form id="mapSearchForm" autocomplete="off">
+  <div id="mapTabs" role="tablist"><button type="button" data-tab="map" class="on">🗺️ Bản đồ</button><button type="button" data-tab="trek">🥾 Trekking</button><button type="button" data-tab="meet">❤️ Gặp nhau</button></div>
+  <form id="mapSearchForm" data-maptab="map" autocomplete="off">
     <input id="mapSearchInput" type="search" maxlength="120" placeholder="🔍 Tìm địa điểm, địa chỉ..." required>
     <button id="mapSearchBtn" type="submit">Tìm</button>
   </form>
-  <div id="mapSearchResults" hidden></div>
-  <div id="routeToolbar" aria-label="Dẫn đường">
+  <div id="mapSearchResults" data-maptab="map" hidden></div>
+  <div id="routeToolbar" data-maptab="map" aria-label="Dẫn đường">
     <div id="routeHint" aria-live="polite">Nhấn giữ một điểm trên bản đồ để chọn điểm đến và xem đường đi.</div>
     <div id="routeButtons">
       <button id="routeGoBtn" type="button" hidden>▶ GO</button>
@@ -664,12 +688,18 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
       <button id="routeClearBtn" type="button" hidden>✕ Xóa lộ trình</button>
     </div>
   </div>
-  <section id="trekPanel" aria-label="Trekking">
+  <section id="trekPanel" data-maptab="trek" aria-label="Trekking">
     <div id="trekHead"><b>🥾 Trekking</b><span id="trekSun">🌅 Đang tính giờ mặt trời...</span></div>
+    <div id="trekActs" aria-label="Loại hoạt động">
+      <button type="button" data-a="trek" class="on">🥾 Trek</button>
+      <button type="button" data-a="run">🏃 Chạy bộ</button>
+      <button type="button" data-a="walk">🚶 Đi bộ</button>
+      <button type="button" data-a="bike">🚴 Đạp xe</button>
+    </div>
     <div id="trekStats">
       <div><small>Thời gian</small><b id="trkTime">00:00:00</b></div>
       <div><small>Quãng đường</small><b id="trkDist">0.00 km</b></div>
-      <div><small>Tốc độ</small><b id="trkSpeed">0.0 km/h</b></div>
+      <div><small id="trkSpeedLbl">Tốc độ</small><b id="trkSpeed">0.0 km/h</b></div>
       <div><small>Độ cao</small><b id="trkAlt">-- m</b></div>
       <div><small>Tổng leo</small><b id="trkUp">0 m</b></div>
       <div><small>Tổng xuống</small><b id="trkDown">0 m</b></div>
@@ -689,11 +719,10 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
       <button id="trekFollowBtn" type="button" class="on">📌 Bám theo</button>
       <button id="trekVoiceBtn" type="button">🔇 Đọc km</button>
       <button id="trekGpxBtn" type="button">📂 Nạp GPX</button>
-      <button id="trekHistBtn" type="button">📜 Lịch sử</button>
       <input id="trekGpxFile" type="file" accept=".gpx,application/gpx+xml,text/xml,application/xml" hidden>
     </div>
   </section>
-  <div id="mapWorkspace">
+  <div id="mapWorkspace" data-maptab="map trek">
     <div id="mapContainer" role="application" aria-label="Bản đồ vị trí hiện tại và vị trí thành viên đã chia sẻ"></div>
     <aside id="mapMeetingPanel" aria-label="Danh sách người dùng đã chia sẻ vị trí">
       <h3>👥 Người dùng trên bản đồ</h3>
@@ -702,10 +731,17 @@ html[data-theme="galaxy"] .hsk-level-pill{background:#34276e;color:#e7ddff}
     </aside>
   </div>
 
-  <div id="mapPhotoToolbar">
+    <section id="trekFeed" data-maptab="trek" aria-label="Lịch sử hoạt động">
+    <h3>🌍 Lịch sử hoạt động của mọi người</h3>
+    <div class="trk-chips" id="trekFeedAct"><button type="button" data-v="all" class="on">Tất cả</button><button type="button" data-v="trek">🥾 Trek</button><button type="button" data-v="run">🏃 Chạy</button><button type="button" data-v="walk">🚶 Đi bộ</button><button type="button" data-v="bike">🚴 Đạp xe</button></div>
+    <div class="trk-chips" id="trekFeedScope"><button type="button" data-v="all" class="on">👥 Mọi người</button><button type="button" data-v="mine">🙋 Của tôi</button></div>
+    <div id="trekFeedSummary"></div>
+    <div id="trekFeedList"><div class="map-meeting-empty">Đang tải...</div></div>
+  </section>
+  <div id="mapPhotoToolbar" data-maptab="map">
     <button id="mapPhotoCaptureBtn" type="button">📍 Check in</button>
   </div>
-  <section id="mapMeetingHistorySection" aria-label="Lịch sử gặp nhau gần 100 mét">
+  <section id="mapMeetingHistorySection" data-maptab="meet" aria-label="Lịch sử gặp nhau gần 100 mét">
     <h3>❤️ Lịch sử gặp nhau</h3>
     <div id="mapMeetingSummary">Đang tải lịch sử...</div>
     <div id="mapMeetingList"><div class="map-meeting-empty">Chưa có lần gặp nào được ghi nhận.</div></div>
@@ -3486,13 +3522,29 @@ window.scrollTo({top:0,behavior:"auto"});
 /* ================= TREKKING: ghi hành trình, GPX, cột mốc, SOS, lịch sử ================= */
 const TRK_WPT_ICONS=[["⛺","Trại"],["💧","Nước"],["🏞️","View đẹp"],["⚠️","Nguy hiểm"],["🍜","Quán ăn"],["🚻","WC"],["🅿️","Gửi xe"],["🌉","Cầu/suối"],["📸","Chụp ảnh"],["⭐","Khác"]];
 const TRK_DIRS=["Bắc","Đông Bắc","Đông","Đông Nam","Nam","Tây Nam","Tây","Tây Bắc"];
-const trk={rec:false,paused:false,pts:[],wpts:[],startTs:0,pausedMs:0,pauseAt:0,endTs:0,moveMs:0,dist:0,up:0,down:0,maxAlt:null,minAlt:null,altS:null,altRef:null,speed:0,watchId:null,lock:null,tick:0,draftT:0,nextKm:1,splits:[],sunWarned:false,skipMove:false,saved:true,follow:true,voice:false,line:null,startMk:null,wptMk:[],kmMk:[],homeLine:null,homeOn:false,base:null,baseMk:null,topo:null,trail:null,plan:null,planLayers:[],viewLayers:[],lastOff:0,last:null,mapBound:false,draftChecked:false,ready:false,msgs:{rec:"",gps:"",home:"",plan:""}};
+const trk={rec:false,paused:false,pts:[],wpts:[],startTs:0,pausedMs:0,pauseAt:0,endTs:0,moveMs:0,dist:0,up:0,down:0,maxAlt:null,minAlt:null,altS:null,altRef:null,speed:0,watchId:null,lock:null,tick:0,draftT:0,nextKm:1,splits:[],sunWarned:false,skipMove:false,saved:true,follow:true,voice:false,line:null,startMk:null,wptMk:[],kmMk:[],homeLine:null,homeOn:false,base:null,baseMk:null,topo:null,trail:null,plan:null,planLayers:[],viewLayers:[],lastOff:0,last:null,mapBound:false,draftChecked:false,ready:false,activity:"trek",feedOn:false,feed:{},legacy:[],fAct:"all",fScope:"all",tab:"map",msgs:{rec:"",gps:"",home:"",plan:""}};
 const trkEsc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const trkPad=n=>String(n).padStart(2,"0");
 const trkFmtTime=ms=>{const s=Math.max(0,Math.floor(ms/1000));return trkPad(Math.floor(s/3600))+":"+trkPad(Math.floor(s%3600/60))+":"+trkPad(s%60)};
 const trkFmtDist=m=>m<1000?Math.round(m)+" m":(m/1000).toFixed(m<10000?2:1)+" km";
 const trkFmtClock=d=>trkPad(d.getHours())+":"+trkPad(d.getMinutes());
 const trkCardinal=deg=>TRK_DIRS[Math.round(deg/45)%8];
+const TRK_ACTS={trek:{e:"🥾",n:"Trek",pace:false},run:{e:"🏃",n:"Chạy bộ",pace:true},walk:{e:"🚶",n:"Đi bộ",pace:true},bike:{e:"🚴",n:"Đạp xe",pace:false}};
+function trkSpeedStr(ms,act){
+const a=TRK_ACTS[act]||TRK_ACTS.trek;
+if(!a.pace)return (ms*3.6).toFixed(1)+" km/h";
+if(!(ms>0.3))return "--:-- /km";
+const sec=Math.round(1000/ms);
+return sec>5999?"--:-- /km":trkPad(Math.floor(sec/60))+":"+trkPad(sec%60)+" /km";
+}
+function trkSetActivity(a,force){
+if(!TRK_ACTS[a])return;
+if(trk.rec&&!force){trkToast("Đang ghi rồi, hãy kết thúc trước khi đổi loại hoạt động nhé");return}
+trk.activity=a;
+document.querySelectorAll("#trekActs button").forEach(b=>b.classList.toggle("on",b.dataset.a===a));
+const l=$("trkSpeedLbl");if(l)l.textContent=TRK_ACTS[a].pace?"Nhịp (pace)":"Tốc độ";
+trkRender();
+}
 function trkBearing(a,b){
 const r=v=>v*Math.PI/180;
 const y=Math.sin(r(b.lng-a.lng))*Math.cos(r(b.lat));
@@ -3561,8 +3613,8 @@ return Math.max(0,end-trk.startTs-trk.pausedMs);
 function trkRender(){
 $("trkTime").textContent=trkFmtTime(trk.startTs?trkElapsed():0);
 $("trkDist").textContent=(trk.dist/1000).toFixed(2)+" km";
-const sp=(trk.rec&&!trk.paused&&trk.last&&Date.now()-trk.last.t<8000)?trk.speed*3.6:0;
-$("trkSpeed").textContent=sp.toFixed(1)+" km/h";
+const spMs=(trk.rec&&!trk.paused&&trk.last&&Date.now()-trk.last.t<8000)?trk.speed:0;
+$("trkSpeed").textContent=trkSpeedStr(spMs,trk.activity);
 $("trkAlt").textContent=trk.altS!==null?Math.round(trk.altS)+" m":"-- m";
 $("trkUp").textContent=Math.round(trk.up)+" m";
 $("trkDown").textContent=Math.round(trk.down)+" m";
@@ -3700,7 +3752,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&trk.rec)t
 /* ---------- nháp phòng khi tắt app giữa chừng ---------- */
 function trkSaveDraft(){
 if(!user||!trk.startTs)return;
-try{localStorage.setItem("aminoTrekDraft:"+user.uid,JSON.stringify({startTs:trk.startTs,pausedMs:trk.pausedMs,moveMs:trk.moveMs,dist:trk.dist,up:trk.up,down:trk.down,maxAlt:trk.maxAlt,minAlt:trk.minAlt,nextKm:trk.nextKm,splits:trk.splits,pts:trk.pts.map(p=>[p.lat,p.lng,p.alt,p.t,p.d]),wpts:trk.wpts,savedAt:Date.now()}))}catch(_){}
+try{localStorage.setItem("aminoTrekDraft:"+user.uid,JSON.stringify({activity:trk.activity,startTs:trk.startTs,pausedMs:trk.pausedMs,moveMs:trk.moveMs,dist:trk.dist,up:trk.up,down:trk.down,maxAlt:trk.maxAlt,minAlt:trk.minAlt,nextKm:trk.nextKm,splits:trk.splits,pts:trk.pts.map(p=>[p.lat,p.lng,p.alt,p.t,p.d]),wpts:trk.wpts,savedAt:Date.now()}))}catch(_){}
 }
 function trkClearDraft(){try{if(user)localStorage.removeItem("aminoTrekDraft:"+user.uid)}catch(_){}}
 function trkCheckDraft(){
@@ -3713,9 +3765,9 @@ let d;try{d=JSON.parse(raw)}catch(_){trkClearDraft();return}
 if(!d||!d.pts||d.pts.length<2||Date.now()-d.savedAt>864e5){trkClearDraft();return}
 const resume=confirm("Có một hành trình đang ghi dở ("+(d.dist/1000).toFixed(2)+" km, bắt đầu "+new Date(d.startTs).toLocaleString("vi-VN")+").\nBấm OK để tiếp tục ghi, bấm Hủy để kết thúc và lưu lại.");
 trkReset();
-Object.assign(trk,{startTs:d.startTs,pausedMs:(d.pausedMs||0)+(resume?Date.now()-d.savedAt:0),moveMs:d.moveMs||0,dist:d.dist||0,up:d.up||0,down:d.down||0,maxAlt:d.maxAlt,minAlt:d.minAlt,nextKm:d.nextKm||1,splits:d.splits||[],wpts:d.wpts||[],pts:d.pts.map(a=>({lat:a[0],lng:a[1],alt:a[2],t:a[3],d:a[4]}))});
+Object.assign(trk,{activity:TRK_ACTS[d.activity]?d.activity:"trek",startTs:d.startTs,pausedMs:(d.pausedMs||0)+(resume?Date.now()-d.savedAt:0),moveMs:d.moveMs||0,dist:d.dist||0,up:d.up||0,down:d.down||0,maxAlt:d.maxAlt,minAlt:d.minAlt,nextKm:d.nextKm||1,splits:d.splits||[],wpts:d.wpts||[],pts:d.pts.map(a=>({lat:a[0],lng:a[1],alt:a[2],t:a[3],d:a[4]}))});
 const last=trk.pts[trk.pts.length-1];
-trk.altS=last.alt;trk.altRef=last.alt;
+trk.altS=last.alt;trk.altRef=last.alt;trkSetActivity(trk.activity,true);
 trkRedraw();
 if(aminoMap&&trk.line)aminoMap.fitBounds(trk.line.getBounds(),{padding:[30,30]});
 if(resume)trkStart(true);
@@ -3731,7 +3783,7 @@ if(!resume){
 if(trk.pts.length&&!trk.saved&&!confirm("Hành trình trước chưa được lưu, ghi mới sẽ mất nó. Tiếp tục?"))return;
 trkReset();trk.startTs=Date.now();
 }
-trk.rec=true;trk.paused=false;trk.draftT=0;
+trk.rec=true;trk.paused=false;trk.draftT=0;$("trekActs").classList.add("locked");
 trkSyncWatch();
 clearInterval(trk.tick);trk.tick=setInterval(trkTick,1000);
 trkWake();
@@ -3751,7 +3803,7 @@ if(trk.paused){trk.pausedMs+=Date.now()-trk.pauseAt;trk.paused=false}
 trk.rec=false;
 if(!trk.endTs)trk.endTs=Date.now();
 clearInterval(trk.tick);trkUnwake();trkSyncWatch();
-$("trekStartBtn").hidden=false;$("trekPauseBtn").hidden=true;$("trekStopBtn").hidden=true;
+$("trekStartBtn").hidden=false;$("trekPauseBtn").hidden=true;$("trekStopBtn").hidden=true;$("trekActs").classList.remove("locked");
 trkHint("rec","");trkHint("gps","");
 if(trk.pts.length<2){trkToast("Hành trình quá ngắn nên không lưu.");trkReset();trkClearDraft();return}
 trk.saved=false;trkSaveDraft();trkRender();
@@ -3821,31 +3873,31 @@ if(bind)bind(m);
 }
 function trkClose(){const m=$("trekModal");m.hidden=true;m.innerHTML="";m.onclick=null}
 function trkStatsHtml(s){
-const avg=s.moving>0?(s.dist/1000)/(s.moving/3600):0;
-return '<div class="trk-grid"><div><small>Quãng đường</small><b>'+trkFmtDist(s.dist)+'</b></div><div><small>Thời gian</small><b>'+trkFmtTime(s.dur*1000)+'</b></div><div><small>Di chuyển</small><b>'+trkFmtTime(s.moving*1000)+'</b></div><div><small>Tốc độ TB</small><b>'+avg.toFixed(1)+' km/h</b></div><div><small>Leo / Xuống</small><b>'+Math.round(s.up)+' / '+Math.round(s.down)+' m</b></div><div><small>Cao nhất / thấp nhất</small><b>'+(s.maxAlt!=null?Math.round(s.maxAlt):'--')+' / '+(s.minAlt!=null?Math.round(s.minAlt):'--')+'</b></div></div>';
+const act=TRK_ACTS[s.activity]||TRK_ACTS.trek,ms=s.moving>0?s.dist/s.moving:0;
+return '<div class="trk-grid"><div><small>Quãng đường</small><b>'+trkFmtDist(s.dist)+'</b></div><div><small>Thời gian</small><b>'+trkFmtTime(s.dur*1000)+'</b></div><div><small>Di chuyển</small><b>'+trkFmtTime(s.moving*1000)+'</b></div><div><small>'+(act.pace?'Nhịp TB':'Tốc độ TB')+'</small><b>'+trkSpeedStr(ms,s.activity)+'</b></div><div><small>Leo / Xuống</small><b>'+Math.round(s.up)+' / '+Math.round(s.down)+' m</b></div><div><small>Cao nhất / thấp nhất</small><b>'+(s.maxAlt!=null?Math.round(s.maxAlt):'--')+' / '+(s.minAlt!=null?Math.round(s.minAlt):'--')+'</b></div></div>';
 }
-function trkSplitsHtml(sp){
+function trkSplitsHtml(sp,act){
 if(!sp.length)return "";
-return '<h4>Chia theo km</h4>'+sp.map(x=>'<div class="trk-split"><span>Km '+x.km+'</span><span>'+trkFmtTime(x.seg).slice(3)+'</span><span>'+(x.seg>0?(3600000/x.seg).toFixed(1):'--')+' km/h</span></div>').join("");
+return '<h4>Chia theo km</h4>'+sp.map(x=>{const ms=x.seg>0?1000/(x.seg/1000):0;return '<div class="trk-split"><span>Km '+x.km+'</span><span>'+trkFmtTime(x.seg).slice(3)+'</span><span>'+trkSpeedStr(ms,act)+'</span></div>'}).join("");
 }
 function trkSummaryObj(){
-return{startedAt:trk.startTs,endedAt:trk.endTs||Date.now(),dur:Math.round(trkElapsed()/1000),moving:Math.round(trk.moveMs/1000),dist:trk.dist,up:trk.up,down:trk.down,maxAlt:trk.maxAlt,minAlt:trk.minAlt,pts:trk.pts,wpts:trk.wpts};
+return{activity:trk.activity,startedAt:trk.startTs,endedAt:trk.endTs||Date.now(),dur:Math.round(trkElapsed()/1000),moving:Math.round(trk.moveMs/1000),dist:trk.dist,up:trk.up,down:trk.down,maxAlt:trk.maxAlt,minAlt:trk.minAlt,pts:trk.pts,wpts:trk.wpts};
 }
 function trkShowSummary(keepName){
-const s=trkSummaryObj();
-const defName=keepName||("Trek "+new Date(s.startedAt).toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));
-trkOpen('<h3>🏁 Kết thúc hành trình</h3><input id="trkName" maxlength="60" value="'+trkEsc(defName)+'">'+trkStatsHtml(s)+'<canvas id="trkProf"></canvas><div id="trkMsg" class="trk-msg"></div>'+trkSplitsHtml(trkSplitsFromRec(trk.splits))+'<div class="trk-row"><button type="button" id="trkSaveBtn" class="trk-green">💾 Lưu lên đám mây</button><button type="button" id="trkGpxDl">⬇️ Tải GPX</button><button type="button" id="trkDemBtn" class="trk-gray">⛰️ Hiệu chỉnh độ cao</button><button type="button" id="trkDiscard" class="trk-red">🗑️ Bỏ hành trình</button></div>',()=>{
+const s=trkSummaryObj(),act=TRK_ACTS[s.activity]||TRK_ACTS.trek;
+const defName=keepName||(act.n+" "+new Date(s.startedAt).toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));
+trkOpen('<h3>🏁 Kết thúc '+act.e+' '+act.n+'</h3><input id="trkName" maxlength="60" value="'+trkEsc(defName)+'">'+trkStatsHtml(s)+'<canvas id="trkProf"></canvas><div id="trkMsg" class="trk-msg"></div>'+trkSplitsHtml(trkSplitsFromRec(trk.splits),s.activity)+'<p>🌍 Hoạt động lưu xong sẽ <b>công khai</b> cho mọi người trong phòng xem.</p><label class="trk-check"><input type="checkbox" id="trkPriv" checked> Ẩn 200 m đầu và cuối đường đi (giấu chỗ ở)</label><div class="trk-row"><button type="button" id="trkSaveBtn" class="trk-green">💾 Lưu &amp; công khai</button><button type="button" id="trkGpxDl">⬇️ Tải GPX</button><button type="button" id="trkDemBtn" class="trk-gray">⛰️ Hiệu chỉnh độ cao</button><button type="button" id="trkDiscard" class="trk-red">🗑️ Bỏ</button></div>',()=>{
 requestAnimationFrame(()=>trkDrawProfile($("trkProf"),s.pts));
 const name=()=>($("trkName").value.trim()||defName);
 $("trkSaveBtn").onclick=async function(){
 this.disabled=true;$("trkMsg").textContent="Đang lưu...";
 try{
-await trkSaveRemote(s,name());
+await trkSaveRemote(s,name(),$("trkPriv").checked);
 trk.saved=true;trkClearDraft();
-$("trkMsg").textContent="✅ Đã lưu vào Lịch sử.";
+$("trkMsg").textContent="✅ Đã lưu và hiện trong lịch sử chung.";
 }catch(e){
 this.disabled=false;
-$("trkMsg").textContent="Không lưu được ("+(e.code||e.message)+"). Kiểm tra Firebase Rules trekMeta/trekData, hoặc bấm Tải GPX để giữ file.";
+$("trkMsg").textContent="Không lưu được ("+(e.code||e.message)+"). Kiểm tra Firebase Rules (trekFeed/trekData) hoặc bấm Tải GPX để giữ file.";
 }
 };
 $("trkGpxDl").onclick=()=>trkDownload(name(),trkGpx(name(),s.pts,s.wpts));
@@ -3855,7 +3907,7 @@ const ok=await trkDemFix(s.pts);
 if(ok){const e=trkElevStats(s.pts);trk.up=e.up;trk.down=e.down;trk.maxAlt=e.mx;trk.minAlt=e.mn;trkRender();trkShowSummary(name())}
 else{this.disabled=false;$("trkMsg").textContent="Không lấy được dữ liệu độ cao (cần mạng). Số liệu GPS giữ nguyên."}
 };
-$("trkDiscard").onclick=()=>{if(confirm("Bỏ hành trình này?")){trkReset();trkClearDraft();trkClose()}};
+$("trkDiscard").onclick=()=>{if(confirm("Bỏ hoạt động này?")){trkReset();trkClearDraft();trkClose()}};
 });
 }
 async function trkDemFix(pts){
@@ -3899,25 +3951,37 @@ trkBuildCum(pts);
 let wpts=[];try{wpts=JSON.parse(data.wpts||"[]").map(a=>({lat:a[0],lng:a[1],icon:a[2],note:a[3],t:t0+(a[4]||0)*1000}))}catch(_){}
 return{pts,wpts};
 }
-async function trkSaveRemote(s,name){
-const key=push(ref(db,"trekMeta/"+user.uid)).key,enc=trkEncode(s);
-const meta={name:name.slice(0,60),startedAt:s.startedAt,endedAt:s.endedAt,dist:Math.round(s.dist),dur:s.dur,moving:s.moving,up:Math.round(s.up),down:Math.round(s.down),wptCount:Math.min(s.wpts.length,500),pointCount:Math.min(s.pts.length,100000),createdAt:Date.now()};
-if(s.maxAlt!=null&&isFinite(s.maxAlt))meta.maxAlt=Math.round(s.maxAlt);
-if(s.minAlt!=null&&isFinite(s.minAlt))meta.minAlt=Math.round(s.minAlt);
+function trkPrivacyTrim(s){
+if(!s.pts.length)return s;
+const total=s.pts[s.pts.length-1].d||0,R=200;
+if(total<600)return s;
+const pts=s.pts.filter(p=>p.d>=R&&p.d<=total-R);
+if(pts.length<2)return s;
+const a=s.pts[0],b=s.pts[s.pts.length-1];
+return Object.assign({},s,{pts,wpts:s.wpts.filter(w=>distanceBetweenMeters(w,a)>=R&&distanceBetweenMeters(w,b)>=R)});
+}
+async function trkSaveRemote(s0,title,priv){
+const s=priv?trkPrivacyTrim(s0):s0;
+const key=push(ref(db,"trekFeed")).key,enc=trkEncode(s);
+const meta={uid:user.uid,name:String(displayName||"").slice(0,24)||"Ẩn danh",activity:s0.activity||"trek",title:title.slice(0,60),startedAt:s0.startedAt,endedAt:s0.endedAt,dist:Math.round(s0.dist),dur:s0.dur,moving:s0.moving,up:Math.round(s0.up),down:Math.round(s0.down),wptCount:Math.min(s.wpts.length,500),pointCount:Math.min(s.pts.length,100000),createdAt:Date.now()};
+if(s0.maxAlt!=null&&isFinite(s0.maxAlt))meta.maxAlt=Math.round(s0.maxAlt);
+if(s0.minAlt!=null&&isFinite(s0.minAlt))meta.minAlt=Math.round(s0.minAlt);
 await set(ref(db,"trekData/"+user.uid+"/"+key),{pts:enc.pts,wpts:enc.wpts});
-await set(ref(db,"trekMeta/"+user.uid+"/"+key),meta);
+await set(ref(db,"trekFeed/"+key),meta);
 }
 function trkClearView(){const m=aminoMap;trk.viewLayers.forEach(l=>{if(m)m.removeLayer(l)});trk.viewLayers=[]}
-async function trkViewSaved(id,meta){
+async function trkViewSaved(item){
 const m=trkMap();if(!m)return;
-trkOpen('<h3>'+trkEsc(meta.name)+'</h3><p>Đang tải dữ liệu hành trình...</p>');
+const act=TRK_ACTS[item.activity]||TRK_ACTS.trek,mine=user&&item.uid===user.uid;
+const head='<h3>'+act.e+' '+trkEsc(item.title||act.n)+'</h3><p>'+trkEsc(item.name||"?")+' · '+new Date(item.startedAt).toLocaleString("vi-VN")+'</p>';
+trkOpen(head+'<p>Đang tải đường đi...</p>');
 try{
-const snap=await get(ref(db,"trekData/"+user.uid+"/"+id));
+const snap=await get(ref(db,"trekData/"+item.uid+"/"+item.id));
 if(!snap.exists())throw new Error("Không tìm thấy dữ liệu đường đi");
-const {pts,wpts}=trkDecode(meta,snap.val());
+const {pts,wpts}=trkDecode(item,snap.val());
 trkClearView();
 if(pts.length>1){
-const line=L.polyline(pts.map(p=>[p.lat,p.lng]),{color:"#2563eb",weight:5,opacity:.9}).addTo(m);
+const line=L.polyline(pts.map(p=>[p.lat,p.lng]),{color:mine?"#2563eb":"#9333ea",weight:5,opacity:.9}).addTo(m);
 trk.viewLayers.push(line);
 trk.viewLayers.push(L.marker([pts[0].lat,pts[0].lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🚩</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(m));
 trk.viewLayers.push(L.marker([pts[pts.length-1].lat,pts[pts.length-1].lng],{icon:L.divIcon({className:"",html:'<div class="trk-start">🏁</div>',iconSize:[28,28],iconAnchor:[6,26]}),interactive:false}).addTo(m));
@@ -3928,32 +3992,72 @@ const mk=L.marker([w.lat,w.lng],{icon:L.divIcon({className:"",html:'<div class="
 const box=document.createElement("b");box.textContent=(w.icon||"⭐")+" "+(w.note||"Cột mốc");mk.bindPopup(box);trk.viewLayers.push(mk);
 });
 const es=trkElevStats(pts);
-const s={dist:meta.dist,dur:meta.dur,moving:meta.moving||meta.dur,up:meta.up||es.up,down:meta.down||es.down,maxAlt:meta.maxAlt!=null?meta.maxAlt:es.mx,minAlt:meta.minAlt!=null?meta.minAlt:es.mn};
-trkOpen('<h3>'+trkEsc(meta.name)+'</h3><p>'+new Date(meta.startedAt).toLocaleString("vi-VN")+'</p>'+trkStatsHtml(s)+'<canvas id="trkProf"></canvas>'+trkSplitsHtml(trkSplits(pts))+'<div class="trk-row"><button type="button" id="trkGpxDl">⬇️ Tải GPX</button><button type="button" id="trkDelBtn" class="trk-red">🗑️ Xóa</button></div>',()=>{
+const s={activity:item.activity,dist:item.dist||0,dur:item.dur||0,moving:item.moving||item.dur||0,up:item.up!=null?item.up:es.up,down:item.down!=null?item.down:es.down,maxAlt:item.maxAlt!=null?item.maxAlt:es.mx,minAlt:item.minAlt!=null?item.minAlt:es.mn};
+const rd=pts.length?pts[pts.length-1].d:0;
+const splits=(item.dist>0&&Math.abs(rd-item.dist)<item.dist*.05)?trkSplitsHtml(trkSplits(pts),item.activity):"";
+trkOpen(head+trkStatsHtml(s)+'<canvas id="trkProf"></canvas>'+splits+'<div class="trk-row"><button type="button" id="trkGpxDl">⬇️ Tải GPX</button>'+(mine?'<button type="button" id="trkDelBtn" class="trk-red">🗑️ Xóa</button>':'')+'</div>',()=>{
 requestAnimationFrame(()=>trkDrawProfile($("trkProf"),pts));
-$("trkGpxDl").onclick=()=>trkDownload(meta.name,trkGpx(meta.name,pts,wpts));
-$("trkDelBtn").onclick=async()=>{
-if(!confirm("Xóa hành trình này vĩnh viễn?"))return;
-try{await remove(ref(db,"trekData/"+user.uid+"/"+id));await remove(ref(db,"trekMeta/"+user.uid+"/"+id));trkClearView();trkShowHistory()}
-catch(e){trkToast("Không xóa được: "+(e.code||e.message))}
+$("trkGpxDl").onclick=()=>trkDownload(item.title||act.n,trkGpx(item.title||act.n,pts,wpts));
+const del=$("trkDelBtn");
+if(del)del.onclick=async()=>{
+if(!confirm("Xóa hoạt động này vĩnh viễn?"))return;
+try{
+await remove(ref(db,"trekData/"+item.uid+"/"+item.id));
+await remove(ref(db,(item.legacy?"trekMeta/"+item.uid+"/":"trekFeed/")+item.id));
+if(item.legacy){trk.legacy=trk.legacy.filter(x=>x.id!==item.id);trkRenderFeed()}
+trkClearView();trkClose();trkToast("Đã xóa hoạt động.");
+}catch(e){trkToast("Không xóa được: "+(e.code||e.message))}
 };
 });
+const ws=$("mapWorkspace");if(ws&&ws.scrollIntoView)ws.scrollIntoView({behavior:"smooth",block:"start"});
 }catch(e){
-trkOpen('<h3>'+trkEsc(meta.name)+'</h3><p>Không mở được hành trình: '+trkEsc(e.code||e.message)+'</p>');
+trkOpen(head+'<p>Không mở được đường đi: '+trkEsc(e.code||e.message)+'</p>');
 }
 }
-async function trkShowHistory(){
-trkOpen('<h3>📜 Lịch sử hành trình</h3><div id="trkHistBody"><p>Đang tải...</p></div>');
-try{
-const snap=await get(ref(db,"trekMeta/"+user.uid));
-const v=snap.val()||{};
-const items=Object.keys(v).map(id=>Object.assign({id},v[id])).sort((a,b)=>b.startedAt-a.startedAt);
-const body=$("trkHistBody");if(!body)return;
-if(!items.length){body.innerHTML="<p>Chưa có hành trình nào. Bấm ● Ghi hành trình rồi đi thôi! 🥾</p>";return}
+/* ---------- lịch sử công khai chia theo ngày ---------- */
+function trkDayKey(ms){const d=new Date(ms);return d.getFullYear()+"-"+trkPad(d.getMonth()+1)+"-"+trkPad(d.getDate())}
+function trkDayLabel(key){
+const p=key.split("-").map(Number),date=new Date(p[0],p[1]-1,p[2]),today=new Date();today.setHours(0,0,0,0);
+const diff=Math.round((today-date)/864e5);
+const full=date.toLocaleDateString("vi-VN",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});
+return diff===0?"Hôm nay · "+full:diff===1?"Hôm qua · "+full:full;
+}
+function trkAllItems(){
+const out=Object.keys(trk.feed).map(id=>Object.assign({id},trk.feed[id]));
+const have=new Set(out.map(x=>x.id));
+trk.legacy.forEach(x=>{if(!have.has(x.id))out.push(x)});
+return out;
+}
+function trkItemHtml(x){
+const a=TRK_ACTS[x.activity],ms=x.moving>0?x.dist/x.moving:(x.dur>0?x.dist/x.dur:0),mine=user&&x.uid===user.uid;
+return '<div class="trk-item'+(mine?' mine':'')+'" data-id="'+trkEsc(x.id)+'"><div><b>'+a.e+' '+trkEsc(x.title||a.n)+'</b><small>'+trkEsc(x.name||"?")+(mine?' (tôi)':'')+' · '+trkFmtClock(new Date(x.startedAt))+' · '+trkFmtTime((x.dur||0)*1000)+'</small></div><div style="text-align:right"><b>'+trkFmtDist(x.dist||0)+'</b><small>'+trkSpeedStr(ms,x.activity)+' · ↗'+Math.round(x.up||0)+' m</small></div></div>';
+}
+function trkRenderFeed(){
+const list=$("trekFeedList");if(!list)return;
+let items=trkAllItems().filter(x=>x&&x.startedAt&&TRK_ACTS[x.activity]);
+if(trk.fAct!=="all")items=items.filter(x=>x.activity===trk.fAct);
+if(trk.fScope==="mine"&&user)items=items.filter(x=>x.uid===user.uid);
+items.sort((a,b)=>b.startedAt-a.startedAt);
 const tot=items.reduce((a,x)=>({d:a.d+(x.dist||0),t:a.t+(x.dur||0),u:a.u+(x.up||0)}),{d:0,t:0,u:0});
-body.innerHTML='<div class="trk-grid"><div><small>Tổng quãng đường</small><b>'+trkFmtDist(tot.d)+'</b></div><div><small>Tổng thời gian</small><b>'+trkFmtTime(tot.t*1000).slice(0,5)+'</b></div><div><small>Tổng đã leo</small><b>'+Math.round(tot.u)+' m</b></div></div>'+items.map(x=>'<div class="trk-item" data-id="'+trkEsc(x.id)+'"><div><b>'+trkEsc(x.name)+'</b><small>'+new Date(x.startedAt).toLocaleDateString("vi-VN")+' · '+trkFmtTime((x.dur||0)*1000)+'</small></div><div>'+trkFmtDist(x.dist||0)+'<small>↗ '+Math.round(x.up||0)+' m</small></div></div>').join("");
-body.onclick=e=>{const it=e.target.closest(".trk-item");if(!it)return;const id=it.dataset.id;trkViewSaved(id,Object.assign({id},v[id]))};
-}catch(e){const body=$("trkHistBody");if(body)body.innerHTML="<p>Không đọc được lịch sử: "+trkEsc(e.code||e.message)+". Kiểm tra Firebase Rules (trekMeta).</p>"}
+$("trekFeedSummary").textContent=items.length?items.length+" hoạt động · "+trkFmtDist(tot.d)+" · "+trkFmtTime(tot.t*1000).slice(0,5)+" · leo "+Math.round(tot.u)+" m":"";
+if(!items.length){list.innerHTML='<div class="map-meeting-empty">Chưa có hoạt động nào. Bấm ● Ghi hành trình rồi đi thôi! 🥾🏃</div>';return}
+const groups={};
+items.forEach(x=>{const k=trkDayKey(x.startedAt);(groups[k]=groups[k]||[]).push(x)});
+list.innerHTML=Object.keys(groups).sort().reverse().map(k=>{
+const g=groups[k],gd=g.reduce((a,x)=>a+(x.dist||0),0),people=new Set(g.map(x=>x.uid)).size;
+const best=g.slice().sort((a,b)=>(b.dist||0)-(a.dist||0))[0];
+return '<div class="trk-day"><div class="trk-day-h"><b>'+trkEsc(trkDayLabel(k))+'</b><small>'+g.length+' hoạt động · '+people+' người · '+trkFmtDist(gd)+'</small></div>'+(people>1?'<div class="trk-day-best">🥇 '+trkEsc(best.name||"?")+' đi xa nhất: '+trkFmtDist(best.dist||0)+'</div>':'')+g.map(trkItemHtml).join("")+'</div>';
+}).join("");
+}
+function trkStartFeed(){
+if(trk.feedOn||!db||!user)return;
+trk.feedOn=true;
+onValue(query(ref(db,"trekFeed"),orderByChild("startedAt"),limitToLast(300)),snap=>{trk.feed=snap.val()||{};trkRenderFeed()},err=>{const l=$("trekFeedList");if(l)l.innerHTML='<div class="map-meeting-empty">Không đọc được lịch sử: '+trkEsc(err.code||err.message)+'. Hãy dán rules mới (trekFeed) vào Firebase.</div>'});
+get(ref(db,"trekMeta/"+user.uid)).then(s=>{
+const v=s.val()||{};
+trk.legacy=Object.keys(v).map(id=>({id,uid:user.uid,name:displayName,activity:"trek",title:v[id].name,startedAt:v[id].startedAt,endedAt:v[id].endedAt,dist:v[id].dist,dur:v[id].dur,moving:v[id].moving,up:v[id].up,down:v[id].down,maxAlt:v[id].maxAlt,minAlt:v[id].minAlt,legacy:true}));
+trkRenderFeed();
+}).catch(()=>{});
 }
 /* ---------- GPX ---------- */
 function trkGpx(name,pts,wpts){
@@ -4108,16 +4212,30 @@ const on=!m.hasLayer(trk.trail);
 if(on)trk.trail.addTo(m);else m.removeLayer(trk.trail);
 $("trekTrailBtn").classList.toggle("on",on);
 }
-function trkOnMapOpen(){trkUpdateSun();trkCheckDraft()}
+function trkSetTab(tab){
+trk.tab=tab;
+document.querySelectorAll("#mapPage [data-maptab]").forEach(el=>el.classList.toggle("maptab-off",el.dataset.maptab.split(" ").indexOf(tab)<0));
+document.querySelectorAll("#mapTabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+const ws=$("mapWorkspace");if(ws)ws.classList.toggle("trek-only",tab==="trek");
+try{localStorage.setItem("aminoMapTab",tab)}catch(_){}
+if(aminoMap)setTimeout(()=>aminoMap.invalidateSize(),60);
+}
+function trkOnMapOpen(){trkSetTab(trk.tab);trkUpdateSun();trkStartFeed();trkCheckDraft()}
 function setupTrekControls(){
 if(trk.ready)return;
 trk.ready=true;
 try{trk.voice=localStorage.getItem("aminoTrekVoice")==="1"}catch(_){}
+try{const t=localStorage.getItem("aminoMapTab");if(t==="map"||t==="trek"||t==="meet")trk.tab=t}catch(_){}
 const syncVoice=()=>{const b=$("trekVoiceBtn");b.textContent=trk.voice?"🔊 Đọc km":"🔇 Đọc km";b.classList.toggle("on",trk.voice)};
 syncVoice();
+$("mapTabs").onclick=e=>{const b=e.target.closest("button");if(b)trkSetTab(b.dataset.tab)};
+$("trekActs").onclick=e=>{const b=e.target.closest("button");if(b)trkSetActivity(b.dataset.a)};
+const chip=(id,key)=>{$(id).onclick=e=>{const b=e.target.closest("button");if(!b)return;trk[key]=b.dataset.v;$(id).querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));trkRenderFeed()}};
+chip("trekFeedAct","fAct");chip("trekFeedScope","fScope");
+$("trekFeedList").onclick=e=>{const it=e.target.closest(".trk-item");if(!it)return;const item=trkAllItems().find(x=>x.id===it.dataset.id);if(item)trkViewSaved(item)};
 $("trekStartBtn").onclick=()=>trkStart(false);
 $("trekPauseBtn").onclick=trkPause;
-$("trekStopBtn").onclick=()=>{if(confirm("Kết thúc hành trình này?"))trkStop()};
+$("trekStopBtn").onclick=()=>{if(confirm("Kết thúc hoạt động này?"))trkStop()};
 $("trekWptBtn").onclick=trkWptOpen;
 $("trekHomeBtn").onclick=trkToggleHome;
 $("trekSosBtn").onclick=trkSos;
@@ -4127,8 +4245,9 @@ $("trekFollowBtn").onclick=()=>{trk.follow=!trk.follow;trkSyncFollowBtn()};
 $("trekVoiceBtn").onclick=()=>{trk.voice=!trk.voice;try{localStorage.setItem("aminoTrekVoice",trk.voice?"1":"0")}catch(_){}syncVoice();if(trk.voice)trkSpeak("Đã bật đọc cột mốc kilômét.")};
 $("trekGpxBtn").onclick=()=>{if(trk.plan)trkShowPlan();else $("trekGpxFile").click()};
 $("trekGpxFile").onchange=e=>{const f=e.target.files&&e.target.files[0];e.target.value="";if(f)trkLoadGpx(f)};
-$("trekHistBtn").onclick=trkShowHistory;
 setInterval(trkUpdateSun,60000);
+trkSetTab(trk.tab);
+trkSetActivity("trek",true);
 trkRender();
 }
 /* ĐĂNG NHẬP */
